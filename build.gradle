@@ -1,0 +1,31 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+group = 'ca.cutterslade.gradle'
+version = '1.0.0-SNAPSHOT'
+
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
+dependencies {
+  compile gradleApi()
+  compile localGroovy()
+  compile 'org.apache.maven.shared:maven-dependency-analyzer:1.6'
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
+
+  repositories {
+    maven {
+      url "$buildDir/repo"
+    }
+  }
+}
