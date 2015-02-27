@@ -29,3 +29,5 @@ publishing {
     }
   }
 }
+
+tasks.withType(PublishToMavenRepository) {it.dependsOn check}
