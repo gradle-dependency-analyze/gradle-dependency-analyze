@@ -10,7 +10,11 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.logging.Logger
 
+import java.util.concurrent.ConcurrentHashMap
+
 class ProjectDependencyResolver {
+  private static final ConcurrentHashMap<File, Set<String>> ARTIFACT_CLASS_CACHE = new ConcurrentHashMap<>();
+
   private final ClassAnalyzer classAnalyzer = new DefaultClassAnalyzer();
   private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer();
 
@@ -110,11 +114,13 @@ class ProjectDependencyResolver {
    * @throws IOException
    */
   private Map<File, Set<String>> buildArtifactClassMap(Set<File> dependencyArtifacts) throws IOException {
-    Map<File, Set<String>> artifactClassMap = [:]
+    final Map<File, Set<String>> artifactClassMap = [:]
 
     dependencyArtifacts.each {File file ->
       if (file.name.endsWith('jar')) {
-        artifactClassMap.put(file, classAnalyzer.analyze(file.toURL()))
+        artifactClassMap.put(file, ARTIFACT_CLASS_CACHE.computeIfAbsent(file, { it ->
+          classAnalyzer.analyze(it.toURI().toURL()).asImmutable();
+        }))
       }
       else {
         logger.info "Skipping analysis of file for classes: $file"
