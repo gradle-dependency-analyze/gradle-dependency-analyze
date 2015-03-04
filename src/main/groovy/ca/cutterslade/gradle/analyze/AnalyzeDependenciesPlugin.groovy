@@ -11,7 +11,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
     if (project.tasks['classes']) {
       project.task(dependsOn: 'classes', type: AnalyzeDependenciesTask, 'analyzeClassesDependencies') {
         require = [project.configurations.compile]
-        allowedToDeclare = [project.configurations.provided]
+        allowedToDeclare = [project.configurations['provided']]
         classesDir = project.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).output.classesDir
       }
       project.analyzeDependencies.dependsOn('analyzeClassesDependencies')
@@ -20,7 +20,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       project.task(dependsOn: 'testClasses', type: AnalyzeDependenciesTask, 'analyzeTestClassesDependencies') {
         require = [project.configurations.testCompile]
         allowedToUse = [project.configurations.compile]
-        allowedToDeclare = [project.configurations.provided]
+        allowedToDeclare = [project.configurations['provided']]
         classesDir = project.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output.classesDir
       }
       project.analyzeDependencies.dependsOn('analyzeTestClassesDependencies')
