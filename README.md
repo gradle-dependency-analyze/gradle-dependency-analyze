@@ -19,8 +19,9 @@ buildscript {
   dependencies {
     classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.0.0'
   }
-  apply plugin: 'ca.cutterslade.analyze'
 }
+
+apply plugin: 'ca.cutterslade.analyze'
 ```
 # Tasks
 This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeClassesDependencies`, and `analyzeDependencies`.
