@@ -28,16 +28,16 @@ class ProjectDependencyResolver {
       final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
       final File classesDir) {
     this.logger = logger
-    this.require = require
-    this.allowedToUse = allowedToUse
-    this.allowedToDeclare = allowedToDeclare
+    this.require = removeNulls(require)
+    this.allowedToUse = removeNulls(allowedToUse)
+    this.allowedToDeclare = removeNulls(allowedToDeclare)
     this.classesDir = classesDir
   }
-/**
- *
- * @param project
- * @return
- */
+
+  private static <T> List<T> removeNulls(final List<T> list) {
+    null == list ? [] : list - null
+  }
+
   ProjectDependencyAnalysis analyzeDependencies() {
     Set<ResolvedDependency> allowedToUseDeps = allowedToUseDependencies
     Set<ResolvedDependency> allowedToDeclareDeps = allowedToDeclareDependencies
