@@ -5,16 +5,11 @@ This plugin is based on the work in a gist at https://gist.github.com/anonymous/
 
 This plugin attempts to replicate the functionality of the maven dependency plugin's analyze goals which fail the build if dependencies are declared but not used or used but not declared.
 
-I haven't gotten around to publishing the plugin anywhere, but if you build it locally, it can be installed to your local maven repository with:
-```
-./gradlew publishToMavenLocal
-```
-
-You can then use the plugin in your project:
+The plugin is available from the JCenter repository, so it can be added to your build with the following:
 ```gradle
 buildscript {
   repositories {
-    mavenLocal()
+    jcenter()
   }
   dependencies {
     classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.0.0'
