@@ -11,6 +11,7 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.logging.Logger
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Function
 
 class ProjectDependencyResolver {
   private static final ConcurrentHashMap<File, Set<String>> ARTIFACT_CLASS_CACHE = new ConcurrentHashMap<>();
@@ -118,8 +119,11 @@ class ProjectDependencyResolver {
 
     dependencyArtifacts.each {File file ->
       if (file.name.endsWith('jar')) {
-        artifactClassMap.put(file, ARTIFACT_CLASS_CACHE.computeIfAbsent(file, { it ->
-          classAnalyzer.analyze(it.toURI().toURL()).asImmutable();
+        artifactClassMap.put(file, ARTIFACT_CLASS_CACHE.computeIfAbsent(file, new Function<File, Set<String>>() {
+          @Override
+          Set<String> apply(File f) {
+            return classAnalyzer.analyze(f.toURI().toURL()).asImmutable();
+          }
         }))
       }
       else {

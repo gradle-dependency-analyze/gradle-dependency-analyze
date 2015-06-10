@@ -25,7 +25,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
       if (violations) {
         buffer.append("$section: \n")
         violations*.moduleVersion*.id.each {
-          buffer.append(" - $it.group:$it.name\n")
+          buffer.append(" - $it.group:$it.name:$it.version\n")
         }
       }
     }
