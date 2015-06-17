@@ -1,12 +1,16 @@
-apply plugin: 'groovy'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
+plugins {
+  id 'java'
+  id 'groovy'
+  id 'maven'
+  id 'maven-publish'
+  id 'com.jfrog.bintray' version '1.1'
+  id 'com.jfrog.artifactory' version '3.1.1'
+}
 
 group = 'ca.cutterslade.gradle'
 version = '1.0.3-SNAPSHOT'
 
 repositories {
-  mavenLocal()
   jcenter()
 }
 
@@ -15,6 +19,9 @@ dependencies {
   compile localGroovy()
   compile 'org.apache.maven.shared:maven-dependency-analyzer:1.6'
 }
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
 
 publishing {
   publications {
@@ -26,6 +33,35 @@ publishing {
   repositories {
     maven {
       url "$buildDir/repo"
+    }
+  }
+}
+
+bintray {
+  user = bintrayUser
+  key = bintrayApiKey
+  publications = ['mavenJava']
+  pkg {
+    repo = 'maven'
+    name = project.name
+    desc = 'Dependency analysis plugin for gradle'
+    websiteUrl = 'https://github.com/wfhartford/gradle-dependency-analyze'
+    issueTrackerUrl = 'https://github.com/wfhartford/gradle-dependency-analyze/issues'
+    vcsUrl = 'https://github.com/wfhartford/gradle-dependency-analyze.git'
+  }
+}
+
+artifactory {
+  contextUrl = 'http://oss.jfrog.org/artifactory'
+  publish {
+    repository {
+      repoKey = 'oss-snapshot-local'
+      username = jfrogUser
+      password = jfrogPassword
+      maven = true
+    }
+    defaults {
+      publications ('mavenJava')
     }
   }
 }

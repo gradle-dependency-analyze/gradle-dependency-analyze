@@ -105,7 +105,6 @@ class ProjectDependencyResolver {
     configurations.collect {it.resolvedConfiguration.firstLevelModuleDependencies}.flatten()
   }
 
-
   /**
    * Map each of the files declared on all configurations of the project to a collection of the class names they
    * contain.
@@ -118,9 +117,12 @@ class ProjectDependencyResolver {
 
     dependencyArtifacts.each {File file ->
       if (file.name.endsWith('jar')) {
-        artifactClassMap.put(file, ARTIFACT_CLASS_CACHE.computeIfAbsent(file, { it ->
-          classAnalyzer.analyze(it.toURI().toURL()).asImmutable();
-        }))
+        def classes = ARTIFACT_CLASS_CACHE[file]
+        if (null == classes) {
+          classes = classAnalyzer.analyze(file.toURI().toURL()).asImmutable()
+          ARTIFACT_CLASS_CACHE.putIfAbsent(file, classes)
+        }
+        artifactClassMap.put(file, classes)
       }
       else {
         logger.info "Skipping analysis of file for classes: $file"
