@@ -1,4 +1,7 @@
 # gradle-dependency-analyze
+
+[![Build Status](https://travis-ci.org/wfhartford/gradle-dependency-analyze.svg?branch=master)](https://travis-ci.org/wfhartford/gradle-dependency-analyze)
+
 Dependency analysis plugin for gradle
 
 This plugin is based on the work in a gist at https://gist.github.com/anonymous/4334439, if you're the original author, thank you, and please let me know.
