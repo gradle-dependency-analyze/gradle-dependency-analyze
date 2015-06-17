@@ -37,7 +37,7 @@ publishing {
   }
 }
 
-bintray {
+if (this.hasProperty('bintrayUser') && this.hasProperty('bintrayApiKey')) bintray {
   user = bintrayUser
   key = bintrayApiKey
   publications = ['mavenJava']
@@ -51,7 +51,7 @@ bintray {
   }
 }
 
-artifactory {
+if (this.hasProperty('jfrogUser') && this.hasProperty('jfrogPassword')) artifactory {
   contextUrl = 'http://oss.jfrog.org/artifactory'
   publish {
     repository {
