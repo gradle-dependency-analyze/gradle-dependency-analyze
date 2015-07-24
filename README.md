@@ -22,7 +22,7 @@ buildscript {
 apply plugin: 'ca.cutterslade.analyze'
 ```
 # Tasks
-This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeClassesDependencies`, and `analyzeDependencies`.
+This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
 ## analyzeClassesDependencies
 This task depends on the `classes` task and analyzes the dependencies of the main source set's output directory. This ensures that all dependencies declared in the `compile` configuration are used by classes, and that all dependencies of the classes are declared in the `compile` or `provided` configurations (see [Nebula Extra Configurations](https://github.com/nebula-plugins/gradle-extra-configurations-plugin)).
 ## analyzeTestClassesDependencies
