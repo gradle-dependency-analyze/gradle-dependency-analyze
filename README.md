@@ -29,3 +29,11 @@ This task depends on the `classes` task and analyzes the dependencies of the mai
 This task depends on the `testClasses` task and analyzes the dependencies of the test source set's output directory. This ensures that all dependencies declared in the `testCompile` configuration are used by classes, and that all dependencies of the classes are declared in the `testCompile`, `compile`, or `provided` configurations.
 ## analyzeDependencies
 This task depends on the `analyzeClassesDependencies` and `analyzeTestClassesDependencies` tasks, and does nothing on its own. A dependency on this task is added to the `check` task.
+
+# Configuration
+The plugin is not especially configurable, but each task can be configured to log a warning about dependency issues rather than breaking the build like so:
+```gradle
+analyzeClassesDependencies {
+  justWarn = true
+}
+```
