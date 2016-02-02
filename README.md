@@ -19,6 +19,8 @@ buildscript {
   }
 }
 
+apply plugin: 'java'
+// Dependency analysis plugin must be applied after the java plugin.
 apply plugin: 'ca.cutterslade.analyze'
 ```
 # Tasks
