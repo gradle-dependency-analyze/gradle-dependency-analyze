@@ -30,7 +30,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
       }
     }
     if (buffer) {
-      def message = "Dependency analysis found issues: $buffer"
+      def message = "Dependency analysis found issues:\n$buffer"
       if (justWarn) {
         project.logger.warn message
       }
