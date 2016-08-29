@@ -3,12 +3,12 @@ plugins {
   id 'groovy'
   id 'maven'
   id 'maven-publish'
-  id 'com.jfrog.bintray' version '1.6'
+  id 'com.jfrog.bintray' version '1.7.1'
   id 'com.jfrog.artifactory' version '4.2.0'
 }
 
 group = 'ca.cutterslade.gradle'
-version = '1.0.5-SNAPSHOT'
+version = '1.1.0-SNAPSHOT'
 
 repositories {
   jcenter()
