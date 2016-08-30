@@ -23,10 +23,22 @@ dependencies {
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
 publishing {
   publications {
     mavenJava(MavenPublication) {
       from components.java
+      artifact javadocJar {classifier 'javadoc'}
+      artifact sourcesJar {classifier 'sources'}
     }
   }
 
