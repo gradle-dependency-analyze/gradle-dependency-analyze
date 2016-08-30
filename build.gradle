@@ -23,10 +23,22 @@ dependencies {
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
 publishing {
   publications {
     mavenJava(MavenPublication) {
       from components.java
+      artifact javadocJar {classifier 'javadoc'}
+      artifact sourcesJar {classifier 'sources'}
     }
   }
 
@@ -66,4 +78,14 @@ if (this.hasProperty('jfrogUser') && this.hasProperty('jfrogPassword')) artifact
   }
 }
 
-tasks.withType(PublishToMavenRepository) {it.dependsOn check}
+task javaVersionCheck() << {
+  if (JavaVersion.current() != JavaVersion.VERSION_1_6) {
+    throw new GradleException('Build must be run on Java 6')
+  }
+}
+
+tasks.withType(PublishToMavenRepository) {
+  it.dependsOn check
+  it.dependsOn javaVersionCheck
+}
+
