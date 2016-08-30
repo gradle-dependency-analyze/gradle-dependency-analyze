@@ -1,5 +1,1 @@
-if (JavaVersion.current() != JavaVersion.VERSION_1_6) {
-  throw new GradleException('This build must be run with Java 6')
-}
-
 rootProject.name = 'gradle-dependency-analyze'
