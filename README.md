@@ -27,9 +27,9 @@ apply plugin: 'ca.cutterslade.analyze'
 # Tasks
 This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
 ## analyzeClassesDependencies
-This task depends on the `classes` task and analyzes the dependencies of the main source set's output directory. This ensures that all dependencies of the classes are declared in the `compile`, `compineOnly`, or [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin) configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitUnusedDeclared` configuration allows for exceptions to this restriction.
+This task depends on the `classes` task and analyzes the dependencies of the main source set's output directory. This ensures that all dependencies of the classes are declared in the `compile`, `compileOnly`, or [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin) configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitUnusedDeclared` configuration allows for exceptions to this restriction.
 ## analyzeTestClassesDependencies
-This task depends on the `testClasses` task and analyzes the dependencies of the test source set's output directory. This ensures that all dependencies of the classes are declared in the `testCompile` or `testCompineOnly` configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitTestUnusedDeclared` configuration allows for exceptions to this restriction.
+This task depends on the `testClasses` task and analyzes the dependencies of the test source set's output directory. This ensures that all dependencies of the classes are declared in the `testCompile` or `testCompileOnly` configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitTestUnusedDeclared` configuration allows for exceptions to this restriction.
 ## analyzeDependencies
 This task depends on the `analyzeClassesDependencies` and `analyzeTestClassesDependencies` tasks, and does nothing on its own. A dependency on this task is added to the `check` task.
 
