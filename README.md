@@ -46,6 +46,10 @@ The plugin is not especially configurable, but each task can be configured to lo
 analyzeClassesDependencies {
   justWarn = true
 }
+
+analyzeTestClassesDependencies {
+  justWarn = true
+}
 ```
 
 # Version 1.1
