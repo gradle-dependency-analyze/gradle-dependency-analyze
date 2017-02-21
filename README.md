@@ -40,6 +40,15 @@ This plugin adds two configurations which may be used to define dependencies whi
 
 Adding dependencies to one of these configurations causes the dependency analyzer to ignore cases where the dependencies declared but not used.
 
+## Examples
+Using these configurations to allow exceptions to the rules is as simple as adding a dependency to your project. The snippet below will provide a compile-time dependency on the JSP API, but the plugin will not complain if it is not used.
+```gradle
+dependencies {
+  compile 'javax.servlet:jsp-api:2.0'
+  permitUnusedDeclared 'javax.servlet:jsp-api:2.0'
+}
+```
+
 # Task Configuration
 The plugin is not especially configurable, but each task can be configured to log a warning about dependency issues rather than breaking the build like so:
 ```gradle
