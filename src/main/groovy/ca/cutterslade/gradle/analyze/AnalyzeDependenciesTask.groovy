@@ -7,17 +7,21 @@ import org.gradle.api.tasks.TaskAction
 
 class AnalyzeDependenciesTask extends DefaultTask {
   boolean justWarn
-  List<Configuration> require;
-  List<Configuration> allowedToUse;
-  List<Configuration> allowedToDeclare;
-  File classesDir;
+  List<Configuration> require
+  List<Configuration> allowedToUse
+  List<Configuration> allowedToDeclare
+  Iterable<File> classesDirs
+
+  void setClassesDir(File classesDir) {
+    this.classesDirs = [classesDir]
+  }
 
   @TaskAction
   def action() {
-    project.logger.info "Analyzing dependencies of $classesDir for [require: $require, allowedToUse: $allowedToUse, " +
+    project.logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
         "allowedToDeclare: $allowedToDeclare]"
     ProjectDependencyAnalysis analysis =
-        new ProjectDependencyResolver(project.logger, require, allowedToUse, allowedToDeclare, classesDir)
+        new ProjectDependencyResolver(project.logger, require, allowedToUse, allowedToDeclare, classesDirs)
             .analyzeDependencies()
     StringBuffer buffer = new StringBuffer()
     ['usedUndeclaredArtifacts', 'unusedDeclaredArtifacts'].each {section ->

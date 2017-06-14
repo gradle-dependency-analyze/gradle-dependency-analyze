@@ -13,25 +13,25 @@ import org.gradle.api.logging.Logger
 import java.util.concurrent.ConcurrentHashMap
 
 class ProjectDependencyResolver {
-  private static final ConcurrentHashMap<File, Set<String>> ARTIFACT_CLASS_CACHE = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<File, Set<String>> ARTIFACT_CLASS_CACHE = new ConcurrentHashMap<>()
 
-  private final ClassAnalyzer classAnalyzer = new DefaultClassAnalyzer();
-  private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer();
+  private final ClassAnalyzer classAnalyzer = new DefaultClassAnalyzer()
+  private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer()
 
-  private final Logger logger;
-  private final List<Configuration> require;
-  private final List<Configuration> allowedToUse;
-  private final List<Configuration> allowedToDeclare;
-  private final File classesDir;
+  private final Logger logger
+  private final List<Configuration> require
+  private final List<Configuration> allowedToUse
+  private final List<Configuration> allowedToDeclare
+  private final Iterable<File> classesDirs
 
   ProjectDependencyResolver(final Logger logger, final List<Configuration> require,
       final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
-      final File classesDir) {
+      final Iterable<File> classesDirs) {
     this.logger = logger
     this.require = removeNulls(require)
     this.allowedToUse = removeNulls(allowedToUse)
     this.allowedToDeclare = removeNulls(allowedToDeclare)
-    this.classesDir = classesDir
+    this.classesDirs = classesDirs
   }
 
   private static <T> List<T> removeNulls(final List<T> list) {
@@ -74,14 +74,19 @@ class ProjectDependencyResolver {
     Set<ResolvedArtifact> allowedToDeclareArtifacts = allowedToDeclareDeps*.moduleArtifacts?.flatten()
     logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
 
-    Set<ResolvedArtifact> allArtifacts = require*.resolvedConfiguration*.firstLevelModuleDependencies*.allModuleArtifacts.flatten()
+    Set<ResolvedArtifact> allArtifacts = require*.resolvedConfiguration*.firstLevelModuleDependencies*.allModuleArtifacts.
+        flatten()
     logger.info "allArtifacts = $allArtifacts"
 
     def usedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts}
     def usedUndeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts}
-    if (allowedToUseArtifacts) usedUndeclared-=allowedToUseArtifacts
+    if (allowedToUseArtifacts) {
+      usedUndeclared -= allowedToUseArtifacts
+    }
     def unusedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts}
-    if (allowedToDeclareArtifacts) unusedDeclared-=allowedToDeclareArtifacts
+    if (allowedToDeclareArtifacts) {
+      unusedDeclared -= allowedToDeclareArtifacts
+    }
 
     return new ProjectDependencyAnalysis(
         usedDeclared.unique {it.file} as Set,
@@ -145,7 +150,9 @@ class ProjectDependencyResolver {
    * @return a Set of class names
    */
   private Set<String> analyzeClassDependencies() {
-    dependencyAnalyzer.analyze(classesDir.toURI().toURL())
+    Set<String> dependencies = []
+    classesDirs.collect {dependencyAnalyzer.analyze(it.toURI().toURL())}.forEach {dependencies.addAll(it)}
+    dependencies
   }
 
   /**
