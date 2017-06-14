@@ -20,7 +20,8 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
         allowedToDeclare = [
             project.configurations.permitUnusedDeclared
         ]
-        classesDir = project.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).output.classesDir
+        def output = project.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).output
+        classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : [output.classesDir]
       }
       project.analyzeDependencies.dependsOn('analyzeClassesDependencies')
     }
@@ -37,7 +38,8 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
         allowedToDeclare = [
             project.configurations.permitTestUnusedDeclared
         ]
-        classesDir = project.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output.classesDir
+        def output = project.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output
+        classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : [output.classesDir]
       }
       project.analyzeDependencies.dependsOn('analyzeTestClassesDependencies')
     }

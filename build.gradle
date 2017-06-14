@@ -49,43 +49,49 @@ publishing {
   }
 }
 
-if (this.hasProperty('bintrayUser') && this.hasProperty('bintrayApiKey')) bintray {
-  user = bintrayUser
-  key = bintrayApiKey
-  publications = ['mavenJava']
-  pkg {
-    repo = 'maven'
-    name = project.name
-    desc = 'Dependency analysis plugin for gradle'
-    websiteUrl = 'https://github.com/wfhartford/gradle-dependency-analyze'
-    issueTrackerUrl = 'https://github.com/wfhartford/gradle-dependency-analyze/issues'
-    vcsUrl = 'https://github.com/wfhartford/gradle-dependency-analyze.git'
-  }
-}
-
-if (this.hasProperty('jfrogUser') && this.hasProperty('jfrogPassword')) artifactory {
-  contextUrl = 'http://oss.jfrog.org/artifactory'
-  publish {
-    repository {
-      repoKey = 'oss-snapshot-local'
-      username = jfrogUser
-      password = jfrogPassword
-      maven = true
-    }
-    defaults {
-      publications ('mavenJava')
+if (this.hasProperty('bintrayUser') && this.hasProperty('bintrayApiKey')) {
+  bintray {
+    user = bintrayUser
+    key = bintrayApiKey
+    publications = ['mavenJava']
+    pkg {
+      repo = 'maven'
+      name = project.name
+      desc = 'Dependency analysis plugin for gradle'
+      websiteUrl = 'https://github.com/wfhartford/gradle-dependency-analyze'
+      issueTrackerUrl = 'https://github.com/wfhartford/gradle-dependency-analyze/issues'
+      vcsUrl = 'https://github.com/wfhartford/gradle-dependency-analyze.git'
     }
   }
 }
 
-task javaVersionCheck() << {
-  if (JavaVersion.current() != JavaVersion.VERSION_1_6) {
-    throw new GradleException('Build must be run on Java 6')
+if (this.hasProperty('jfrogUser') && this.hasProperty('jfrogPassword')) {
+  artifactory {
+    contextUrl = 'http://oss.jfrog.org/artifactory'
+    publish {
+      repository {
+        repoKey = 'oss-snapshot-local'
+        username = jfrogUser
+        password = jfrogPassword
+        maven = true
+      }
+      defaults {
+        publications('mavenJava')
+      }
+    }
   }
 }
+
+task javaVersionCheck() {
+  doLast {
+    if (JavaVersion.current() != JavaVersion.VERSION_1_6) {
+      throw new GradleException('Build must be run on Java 6')
+    }
+  }
+}
+
+check.dependsOn javaVersionCheck
 
 tasks.withType(PublishToMavenRepository) {
   it.dependsOn check
-  it.dependsOn javaVersionCheck
 }
-
