@@ -16,13 +16,22 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.1.1'
+    classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.2.0'
   }
 }
 
 apply plugin: 'java'
-// Dependency analysis plugin must be applied after the java plugin.
 apply plugin: 'ca.cutterslade.analyze'
+```
+
+When applying this plugin to a multi-project build, it should be applied the root project as well as all sub-projects for which dependency analysis is needed. A common pattern is to apply this plugin to all projects and the java plugin to only the sub-projects:
+```gradls
+allprojects {
+  apply plugin: 'ca.cutterslade.analyze'
+}
+subprojects {
+  apply plugin: 'java'
+}
 ```
 # Tasks
 This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
