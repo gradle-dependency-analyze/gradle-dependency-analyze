@@ -61,6 +61,16 @@ analyzeTestClassesDependencies {
 }
 ```
 
+# Version 1.2
+Version 1.2 of this plugin introduces a couple significant changes.
+
+* For multi project builds, the plugin must now be applied to the root project. If it has not been applied to the root project, the build will fail with the message `Dependency analysis plugin must also be applied to the root project`.
+* The plugin will no longer fail to apply if the java plugin has not been applied. Applying this plugin to a project without the java plugin will have no effect.
+* The plugin no longer caches caches dependency information in a static cache which would persist across executions when the gradle daemon was in use. It now caches dependency information in the root project. This represents a small performance penalty but avoids a potential issue if a dependency file is modified, and a potential memory leak if the path of dependency files changes regularly.
+* The tasks now produce output files at `$buildDir/dependency-analyse/$taskName`. This contains the exception message if the task causes the build to fail, or is empty if the task does not cause the build to fail.
+* The tasks now specify inputs and outputs allowing gradle to consider a task up-to-date if nothing has changed.
+* The tasks allows caching of outputs on gradle versions which support the task output cache. This allows the task work to be skipped even on clean builds if an appropriate cached result exists.
+
 # Version 1.1
 Version 1.1 of this plugin introduced a couple significant changes.
 

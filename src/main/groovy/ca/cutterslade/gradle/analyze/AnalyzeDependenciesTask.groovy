@@ -20,7 +20,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
   @InputFiles
   FileCollection classesDirs = project.files()
   @OutputFile
-  File outputFile = project.file("$project.buildDir/dependency-analyze/result")
+  File outputFile = project.file("$project.buildDir/dependency-analyze/$name")
 
   AnalyzeDependenciesTask() {
     def methods = outputs.class.getMethods().grep {Method m -> m.name == 'cacheIf'}
@@ -35,7 +35,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
 
   @TaskAction
   def action() {
-    project.logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
+    logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
         "allowedToDeclare: $allowedToDeclare]"
     ProjectDependencyAnalysis analysis =
         new ProjectDependencyResolver(project, require, allowedToUse, allowedToDeclare, classesDirs)
@@ -55,7 +55,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
     if (buffer) {
       def message = "Dependency analysis found issues.\n$buffer"
       if (justWarn) {
-        project.logger.warn message
+        logger.warn message
       }
       else {
         throw new DependencyAnalysisException(message)
@@ -73,36 +73,42 @@ class AnalyzeDependenciesTask extends DefaultTask {
               *.allModuleArtifacts
               *.file.flatten() as Set<File>
       )
-      project.logger.info "All Artifact Files: $files"
+      logger.info "All Artifact Files: $files"
       files
     })
-
   }
 
   @InputFiles
   FileCollection getRequiredFiles() {
-    getFirstLevelFiles(require, 'required')
+    project.files({
+      def files = getFirstLevelFiles(require, 'required') -
+          getFirstLevelFiles(allowedToUse, 'allowed to use')
+      logger.info  "Actual required files: $files"
+      files
+    })
   }
 
   @InputFiles
   FileCollection getAllowedToUseFiles() {
-    getFirstLevelFiles(allowedToUse, 'allowed to user')
+    getFirstLevelFileCollection(allowedToUse, 'allowed to use')
   }
 
   @InputFiles
   FileCollection getAllowedToDeclareFiles() {
-    getFirstLevelFiles(allowedToDeclare, 'allowed to declare')
+    getFirstLevelFileCollection(allowedToDeclare, 'allowed to declare')
   }
 
-  private FileCollection getFirstLevelFiles(List<Configuration> configurations, String name) {
-    project.files({
-      def files = ProjectDependencyResolver.removeNulls(
-          ProjectDependencyResolver.getFirstLevelDependencies(
-              ProjectDependencyResolver.removeNulls(configurations)
-          )*.allModuleArtifacts*.file.flatten()
-      )
-      project.logger.info "First level $name files: $files"
-      files
-    })
+  private FileCollection getFirstLevelFileCollection(List<Configuration> configurations, String name) {
+    project.files {getFirstLevelFiles(configurations, name)}
+  }
+
+  Set<File> getFirstLevelFiles(List<Configuration> configurations, String name) {
+    Set<File> files = ProjectDependencyResolver.removeNulls(
+        ProjectDependencyResolver.getFirstLevelDependencies(
+            ProjectDependencyResolver.removeNulls(configurations)
+        )*.moduleArtifacts*.file.flatten()
+    )
+    logger.info "First level $name files: $files"
+    files
   }
 }
