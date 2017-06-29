@@ -20,7 +20,6 @@ class ProjectDependencyResolver {
   private final ClassAnalyzer classAnalyzer = new DefaultClassAnalyzer()
   private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer()
 
-  private final Project project
   private final ConcurrentHashMap<File, Set<String>> artifactClassCache
   private final Logger logger
   private final List<Configuration> require
@@ -31,7 +30,6 @@ class ProjectDependencyResolver {
   ProjectDependencyResolver(final Project project, final List<Configuration> require,
       final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
       final Iterable<File> classesDirs) {
-    this.project = project
     try {
       this.artifactClassCache = project.rootProject.extensions.getByName(CACHE_NAME)
     }

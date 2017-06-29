@@ -15,41 +15,51 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
     if (project.plugins.hasPlugin('java')) {
       project.configurations.create('permitUnusedDeclared')
       project.configurations.create('permitTestUnusedDeclared')
-      project.task('analyzeDependencies')
-      if (project.tasks['classes']) {
-        project.task(dependsOn: 'classes', type: AnalyzeDependenciesTask, 'analyzeClassesDependencies') {
-          require = [
-              project.configurations.compile,
-              project.configurations.findByName('compileOnly'),
-              project.configurations.findByName('provided')
-          ]
-          allowedToDeclare = [
-              project.configurations.permitUnusedDeclared
-          ]
-          def output = project.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).output
-          classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
-        }
-        project.analyzeDependencies.dependsOn('analyzeClassesDependencies')
+
+      def mainTask = project.task('analyzeClassesDependencies',
+          dependsOn: 'classes',
+          type: AnalyzeDependenciesTask,
+          group: 'Verification',
+          description: 'Analyze project for dependency issues related to main source set.'
+      ) {
+        require = [
+            project.configurations.compile,
+            project.configurations.findByName('compileOnly'),
+            project.configurations.findByName('provided')
+        ]
+        allowedToDeclare = [
+            project.configurations.permitUnusedDeclared
+        ]
+        def output = project.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).output
+        classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
       }
-      if (project.tasks['testClasses']) {
-        project.task(dependsOn: 'testClasses', type: AnalyzeDependenciesTask, 'analyzeTestClassesDependencies') {
-          require = [
-              project.configurations.testCompile,
-              project.configurations.findByName('testCompileOnly')
-          ]
-          allowedToUse = [
-              project.configurations.compile,
-              project.configurations.findByName('provided')
-          ]
-          allowedToDeclare = [
-              project.configurations.permitTestUnusedDeclared
-          ]
-          def output = project.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output
-          classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
-        }
-        project.analyzeDependencies.dependsOn('analyzeTestClassesDependencies')
+
+      def testTask = project.task('analyzeTestClassesDependencies',
+          dependsOn: 'testClasses',
+          type: AnalyzeDependenciesTask,
+          group: 'Verification',
+          description: 'Analyze project for dependency issues related to test source set.'
+      ) {
+        require = [
+            project.configurations.testCompile,
+            project.configurations.findByName('testCompileOnly')
+        ]
+        allowedToUse = [
+            project.configurations.compile,
+            project.configurations.findByName('provided')
+        ]
+        allowedToDeclare = [
+            project.configurations.permitTestUnusedDeclared
+        ]
+        def output = project.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output
+        classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
       }
-      project.check.dependsOn('analyzeDependencies')
+
+      project.check.dependsOn project.task('analyzeDependencies',
+          dependsOn: [mainTask, testTask],
+          group: 'Verification',
+          description: 'Analyze project for dependency issues.'
+      )
     }
   }
 }

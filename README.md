@@ -79,6 +79,10 @@ Version 1.2 of this plugin introduces a couple significant changes.
 * The tasks now produce output files at `$buildDir/dependency-analyse/$taskName`. This contains the exception message if the task causes the build to fail, or is empty if the task does not cause the build to fail.
 * The tasks now specify inputs and outputs allowing gradle to consider a task up-to-date if nothing has changed.
 * The tasks allows caching of outputs on gradle versions which support the task output cache. This allows the task work to be skipped even on clean builds if an appropriate cached result exists.
+* Tasks will now appear in the listing produced by `gradle tasks` under the Verification group.
+
+## Migration from 1.1
+Migrating from version 1.1 to version 1.2 of the plugin should be very simple. Most users will not have to make any changes, users with multi-project builds will have to ensure that the plugin is applied to the root project. This can be accomplished by applying the plugin in the `allprojects {}` block.
 
 # Version 1.1
 Version 1.1 of this plugin introduced a couple significant changes.
