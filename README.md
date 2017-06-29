@@ -16,13 +16,22 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.1.1'
+    classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.2.0'
   }
 }
 
 apply plugin: 'java'
-// Dependency analysis plugin must be applied after the java plugin.
 apply plugin: 'ca.cutterslade.analyze'
+```
+
+When applying this plugin to a multi-project build, it should be applied the root project as well as all sub-projects for which dependency analysis is needed. A common pattern is to apply this plugin to all projects and the java plugin to only the sub-projects:
+```gradls
+allprojects {
+  apply plugin: 'ca.cutterslade.analyze'
+}
+subprojects {
+  apply plugin: 'java'
+}
 ```
 # Tasks
 This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
@@ -60,6 +69,20 @@ analyzeTestClassesDependencies {
   justWarn = true
 }
 ```
+
+# Version 1.2
+Version 1.2 of this plugin introduces a couple significant changes.
+
+* For multi project builds, the plugin must now be applied to the root project. If it has not been applied to the root project, the build will fail with the message `Dependency analysis plugin must also be applied to the root project`.
+* The plugin will no longer fail to apply if the java plugin has not been applied. Applying this plugin to a project without the java plugin will have no effect.
+* The plugin no longer caches caches dependency information in a static cache which would persist across executions when the gradle daemon was in use. It now caches dependency information in the root project. This represents a small performance penalty but avoids a potential issue if a dependency file is modified, and a potential memory leak if the path of dependency files changes regularly.
+* The tasks now produce output files at `$buildDir/dependency-analyse/$taskName`. This contains the exception message if the task causes the build to fail, or is empty if the task does not cause the build to fail.
+* The tasks now specify inputs and outputs allowing gradle to consider a task up-to-date if nothing has changed.
+* The tasks allows caching of outputs on gradle versions which support the task output cache. This allows the task work to be skipped even on clean builds if an appropriate cached result exists.
+* Tasks will now appear in the listing produced by `gradle tasks` under the Verification group.
+
+## Migration from 1.1
+Migrating from version 1.1 to version 1.2 of the plugin should be very simple. Most users will not have to make any changes, users with multi-project builds will have to ensure that the plugin is applied to the root project. This can be accomplished by applying the plugin in the `allprojects {}` block.
 
 # Version 1.1
 Version 1.1 of this plugin introduced a couple significant changes.

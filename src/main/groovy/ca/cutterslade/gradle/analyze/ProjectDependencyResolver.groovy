@@ -5,6 +5,8 @@ import org.apache.maven.shared.dependency.analyzer.DefaultClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer
 import org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalysis
 import org.apache.maven.shared.dependency.analyzer.asm.ASMDependencyAnalyzer
+import org.gradle.api.Project
+import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
@@ -13,29 +15,36 @@ import org.gradle.api.logging.Logger
 import java.util.concurrent.ConcurrentHashMap
 
 class ProjectDependencyResolver {
-  private static final ConcurrentHashMap<File, Set<String>> ARTIFACT_CLASS_CACHE = new ConcurrentHashMap<>()
+  static final String CACHE_NAME = 'ca.cutterslade.gradle.analyze.ProjectDependencyResolver.artifactClassCache'
 
   private final ClassAnalyzer classAnalyzer = new DefaultClassAnalyzer()
   private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer()
 
+  private final ConcurrentHashMap<File, Set<String>> artifactClassCache
   private final Logger logger
   private final List<Configuration> require
   private final List<Configuration> allowedToUse
   private final List<Configuration> allowedToDeclare
   private final Iterable<File> classesDirs
 
-  ProjectDependencyResolver(final Logger logger, final List<Configuration> require,
+  ProjectDependencyResolver(final Project project, final List<Configuration> require,
       final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
       final Iterable<File> classesDirs) {
-    this.logger = logger
+    try {
+      this.artifactClassCache = project.rootProject.extensions.getByName(CACHE_NAME)
+    }
+    catch (UnknownDomainObjectException e) {
+      throw new IllegalStateException('Dependency analysis plugin must also be applied to the root project', e)
+    }
+    this.logger = project.logger
     this.require = removeNulls(require)
     this.allowedToUse = removeNulls(allowedToUse)
     this.allowedToDeclare = removeNulls(allowedToDeclare)
     this.classesDirs = classesDirs
   }
 
-  private static <T> List<T> removeNulls(final List<T> list) {
-    null == list ? [] : list - null
+  static <T, C extends Collection<T>> C removeNulls(final C collection) {
+    null == collection ? [] : collection - null
   }
 
   ProjectDependencyAnalysis analyzeDependencies() {
@@ -106,7 +115,7 @@ class ProjectDependencyResolver {
     getFirstLevelDependencies(allowedToDeclare)
   }
 
-  private Set<ResolvedDependency> getFirstLevelDependencies(final List<Configuration> configurations) {
+  static Set<ResolvedDependency> getFirstLevelDependencies(final List<Configuration> configurations) {
     configurations.collect {it.resolvedConfiguration.firstLevelModuleDependencies}.flatten()
   }
 
@@ -120,12 +129,20 @@ class ProjectDependencyResolver {
   private Map<File, Set<String>> buildArtifactClassMap(Set<File> dependencyArtifacts) throws IOException {
     final Map<File, Set<String>> artifactClassMap = [:]
 
+    int hits = 0
+    int misses = 0
     dependencyArtifacts.each {File file ->
       if (file.name.endsWith('jar')) {
-        def classes = ARTIFACT_CLASS_CACHE[file]
+        def classes = artifactClassCache[file]
         if (null == classes) {
+          logger.debug "Artifact class cache miss for $file"
+          misses++
           classes = classAnalyzer.analyze(file.toURI().toURL()).asImmutable()
-          ARTIFACT_CLASS_CACHE.putIfAbsent(file, classes)
+          artifactClassCache.putIfAbsent(file, classes)
+        }
+        else {
+          logger.debug "Artifact class cache hit for $file"
+          hits++
         }
         artifactClassMap.put(file, classes)
       }
@@ -133,6 +150,7 @@ class ProjectDependencyResolver {
         logger.info "Skipping analysis of file for classes: $file"
       }
     }
+    logger.info "Built artifact class map with $hits hits and $misses misses; cache size is ${artifactClassCache.size()}"
     return artifactClassMap
   }
 
