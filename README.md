@@ -70,6 +70,34 @@ analyzeTestClassesDependencies {
 }
 ```
 
+## Custom task instances
+Applying the plugin creates and configures two instances of the `AnalyzeDependenciesPlugin` task. These two instances, `analyzeClassesDependencies` and `analyzeTestClassesDependencies`, are configured to verify the main and test source set dependencies respectively. Additional instances of this task type can be created and configured in addition to, or instead of, the instances created by the plugin. This may be appropriate when setting up more complex project configurations, or using other plugins which introduce their own configurations.
+
+Example:
+```gradle
+task analyzeCustomClassesDependencies(type: AnalyzeDependenciesTask, dependsOn: customClasses) {
+  // Set to true to print a warning rather than fail the build if the dependency analysis fails
+  justWarn = false
+
+  // List of configurations which the analyzed output is required to use 
+  require = [ configurations.customCompile, configuration.customCompileOnly ]
+
+  // List of configurations which the analyzed output may use but is not required to
+  allowedToUse = [ configurations.compile, configurations.provided ]
+  
+  // List of configurations which the analyzed output is not required to use, even if dependencies are present in the 'require' list above
+  allowedToDeclare = [ configurations.permitCustomUnusedDeclared ]
+  
+  // Location of class output directories to analyze
+  classesDirs = sourceSets.custom.output.classesDirs
+}
+
+// Add the new task as a dependency of the main analyzeDependencies task
+analyzeDependencies.dependsOn analyzeCustomClassesDependencies
+```
+
+For more practical examples, see the [plugin source](https://github.com/wfhartford/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy).
+
 # Version 1.2
 Version 1.2 of this plugin introduces a couple significant changes.
 
