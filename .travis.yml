@@ -1,5 +1,4 @@
 language: java
-dist: trusty
 jdk:
 - openjdk6
 - oraclejdk7
