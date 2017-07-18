@@ -1,9 +1,6 @@
 language: groovy
-before_install:
-- sudo apt-get update
-- sudo apt-get install -y ca-certificates-java
+dist: trusty
 jdk:
-- openjdk6
 - oraclejdk7
 - openjdk7
 - oraclejdk8
