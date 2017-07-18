@@ -96,6 +96,31 @@ task analyzeCustomClassesDependencies(type: AnalyzeDependenciesTask, dependsOn: 
 analyzeDependencies.dependsOn analyzeCustomClassesDependencies
 ```
 
+Users of the `java-library` plugin have had success using the following task configurations:
+```gradle
+task analyzeJavaLibraryDependencies(type: AnalyzeDependenciesTask) {
+	classesDirs = sourceSets.main.output.classesDirs
+	require = [
+	        project.configurations.runtimeClasspath
+	]
+	allowedToDeclare = [
+		project.configurations.permitUnusedDeclared
+	]
+}
+task analyzeJavaLibraryTestDependencies(type: AnalyzeDependenciesTask) {
+	classesDirs = sourceSets.test.output.classesDirs
+	require = [
+	        project.configurations.testRuntimeClasspath
+	]
+	allowedToDeclare = [
+		project.configurations.permitTestUnusedDeclared
+	]
+	allowedToUse = [
+		project.configurations.runtimeClasspath
+	]
+}
+```
+
 For more practical examples, see the [plugin source](https://github.com/wfhartford/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy).
 
 # Version 1.2
