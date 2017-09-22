@@ -12,7 +12,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
     if (project.rootProject == project) {
       project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new ConcurrentHashMap<>())
     }
-    if (project.plugins.hasPlugin('java')) {
+    project.plugins.withId('java') {
       project.configurations.create('permitUnusedDeclared')
       project.configurations.create('permitTestUnusedDeclared')
 
