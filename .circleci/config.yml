@@ -1,4 +1,12 @@
 version: 2
+workflows:
+  version: 2
+  java_versions:
+    jobs:
+    - build-6
+    - build-7
+    - build-8
+    - build-9
 jobs:
   build-6:
     docker:
