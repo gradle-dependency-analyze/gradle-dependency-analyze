@@ -32,7 +32,7 @@ jobs:
 
   build-7:
     docker:
-    - image: openjdk:7-jdk
+    - image: openjdk:7u121-jdk
     working_directory: ~/repo
 
     environment:
