@@ -6,7 +6,7 @@ workflows:
     - build-6
     - build-7
     - build-8
-    - build-9
+
 jobs:
   build-6:
     docker:
@@ -23,7 +23,7 @@ jobs:
         keys:
         - v1-dependencies-{{ checksum "build.gradle" }}
         - v1-dependencies-
-    - run: gradle dependencies
+    - run: ./gradlew dependencies
     - save_cache:
         paths:
         - ~/.gradle
@@ -45,7 +45,7 @@ jobs:
         keys:
         - v1-dependencies-{{ checksum "build.gradle" }}
         - v1-dependencies-
-    - run: gradle dependencies
+    - run: ./gradlew dependencies
     - save_cache:
         paths:
         - ~/.gradle
@@ -67,7 +67,7 @@ jobs:
         keys:
         - v1-dependencies-{{ checksum "build.gradle" }}
         - v1-dependencies-
-    - run: gradle dependencies
+    - run: ./gradlew dependencies
     - save_cache:
         paths:
         - ~/.gradle
