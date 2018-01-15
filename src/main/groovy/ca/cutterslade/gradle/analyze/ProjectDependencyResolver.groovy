@@ -41,14 +41,20 @@ class ProjectDependencyResolver {
       throw new IllegalStateException('Dependency analysis plugin must also be applied to the root project', e)
     }
     this.logger = project.logger
-    this.require = removeNulls(require)
-    this.allowedToUse = removeNulls(allowedToUse)
-    this.allowedToDeclare = removeNulls(allowedToDeclare)
+    this.require = removeNulls(require) as List
+    this.allowedToUse = removeNulls(allowedToUse) as List
+    this.allowedToDeclare = removeNulls(allowedToDeclare) as List
     this.classesDirs = classesDirs
   }
 
-  static <T, C extends Collection<T>> C removeNulls(final C collection) {
-    (null == collection ? [] : collection - null) as C
+  static <T> Collection<T> removeNulls(final Collection<T> collection) {
+    if (null == collection) {
+      []
+    }
+    else {
+      collection.removeAll {it == null}
+      collection
+    }
   }
 
   ProjectDependencyAnalysis analyzeDependencies() {
@@ -90,7 +96,7 @@ class ProjectDependencyResolver {
 
     Set<ResolvedArtifact> allArtifacts = (((require
         .collect {it.resolvedConfiguration}
-        .collect {it.firstLevelModuleDependencies}) as Set<ResolvedDependency>)
+        .collect {it.firstLevelModuleDependencies}.flatten()) as Set<ResolvedDependency>)
         .collect {it.allModuleArtifacts}.flatten()) as Set<ResolvedArtifact>
 
     logger.info "allArtifacts = $allArtifacts"
