@@ -1,5 +1,7 @@
 package ca.cutterslade.gradle.analyze
 
+import groovy.transform.CompileStatic
+import org.apache.maven.artifact.Artifact
 import org.apache.maven.shared.dependency.analyzer.ClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DefaultClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer
@@ -14,6 +16,7 @@ import org.gradle.api.logging.Logger
 
 import java.util.concurrent.ConcurrentHashMap
 
+@CompileStatic
 class ProjectDependencyResolver {
   static final String CACHE_NAME = 'ca.cutterslade.gradle.analyze.ProjectDependencyResolver.artifactClassCache'
 
@@ -31,7 +34,8 @@ class ProjectDependencyResolver {
       final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
       final Iterable<File> classesDirs) {
     try {
-      this.artifactClassCache = project.rootProject.extensions.getByName(CACHE_NAME)
+      this.artifactClassCache =
+          project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
     }
     catch (UnknownDomainObjectException e) {
       throw new IllegalStateException('Dependency analysis plugin must also be applied to the root project', e)
@@ -44,7 +48,7 @@ class ProjectDependencyResolver {
   }
 
   static <T, C extends Collection<T>> C removeNulls(final C collection) {
-    null == collection ? [] : collection - null
+    (null == collection ? [] : collection - null) as C
   }
 
   ProjectDependencyAnalysis analyzeDependencies() {
@@ -78,13 +82,17 @@ class ProjectDependencyResolver {
     unusedDeclaredArtifacts.removeAll(usedArtifacts)
     logger.info "unusedDeclaredArtifacts = $unusedDeclaredArtifacts"
 
-    Set<ResolvedArtifact> allowedToUseArtifacts = allowedToUseDeps*.moduleArtifacts?.flatten()
+    Set<ResolvedArtifact> allowedToUseArtifacts = allowedToUseDeps*.moduleArtifacts?.flatten() as Set<ResolvedArtifact>
     logger.info "allowedToUseArtifacts = $allowedToUseArtifacts"
-    Set<ResolvedArtifact> allowedToDeclareArtifacts = allowedToDeclareDeps*.moduleArtifacts?.flatten()
+    Set<ResolvedArtifact> allowedToDeclareArtifacts = allowedToDeclareDeps*.moduleArtifacts?.
+        flatten() as Set<ResolvedArtifact>
     logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
 
-    Set<ResolvedArtifact> allArtifacts = require*.resolvedConfiguration*.firstLevelModuleDependencies*.allModuleArtifacts.
-        flatten()
+    Set<ResolvedArtifact> allArtifacts = (((require
+        .collect {it.resolvedConfiguration}
+        .collect {it.firstLevelModuleDependencies}) as Set<ResolvedDependency>)
+        .collect {it.allModuleArtifacts}.flatten()) as Set<ResolvedArtifact>
+
     logger.info "allArtifacts = $allArtifacts"
 
     def usedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts}
@@ -98,9 +106,9 @@ class ProjectDependencyResolver {
     }
 
     return new ProjectDependencyAnalysis(
-        usedDeclared.unique {it.file} as Set,
-        usedUndeclared.unique {it.file} as Set,
-        unusedDeclared.unique {it.file} as Set)
+        usedDeclared.unique {it.file} as Set<Artifact>,
+        usedUndeclared.unique {it.file} as Set<Artifact>,
+        unusedDeclared.unique {it.file} as Set<Artifact>)
   }
 
   private Set<ResolvedDependency> getRequiredDependencies() {
@@ -116,7 +124,7 @@ class ProjectDependencyResolver {
   }
 
   static Set<ResolvedDependency> getFirstLevelDependencies(final List<Configuration> configurations) {
-    configurations.collect {it.resolvedConfiguration.firstLevelModuleDependencies}.flatten()
+    configurations.collect {it.resolvedConfiguration.firstLevelModuleDependencies}.flatten() as Set<ResolvedDependency>
   }
 
   /**
@@ -155,11 +163,15 @@ class ProjectDependencyResolver {
   }
 
   private Set<File> findModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
-    dependencies*.moduleArtifacts*.collect {it.file}.unique().flatten()
+    ((dependencies
+        .collect {it.moduleArtifacts}.flatten()) as Set<ResolvedArtifact>)
+        .collect {it.file}.unique() as Set<File>
   }
 
   private Set<File> findAllModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
-    dependencies*.allModuleArtifacts*.collect {it.file}.unique().flatten()
+    ((dependencies
+        .collect {it.allModuleArtifacts}.flatten()) as Set<ResolvedArtifact>)
+        .collect {it.file}.unique() as Set<File>
   }
 
   /**
@@ -168,9 +180,8 @@ class ProjectDependencyResolver {
    * @return a Set of class names
    */
   private Set<String> analyzeClassDependencies() {
-    Set<String> dependencies = []
-    classesDirs.collect {dependencyAnalyzer.analyze(it.toURI().toURL())}.forEach {dependencies.addAll(it)}
-    dependencies
+    classesDirs.collect {File it -> dependencyAnalyzer.analyze(it.toURI().toURL())}
+        .flatten() as Set<String>
   }
 
   /**
