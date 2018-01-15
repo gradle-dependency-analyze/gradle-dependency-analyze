@@ -180,6 +180,7 @@ class ProjectDependencyResolver {
    * @return a Set of class names
    */
   private Set<String> analyzeClassDependencies() {
+    classesDirs.forEach{it->"fail"}
     classesDirs.collect {File it -> dependencyAnalyzer.analyze(it.toURI().toURL())}
         .flatten() as Set<String>
   }
