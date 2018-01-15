@@ -20,14 +20,14 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-      keys:
-      - v1-dependencies-{{ checksum "build.gradle" }}
-      - v1-dependencies-
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        - v1-dependencies-
     - run: gradle dependencies
     - save_cache:
-      paths:
-      - ~/.gradle
-      key: v1-dependencies-{{ checksum "build.gradle" }}
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle" }}
     - run: ./gradlew test
 
   build-7:
@@ -42,14 +42,14 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-      keys:
-      - v1-dependencies-{{ checksum "build.gradle" }}
-      - v1-dependencies-
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        - v1-dependencies-
     - run: gradle dependencies
     - save_cache:
-      paths:
-      - ~/.gradle
-      key: v1-dependencies-{{ checksum "build.gradle" }}
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle" }}
     - run: ./gradlew test
 
   build-8:
@@ -64,14 +64,14 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-      keys:
-      - v1-dependencies-{{ checksum "build.gradle" }}
-      - v1-dependencies-
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        - v1-dependencies-
     - run: gradle dependencies
     - save_cache:
-      paths:
-      - ~/.gradle
-      key: v1-dependencies-{{ checksum "build.gradle" }}
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle" }}
     - run: ./gradlew test
 
   build-9:
@@ -86,13 +86,13 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-      keys:
-      - v1-dependencies-{{ checksum "build.gradle" }}
-      - v1-dependencies-
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        - v1-dependencies-
     - run: gradle dependencies
     - save_cache:
-      paths:
-      - ~/.gradle
-      key: v1-dependencies-{{ checksum "build.gradle" }}
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle" }}
     - run: ./gradlew test
 
