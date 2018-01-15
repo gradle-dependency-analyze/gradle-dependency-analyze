@@ -54,7 +54,7 @@ jobs:
 
   build-8:
     docker:
-    - image: circleci/openjdk:8-jdk
+    - image: openjdk:8-jdk
     working_directory: ~/repo
 
     environment:
