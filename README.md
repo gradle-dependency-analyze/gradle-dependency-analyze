@@ -70,6 +70,17 @@ analyzeTestClassesDependencies {
 }
 ```
 
+## Disabling/enabling the plugin
+In addition to using the `justWarn`-property, many cases want the build to fail only under given conditions (i.e nightly builds or integration builds). This can be achieved by disabling and enabling dependency analyzing in the following manner.
+
+```gradle
+if (!project.hasProperty('analyzeDependencies')) {
+  tasks.analyzeClassesDependencies.enabled = false
+  tasks.analyzeTestClassesDependencies.enabled = false
+  tasks.analyzeDependencies.enabled = false
+}
+```
+
 ## Custom task instances
 Applying the plugin creates and configures two instances of the `AnalyzeDependenciesPlugin` task. These two instances, `analyzeClassesDependencies` and `analyzeTestClassesDependencies`, are configured to verify the main and test source set dependencies respectively. Additional instances of this task type can be created and configured in addition to, or instead of, the instances created by the plugin. This may be appropriate when setting up more complex project configurations, or using other plugins which introduce their own configurations.
 
