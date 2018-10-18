@@ -134,6 +134,9 @@ task analyzeJavaLibraryTestDependencies(type: AnalyzeDependenciesTask) {
 
 For more practical examples, see the [plugin source](https://github.com/wfhartford/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy).
 
+# Version 1.3
+Version 1.3 of this plugin does not introduce any significant functional changes, but adds support for Java version 9, 10, and 11, while dropping support for Java versions 6 and 7.
+
 # Version 1.2
 Version 1.2 of this plugin introduces a couple significant changes.
 
