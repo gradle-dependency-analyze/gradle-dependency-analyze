@@ -16,6 +16,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       project.configurations.create('permitUnusedDeclared')
       project.configurations.create('permitTestUnusedDeclared')
 
+      project.configurations.create('permitUsedUndeclared')
+      project.configurations.create('permitTestUsedUndeclared')
+
       def mainTask = project.task('analyzeClassesDependencies',
           dependsOn: 'classes',
           type: AnalyzeDependenciesTask,
@@ -26,6 +29,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
             project.configurations.compile,
             project.configurations.findByName('compileOnly'),
             project.configurations.findByName('provided')
+        ]
+        allowedToUse = [
+            project.configurations.permitUsedUndeclared
         ]
         allowedToDeclare = [
             project.configurations.permitUnusedDeclared
@@ -46,6 +52,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
         ]
         allowedToUse = [
             project.configurations.compile,
+            project.configurations.permitTestUsedUndeclared,
             project.configurations.findByName('provided')
         ]
         allowedToDeclare = [
