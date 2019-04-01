@@ -48,7 +48,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
         buffer.append("$section: \n")
         violations.sort { it.moduleVersion.id.toString() }.each { DefaultResolvedArtifact it ->
           def clas = it.classifier ? ":$it.classifier" : ""
-          buffer.append(" - $it.moduleVersion.id:$clas@$it.extension\n")
+          buffer.append(" - $it.moduleVersion.id$clas@$it.extension\n")
         }
       }
     }
