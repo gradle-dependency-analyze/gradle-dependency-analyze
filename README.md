@@ -38,7 +38,7 @@ subprojects {
 If the dependency analysis finds issues, it will normally cause the build to fail, and print a list of the issues that were found, similar to the following:
 ```
 * What went wrong:
-Execution failed for task ':ze-logging:analyzeClassesDependencies'.
+Execution failed for task ':analyzeClassesDependencies'.
 > Dependency analysis found issues.
   usedUndeclaredArtifacts: 
    - ch.qos.logback:logback-core:1.2.3@jar
