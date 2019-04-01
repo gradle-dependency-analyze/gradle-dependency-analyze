@@ -17,7 +17,7 @@ repositories {
 dependencies {
   compile gradleApi()
   compile localGroovy()
-  compile 'org.apache.maven.shared:maven-dependency-analyzer:1.10'
+  compile 'org.apache.maven.shared:maven-dependency-analyzer:1.11.1'
 }
 
 sourceCompatibility = 1.8
