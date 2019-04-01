@@ -4,6 +4,7 @@ import org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalysis
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
@@ -45,8 +46,9 @@ class AnalyzeDependenciesTask extends DefaultTask {
       def violations = analysis."$section"
       if (violations) {
         buffer.append("$section: \n")
-        violations*.moduleVersion*.id.each {
-          buffer.append(" - $it.group:$it.name:$it.version\n")
+        violations.each { DefaultResolvedArtifact it ->
+          def clas = it.classifier ? ":$it.classifier" : ""
+          buffer.append(" - $it.moduleVersion.id:$clas@$it.extension\n")
         }
       }
     }
