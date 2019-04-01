@@ -25,7 +25,7 @@ apply plugin: 'ca.cutterslade.analyze'
 ```
 
 When applying this plugin to a multi-project build, it should be applied the root project as well as all sub-projects for which dependency analysis is needed. A common pattern is to apply this plugin to all projects and the java plugin to only the sub-projects:
-```gradls
+```gradle
 allprojects {
   apply plugin: 'ca.cutterslade.analyze'
 }
@@ -33,6 +33,22 @@ subprojects {
   apply plugin: 'java'
 }
 ```
+
+# Sample Output
+If the dependency analysis finds issues, it will normally cause the build to fail, and print a list of the issues that were found, similar to the following:
+```
+* What went wrong:
+Execution failed for task ':ze-logging:analyzeClassesDependencies'.
+> Dependency analysis found issues.
+  usedUndeclaredArtifacts: 
+   - ch.qos.logback:logback-core:1.2.3@jar
+  unusedDeclaredArtifacts: 
+   - com.google.guava:guava:25.1-jre@jar
+   - commons-io:commons-io:2.5@jar
+   - commons-lang:commons-lang:2.4@jar
+   - net.sf.json-lib:json-lib:2.3:jdk15@jar
+```
+
 # Tasks
 This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
 ## analyzeClassesDependencies
