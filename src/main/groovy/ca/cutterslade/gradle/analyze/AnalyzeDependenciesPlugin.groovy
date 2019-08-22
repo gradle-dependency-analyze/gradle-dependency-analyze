@@ -20,7 +20,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       project.configurations.create('permitTestUsedUndeclared')
 
       def mainTask = project.task('analyzeClassesDependencies',
-          dependsOn: 'classes',
+          dependsOn: ['classes', project.configurations.compile],
           type: AnalyzeDependenciesTask,
           group: 'Verification',
           description: 'Analyze project for dependency issues related to main source set.'
@@ -41,7 +41,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       }
 
       def testTask = project.task('analyzeTestClassesDependencies',
-          dependsOn: 'testClasses',
+          dependsOn: ['testClasses', project.configurations.testCompile],
           type: AnalyzeDependenciesTask,
           group: 'Verification',
           description: 'Analyze project for dependency issues related to test source set.'
