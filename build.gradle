@@ -5,6 +5,8 @@ plugins {
   id 'maven-publish'
   id 'com.jfrog.bintray' version '1.8.4'
   id 'com.jfrog.artifactory' version '4.8.1'
+  id 'com.gradle.plugin-publish' version '0.10.1'
+  id 'java-gradle-plugin'
 }
 
 group = 'ca.cutterslade.gradle'
@@ -95,3 +97,26 @@ tasks.withType(PublishToMavenRepository) {
   it.dependsOn javaVersionCheck
 }
 
+gradlePlugin {
+  plugins {
+    dependencyAnalyze {
+      id = 'ca.cutterslade.analyze'
+      implementationClass = 'ca.cutterslade.gradle.analyze.AnalyzeDependenciesPlugin'
+    }
+  }
+}
+pluginBundle {
+  website = 'https://github.com/wfhartford/gradle-dependency-analyze'
+  vcsUrl = 'https://github.com/wfhartford/gradle-dependency-analyze'
+  description = 'Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality of the maven dependency plugin\'s analyze goals which fail the build if dependencies are declared but not used or used but not declared.'
+  plugins {
+    dependencyAnalyze {
+      displayName = "Gradle Dependency Analyze"
+      tags = ['dependency','verification']
+    }
+  }
+  mavenCoordinates {
+    groupId = 'ca.cutterslade.gradle'
+    artifactId = 'gradle-dependency-analyze'
+  }
+}
