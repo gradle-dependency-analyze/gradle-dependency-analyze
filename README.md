@@ -9,11 +9,21 @@ This plugin is based on the work in a gist at https://gist.github.com/kellyrob99
 
 This plugin attempts to replicate the functionality of the maven dependency plugin's analyze goals which fail the build if dependencies are declared but not used or used but not declared.
 
-The plugin is available from the JCenter repository, so it can be added to your build with the following:
+The plugin is available from both JCenter and the gradle plugin repository, so it can be added to your build with the following:
+
+Using the plugin DSL:
+```gradle
+plugins {
+  id "ca.cutterslade.analyze" version "1.3.2"
+}
+```
+
+Using legacy plugin application:
 ```gradle
 buildscript {
   repositories {
-    jcenter()
+    maven { url "https://plugins.gradle.org/m2/" }
+    // If you prefer, replace this maven repo with `jcenter()`
   }
   dependencies {
     classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.3.0'
