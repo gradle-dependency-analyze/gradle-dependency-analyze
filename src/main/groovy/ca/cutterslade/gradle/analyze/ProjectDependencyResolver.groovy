@@ -14,6 +14,8 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.logging.Logger
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
 @CompileStatic
@@ -29,10 +31,12 @@ class ProjectDependencyResolver {
   private final List<Configuration> allowedToUse
   private final List<Configuration> allowedToDeclare
   private final Iterable<File> classesDirs
+  private final boolean logDependencyInformationToFile
+  private final Path buildDirPath
 
   ProjectDependencyResolver(final Project project, final List<Configuration> require,
-      final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
-      final Iterable<File> classesDirs) {
+                            final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
+                            final Iterable<File> classesDirs, final boolean logDependencyInformationToFile) {
     try {
       this.artifactClassCache =
           project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
@@ -45,6 +49,8 @@ class ProjectDependencyResolver {
     this.allowedToUse = removeNulls(allowedToUse) as List
     this.allowedToDeclare = removeNulls(allowedToDeclare) as List
     this.classesDirs = classesDirs
+    this.logDependencyInformationToFile = logDependencyInformationToFile
+    this.buildDirPath = project.buildDir.toPath()
   }
 
   static <T> Collection<T> removeNulls(final Collection<T> collection) {
@@ -62,44 +68,123 @@ class ProjectDependencyResolver {
     Set<ResolvedDependency> allowedToDeclareDeps = allowedToDeclareDependencies
     Set<ResolvedDependency> requiredDeps = requiredDependencies - allowedToUseDeps
     Set<File> dependencyArtifacts = findModuleArtifactFiles(requiredDeps)
-    logger.info "dependencyArtifacts = $dependencyArtifacts"
+
 
     Set<File> allDependencyArtifacts = findAllModuleArtifactFiles(requiredDeps)
-    logger.info "allDependencyArtifacts = $allDependencyArtifacts"
-
     Map<File, Set<String>> fileClassMap = buildArtifactClassMap(allDependencyArtifacts)
-    logger.info "fileClassMap = $fileClassMap"
-
     Set<String> dependencyClasses = analyzeClassDependencies()
-    logger.info "dependencyClasses = $dependencyClasses"
-
     Set<File> usedArtifacts = buildUsedArtifacts(fileClassMap, dependencyClasses)
-    logger.info "usedArtifacts = $usedArtifacts"
-
     Set<File> usedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
     usedDeclaredArtifacts.retainAll(usedArtifacts)
-    logger.info "usedDeclaredArtifacts = $usedDeclaredArtifacts"
 
     Set<File> usedUndeclaredArtifacts = new LinkedHashSet<File>(usedArtifacts)
     usedUndeclaredArtifacts.removeAll(dependencyArtifacts)
-    logger.info "usedUndeclaredArtifacts = $usedUndeclaredArtifacts"
 
     Set<File> unusedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
     unusedDeclaredArtifacts.removeAll(usedArtifacts)
-    logger.info "unusedDeclaredArtifacts = $unusedDeclaredArtifacts"
 
     Set<ResolvedArtifact> allowedToUseArtifacts = allowedToUseDeps*.moduleArtifacts?.flatten() as Set<ResolvedArtifact>
-    logger.info "allowedToUseArtifacts = $allowedToUseArtifacts"
     Set<ResolvedArtifact> allowedToDeclareArtifacts = allowedToDeclareDeps*.moduleArtifacts?.
         flatten() as Set<ResolvedArtifact>
-    logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
 
     Set<ResolvedArtifact> allArtifacts = (((require
         .collect {it.resolvedConfiguration}
         .collect {it.firstLevelModuleDependencies}.flatten()) as Set<ResolvedDependency>)
         .collect {it.allModuleArtifacts}.flatten()) as Set<ResolvedArtifact>
 
-    logger.info "allArtifacts = $allArtifacts"
+    if (logDependencyInformationToFile) {
+      final def outputDirectoryPath = buildDirPath.resolve(AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME)
+      Files.createDirectories(outputDirectoryPath)
+      final Path analyzeOutputPath = outputDirectoryPath.resolve("analyzeDependencies.txt")
+      Files.newOutputStream(analyzeOutputPath).withCloseable { final analyzeOutputStream ->
+        new PrintWriter(new BufferedOutputStream(analyzeOutputStream)).withCloseable { final analyzeWriter ->
+          analyzeWriter.println('dependencyArtifacts:')
+          for (final def artifact : dependencyArtifacts) {
+            analyzeWriter.println(artifact)
+          }
+          analyzeWriter.println()
+
+          analyzeWriter.println("allDependencyArtifacts:")
+          for (final def artifact : allDependencyArtifacts) {
+            analyzeWriter.println(artifact)
+          }
+          analyzeWriter.println()
+
+          analyzeWriter.println("fileClassMap:")
+          for (final def classMapEntry : fileClassMap) {
+            analyzeWriter.print("${classMapEntry.key}=")
+            for (final def theClass : classMapEntry.value) {
+              analyzeWriter.print(theClass)
+              analyzeWriter.print(', ')
+            }
+          }
+          analyzeWriter.println()
+
+          analyzeWriter.println("dependencyClasses:")
+          for (final depClass : dependencyClasses) {
+            analyzeWriter.println(depClass)
+          }
+          analyzeWriter.println()
+
+          analyzeWriter.println("usedArtifacts:")
+          for (final usedArtifact : usedArtifacts) {
+            analyzeWriter.println(usedArtifact)
+          }
+          analyzeWriter.println()
+
+          usedDeclaredArtifacts.retainAll(usedArtifacts)
+          analyzeWriter.println("usedDeclaredArtifacts:")
+          for (final usedDeclaredArtifact : usedDeclaredArtifacts) {
+            analyzeWriter.println(usedDeclaredArtifact)
+          }
+          analyzeWriter.println()
+
+          usedUndeclaredArtifacts.removeAll(dependencyArtifacts)
+          analyzeWriter.println("usedUndeclaredArtifacts:")
+          for (final usedUndeclared : usedUndeclaredArtifacts) {
+            analyzeWriter.println(usedUndeclared)
+          }
+          analyzeWriter.println()
+
+          unusedDeclaredArtifacts.removeAll(usedArtifacts)
+          analyzeWriter.println("unusedDeclaredArtifacts:")
+          for (final unusedDelcared : unusedDeclaredArtifacts) {
+            analyzeWriter.println(unusedDelcared)
+          }
+          analyzeWriter.println()
+
+          analyzeWriter.println("allowedToUseArtifacts:")
+          for (final allowedToUse : allowedToUseArtifacts) {
+            analyzeWriter.println(allowedToUse)
+          }
+          analyzeWriter.println()
+
+          analyzeWriter.println("allowedToDeclareArtifacts:")
+          for (final allowedToDeclare : allowedToDeclareArtifacts) {
+            analyzeWriter.println(allowedToDeclare)
+          }
+          analyzeWriter.println()
+
+          analyzeWriter.println("allArtifacts:")
+          for (final artifact : allArtifacts) {
+            analyzeWriter.println(artifact)
+          }
+          analyzeWriter.println()
+        }
+      }
+    } else {
+      logger.info "dependencyArtifacts = $dependencyArtifacts"
+      logger.info "allDependencyArtifacts = $allDependencyArtifacts"
+      logger.info "fileClassMap = $fileClassMap"
+      logger.info "dependencyClasses = $dependencyClasses"
+      logger.info "usedArtifacts = $usedArtifacts"
+      logger.info "usedDeclaredArtifacts = $usedDeclaredArtifacts"
+      logger.info "usedUndeclaredArtifacts = $usedUndeclaredArtifacts"
+      logger.info "unusedDeclaredArtifacts = $unusedDeclaredArtifacts"
+      logger.info "allowedToUseArtifacts = $allowedToUseArtifacts"
+      logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
+      logger.info "allArtifacts = $allArtifacts"
+    }
 
     def usedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts}
     def usedUndeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts}
