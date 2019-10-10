@@ -95,19 +95,14 @@ class ProjectDependencyResolver {
     if (logDependencyInformationToFile) {
       final def outputDirectoryPath = buildDirPath.resolve(AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME)
       Files.createDirectories(outputDirectoryPath)
-      final Path analyzeOutputPath = outputDirectoryPath.resolve("analyzeDependencies.txt")
-      Files.newOutputStream(analyzeOutputPath).withCloseable { final analyzeOutputStream ->
-        new PrintWriter(new BufferedOutputStream(analyzeOutputStream)).withCloseable { final analyzeWriter ->
+      final Path analyzeOutputPath = outputDirectoryPath.resolve("analyzeDependencies.log")
+        new PrintWriter(Files.newOutputStream(analyzeOutputPath)).withCloseable { final analyzeWriter ->
           analyzeWriter.println('dependencyArtifacts:')
-          for (final def artifact : dependencyArtifacts) {
-            analyzeWriter.println(artifact)
-          }
+          dependencyArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
           analyzeWriter.println()
 
           analyzeWriter.println("allDependencyArtifacts:")
-          for (final def artifact : allDependencyArtifacts) {
-            analyzeWriter.println(artifact)
-          }
+          allDependencyArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
           analyzeWriter.println()
 
           analyzeWriter.println("fileClassMap:")
@@ -117,61 +112,42 @@ class ProjectDependencyResolver {
               analyzeWriter.print(theClass)
               analyzeWriter.print(', ')
             }
+              analyzeWriter.println()
           }
           analyzeWriter.println()
 
           analyzeWriter.println("dependencyClasses:")
-          for (final depClass : dependencyClasses) {
-            analyzeWriter.println(depClass)
-          }
+          dependencyClasses.forEach({ final dependencyClass -> analyzeWriter.println(dependencyClass) })
           analyzeWriter.println()
 
           analyzeWriter.println("usedArtifacts:")
-          for (final usedArtifact : usedArtifacts) {
-            analyzeWriter.println(usedArtifact)
-          }
+          usedArtifacts.forEach({ final usedArtifact -> analyzeWriter.println(usedArtifact) })
           analyzeWriter.println()
 
-          usedDeclaredArtifacts.retainAll(usedArtifacts)
           analyzeWriter.println("usedDeclaredArtifacts:")
-          for (final usedDeclaredArtifact : usedDeclaredArtifacts) {
-            analyzeWriter.println(usedDeclaredArtifact)
-          }
+          usedDeclaredArtifacts.forEach({ final usedDeclaredArtifact -> analyzeWriter.println(usedDeclaredArtifact) })
           analyzeWriter.println()
 
-          usedUndeclaredArtifacts.removeAll(dependencyArtifacts)
           analyzeWriter.println("usedUndeclaredArtifacts:")
-          for (final usedUndeclared : usedUndeclaredArtifacts) {
-            analyzeWriter.println(usedUndeclared)
-          }
+          usedUndeclaredArtifacts.forEach({ final usedUndeclared -> analyzeWriter.println(usedUndeclared) })
           analyzeWriter.println()
 
-          unusedDeclaredArtifacts.removeAll(usedArtifacts)
           analyzeWriter.println("unusedDeclaredArtifacts:")
-          for (final unusedDelcared : unusedDeclaredArtifacts) {
-            analyzeWriter.println(unusedDelcared)
-          }
+          unusedDeclaredArtifacts.forEach({ final unusedDeclared -> analyzeWriter.println(unusedDeclared) })
           analyzeWriter.println()
 
           analyzeWriter.println("allowedToUseArtifacts:")
-          for (final allowedToUse : allowedToUseArtifacts) {
-            analyzeWriter.println(allowedToUse)
-          }
+          allowedToUseArtifacts.forEach({ final allowedToUse -> analyzeWriter.println(allowedToUse) })
           analyzeWriter.println()
 
           analyzeWriter.println("allowedToDeclareArtifacts:")
-          for (final allowedToDeclare : allowedToDeclareArtifacts) {
-            analyzeWriter.println(allowedToDeclare)
-          }
+          allowedToDeclareArtifacts.forEach({ final allowedToDeclare -> analyzeWriter.println(allowedToDeclare) })
           analyzeWriter.println()
 
           analyzeWriter.println("allArtifacts:")
-          for (final artifact : allArtifacts) {
-            analyzeWriter.println(artifact)
-          }
+          allArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
           analyzeWriter.println()
         }
-      }
     } else {
       logger.info "dependencyArtifacts = $dependencyArtifacts"
       logger.info "allDependencyArtifacts = $allDependencyArtifacts"

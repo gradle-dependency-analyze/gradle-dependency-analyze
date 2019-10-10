@@ -82,11 +82,9 @@ class AnalyzeDependenciesTask extends DefaultTask {
       )
       if (logDependencyInformationToFiles) {
         Files.createDirectories(outputDirectory.toPath())
-        Files.newOutputStream(outputDirectory.toPath().resolve("allArtifactFiles.log")).withCloseable { final outputStream ->
-          new PrintWriter(new BufferedOutputStream(outputStream)).withCloseable { final allFilesWriter ->
-            allFilesWriter.println("All artifact files:")
-            files.forEach { final file -> allFilesWriter.println(file) }
-          }
+        new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("allArtifactFiles.log"))).withCloseable { final printWriter ->
+            printWriter.println("All artifact files:")
+            files.forEach { final file -> printWriter.println(file) }
         }
       } else {
         logger.info "All Artifact Files: $files"
@@ -102,12 +100,10 @@ class AnalyzeDependenciesTask extends DefaultTask {
           getFirstLevelFiles(allowedToUse, 'allowed to use')
       if (logDependencyInformationToFiles) {
         Files.createDirectories(outputDirectory.toPath())
-        Files.newOutputStream(outputDirectory.toPath().resolve("allRequiredFiles.log")).withCloseable { final outputStream ->
-          new PrintWriter(new BufferedOutputStream(outputStream)).withCloseable { final allFilesWriter ->
-            allFilesWriter.println("Actual required files:")
-            files.forEach { final file -> allFilesWriter.println(file) }
+        new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("allRequiredFiles.log"))).withCloseable { final printWriter ->
+            printWriter.println("Actual required files:")
+            files.forEach { final file -> printWriter.println(file) }
           }
-        }
       } else {
         logger.info "Actual required files: $files"
       }
@@ -137,11 +133,9 @@ class AnalyzeDependenciesTask extends DefaultTask {
     )
     if (logDependencyInformationToFiles) {
       Files.createDirectories(outputDirectory.toPath())
-      Files.newOutputStream(outputDirectory.toPath().resolve("firstLevel${name.capitalize()}.log")).withCloseable { final outputStream ->
-        new PrintWriter(new BufferedOutputStream(outputStream)).withCloseable { final allFilesWriter ->
-          allFilesWriter.println("First level $name files:")
-          files.forEach { final file -> allFilesWriter.println(file) }
-        }
+      new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("first level ${name}.log"))).withCloseable { final printWriter ->
+          printWriter.println("First level $name files:")
+          files.forEach { final file -> printWriter.println(file) }
       }
     } else {
       logger.info "First level $name files: $files"
