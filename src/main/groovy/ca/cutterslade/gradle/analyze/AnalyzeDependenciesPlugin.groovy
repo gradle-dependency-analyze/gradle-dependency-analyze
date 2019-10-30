@@ -28,7 +28,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
         require = [
             project.configurations.compile,
             project.configurations.findByName('compileOnly'),
-            project.configurations.findByName('provided')
+            project.configurations.findByName('provided'),
+            project.configurations.findByName('compileClasspath'),
+            project.configurations.findByName('runtimeClasspath')
         ]
         allowedToUse = [
             project.configurations.permitUsedUndeclared
