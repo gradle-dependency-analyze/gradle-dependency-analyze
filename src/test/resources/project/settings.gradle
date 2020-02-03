@@ -1,0 +1,5 @@
+rootProject.name = 'project'
+
+include(":dependent")
+include(":transient")
+include(":independent")

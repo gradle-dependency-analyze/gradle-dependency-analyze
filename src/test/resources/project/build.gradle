@@ -1,0 +1,9 @@
+plugins {
+    id 'groovy'
+    id 'ca.cutterslade.analyze'
+}
+
+dependencies {
+    compile localGroovy()
+    compile project(":dependent")
+}
