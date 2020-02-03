@@ -4,6 +4,6 @@ plugins {
 }
 
 dependencies {
-    compile localGroovy()
+    compile(localGroovy())
     compile project(":dependent")
 }
