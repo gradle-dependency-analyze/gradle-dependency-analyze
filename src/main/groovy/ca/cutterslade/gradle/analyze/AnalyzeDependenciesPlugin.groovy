@@ -28,7 +28,8 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
         require = [
             project.configurations.compile,
             project.configurations.findByName('compileOnly'),
-            project.configurations.findByName('provided')
+            project.configurations.findByName('provided'),
+            project.configurations.findByName('compileClasspath')
         ]
         allowedToUse = [
             project.configurations.permitUsedUndeclared
@@ -48,12 +49,15 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       ) {
         require = [
             project.configurations.testCompile,
-            project.configurations.findByName('testCompileOnly')
+            project.configurations.findByName('testCompileOnly'),
+            project.configurations.findByName('testCompileClasspath')
         ]
         allowedToUse = [
             project.configurations.compile,
             project.configurations.permitTestUsedUndeclared,
-            project.configurations.findByName('provided')
+            project.configurations.findByName('provided'),
+            project.configurations.findByName('compileClasspath'),
+            project.configurations.findByName('runtimeClasspath')
         ]
         allowedToDeclare = [
             project.configurations.permitTestUnusedDeclared
