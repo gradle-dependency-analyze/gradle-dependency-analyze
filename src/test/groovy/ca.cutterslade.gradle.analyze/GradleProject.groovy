@@ -2,8 +2,8 @@ package ca.cutterslade.gradle.analyze
 
 class GradleProject {
 
-    final File root
     final String name
+    final boolean rootProject
 
     Set<GradleProject> subProjects = []
     Set<GroovyClass> mainClasses = []
@@ -11,9 +11,9 @@ class GradleProject {
     Set<String> plugins = ['groovy']
     Set<GradleDependency> dependencies = []
 
-    GradleProject(File root, String name) {
-        this.root = root
+    GradleProject(String name, boolean rootProject = false) {
         this.name = name
+        this.rootProject = rootProject
     }
 
     def withSubProject(GradleProject project) {
@@ -41,18 +41,18 @@ class GradleProject {
         this
     }
 
-    void create() {
+    void create(File root) {
         root.mkdirs()
-        subProjects.each { it.create() }
+        subProjects.each { it.create(new File(root, it.name)) }
 
-        createBuildGradle()
-        createSettingsGradle()
+        createBuildGradle(root)
+        createSettingsGradle(root)
 
-        createClasses("src/main/groovy", mainClasses)
-        createClasses("src/test/groovy", testClasses)
+        createClasses(root, "src/main/groovy", mainClasses)
+        createClasses(root, "src/test/groovy", testClasses)
     }
 
-    private void createClasses(String dir, Set<GroovyClass> classes) {
+    private static void createClasses(File root, String dir, Set<GroovyClass> classes) {
 
         def sourceDir = new File(root, dir)
         if (!sourceDir.mkdirs()) {
@@ -64,7 +64,7 @@ class GradleProject {
         }
     }
 
-    private void createSettingsGradle() {
+    private void createSettingsGradle(File root) {
         def settingsGradle = ""
         if (name != null) {
             settingsGradle += "rootProject.name = '${name}'\n"
@@ -79,7 +79,7 @@ class GradleProject {
         }
     }
 
-    private void createBuildGradle() {
+    private void createBuildGradle(File root) {
         def buildGradle = ""
         if (!plugins.isEmpty()) {
             buildGradle += "plugins {\n"
