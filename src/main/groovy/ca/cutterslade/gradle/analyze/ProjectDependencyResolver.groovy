@@ -146,23 +146,18 @@ class ProjectDependencyResolver {
     int hits = 0
     int misses = 0
     dependencyArtifacts.each {File file ->
-      if (file.name.endsWith('jar')) {
-        def classes = artifactClassCache[file]
-        if (null == classes) {
-          logger.debug "Artifact class cache miss for $file"
-          misses++
-          classes = classAnalyzer.analyze(file.toURI().toURL()).asImmutable()
-          artifactClassCache.putIfAbsent(file, classes)
-        }
-        else {
-          logger.debug "Artifact class cache hit for $file"
-          hits++
-        }
-        artifactClassMap.put(file, classes)
+      def classes = artifactClassCache[file]
+      if (null == classes) {
+        logger.debug "Artifact class cache miss for $file"
+        misses++
+        classes = classAnalyzer.analyze(file.toURI().toURL()).asImmutable()
+        artifactClassCache.putIfAbsent(file, classes)
       }
       else {
-        logger.info "Skipping analysis of file for classes: $file"
+        logger.debug "Artifact class cache hit for $file"
+        hits++
       }
+      artifactClassMap.put(file, classes)
     }
     logger.info "Built artifact class map with $hits hits and $misses misses; cache size is ${artifactClassCache.size()}"
     return artifactClassMap
