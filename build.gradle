@@ -89,8 +89,17 @@ if (this.hasProperty('jfrogUser') && this.hasProperty('jfrogPassword')) {
   }
 }
 
+task javaVersionCheck() {
+  doLast {
+    if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
+      throw new GradleException('Build must be run on Java 8')
+    }
+  }
+}
+
 tasks.withType(PublishToMavenRepository) {
   it.dependsOn check
+  it.dependsOn javaVersionCheck
 }
 
 gradlePlugin {
