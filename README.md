@@ -14,7 +14,7 @@ The plugin is available from both JCenter and the gradle plugin repository, so i
 Using the plugin DSL:
 ```gradle
 plugins {
-  id "ca.cutterslade.analyze" version "1.4.0"
+  id "ca.cutterslade.analyze" version "1.4.1"
 }
 ```
 
@@ -26,7 +26,7 @@ buildscript {
     // If you prefer, replace this maven repo with `jcenter()`
   }
   dependencies {
-    classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.4.0'
+    classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.4.1'
   }
 }
 
