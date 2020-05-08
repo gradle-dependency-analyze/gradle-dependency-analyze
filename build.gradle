@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'ca.cutterslade.gradle'
-version = '1.4.1-SNAPSHOT'
+version = '1.4.1'
 
 repositories {
   jcenter()
