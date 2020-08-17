@@ -26,9 +26,6 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
           description: 'Analyze project for dependency issues related to main source set.'
       ) {
         require = [
-            project.configurations.compile,
-            project.configurations.findByName('compileOnly'),
-            project.configurations.findByName('provided'),
             project.configurations.findByName('compileClasspath')
         ]
         allowedToUse = [
@@ -48,8 +45,6 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
           description: 'Analyze project for dependency issues related to test source set.'
       ) {
         require = [
-            project.configurations.testCompile,
-            project.configurations.findByName('testCompileOnly'),
             project.configurations.findByName('testCompileClasspath')
         ]
         allowedToUse = [
