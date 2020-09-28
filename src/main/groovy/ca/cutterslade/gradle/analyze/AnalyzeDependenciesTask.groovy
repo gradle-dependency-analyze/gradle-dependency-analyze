@@ -8,6 +8,8 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import java.lang.reflect.Method
@@ -18,10 +20,13 @@ class AnalyzeDependenciesTask extends DefaultTask {
   @InputFiles
   List<Configuration> require = []
   @InputFiles
+  @PathSensitive(PathSensitivity.RELATIVE)
   List<Configuration> allowedToUse = []
   @InputFiles
+  @PathSensitive(PathSensitivity.RELATIVE)
   List<Configuration> allowedToDeclare = []
   @InputFiles
+  @PathSensitive(PathSensitivity.RELATIVE)
   FileCollection classesDirs = project.files()
   @OutputFile
   File outputFile = project.file("$project.buildDir/reports/dependency-analyze/$name")
@@ -69,6 +74,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
   }
 
   @InputFiles
+  @PathSensitive(PathSensitivity.RELATIVE)
   FileCollection getAllArtifacts() {
     project.files({
       def files = ProjectDependencyResolver.removeNulls(
@@ -84,6 +90,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
   }
 
   @InputFiles
+  @PathSensitive(PathSensitivity.RELATIVE)
   FileCollection getRequiredFiles() {
     project.files({
       def files = getFirstLevelFiles(require, 'required') -
@@ -94,11 +101,13 @@ class AnalyzeDependenciesTask extends DefaultTask {
   }
 
   @InputFiles
+  @PathSensitive(PathSensitivity.RELATIVE)
   FileCollection getAllowedToUseFiles() {
     getFirstLevelFileCollection(allowedToUse, 'allowed to use')
   }
 
   @InputFiles
+  @PathSensitive(PathSensitivity.RELATIVE)
   FileCollection getAllowedToDeclareFiles() {
     getFirstLevelFileCollection(allowedToDeclare, 'allowed to declare')
   }
