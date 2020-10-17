@@ -20,16 +20,13 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       project.configurations.create('permitTestUsedUndeclared')
 
       def mainTask = project.task('analyzeClassesDependencies',
-          dependsOn: ['classes', project.configurations.compile],
+          dependsOn: ['classes', project.configurations.compileClasspath],
           type: AnalyzeDependenciesTask,
           group: 'Verification',
           description: 'Analyze project for dependency issues related to main source set.'
       ) {
         require = [
-            project.configurations.compile,
-            project.configurations.findByName('compileOnly'),
-            project.configurations.findByName('provided'),
-            project.configurations.findByName('compileClasspath')
+            project.configurations.compileClasspath
         ]
         allowedToUse = [
             project.configurations.permitUsedUndeclared
@@ -42,22 +39,17 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       }
 
       def testTask = project.task('analyzeTestClassesDependencies',
-          dependsOn: ['testClasses', project.configurations.testCompile],
+          dependsOn: ['testClasses', project.configurations.testCompileClasspath],
           type: AnalyzeDependenciesTask,
           group: 'Verification',
           description: 'Analyze project for dependency issues related to test source set.'
       ) {
         require = [
-            project.configurations.testCompile,
-            project.configurations.findByName('testCompileOnly'),
-            project.configurations.findByName('testCompileClasspath')
+            project.configurations.testCompileClasspath
         ]
         allowedToUse = [
-            project.configurations.compile,
             project.configurations.permitTestUsedUndeclared,
-            project.configurations.findByName('provided'),
-            project.configurations.findByName('compileClasspath'),
-            project.configurations.findByName('runtimeClasspath')
+            project.configurations.compileClasspath
         ]
         allowedToDeclare = [
             project.configurations.permitTestUnusedDeclared
