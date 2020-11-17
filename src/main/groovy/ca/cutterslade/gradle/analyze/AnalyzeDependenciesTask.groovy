@@ -7,6 +7,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -17,13 +18,11 @@ import java.lang.reflect.Method
 class AnalyzeDependenciesTask extends DefaultTask {
   @Input
   boolean justWarn = false
-  @InputFiles
+  @Internal
   List<Configuration> require = []
-  @InputFiles
-  @PathSensitive(PathSensitivity.RELATIVE)
+  @Internal
   List<Configuration> allowedToUse = []
-  @InputFiles
-  @PathSensitive(PathSensitivity.RELATIVE)
+  @Internal
   List<Configuration> allowedToDeclare = []
   @InputFiles
   @PathSensitive(PathSensitivity.RELATIVE)
