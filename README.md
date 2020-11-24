@@ -60,22 +60,29 @@ Execution failed for task ':analyzeClassesDependencies'.
 ```
 
 # Tasks
-This plugin will add three tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
+This plugin will add the following tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
 ## analyzeClassesDependencies
-This task depends on the `classes` task and analyzes the dependencies of the main source set's output directory. This ensures that all dependencies of the classes are declared in the `compile`, `compileOnly`, or [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin) configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitUnusedDeclared` configuration allows for exceptions to this restriction.
+This task depends on the `classes` task and analyzes the dependencies of the main source set's output directory. This ensures that all dependencies of the classes are declared in the `compile`, `api`, `implementation`, or `compileOnly` configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitUnusedDeclared` configuration allows for exceptions to this restriction.
 ## analyzeTestClassesDependencies
-This task depends on the `testClasses` task and analyzes the dependencies of the test source set's output directory. This ensures that all dependencies of the classes are declared in the `testCompile` or `testCompileOnly` configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitTestUnusedDeclared` configuration allows for exceptions to this restriction.
+This task depends on the `testClasses` task and analyzes the dependencies of the test source set's output directory. This ensures that all dependencies of the classes are declared in the `testCompile`, `testApi`, `testImplementation` or `testCompileOnly` configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permitTestUnusedDeclared` configuration allows for exceptions to this restriction.
 ## analyzeDependencies
 This task depends on the `analyzeClassesDependencies` and `analyzeTestClassesDependencies` tasks, and does nothing on its own. A dependency on this task is added to the `check` task.
 
+Additionally, the plugin will add analyze action for every custom sourceSet defined:
+## analyze*SourceSet*ClassesDependencies
+This task depends on the `*sourceSet*Classes` task and analyzes the dependencies of the *sourceSet*'s output directory. This ensures that all dependencies of the classes are declared in the `*sourceSet*Compile`, `*sourceSet*api`, `*sourceSet*implementation`, or `*sourceSet*CompileOnly` configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes; use of the `permit*SourceSet*UnusedDeclared` configuration allows for exceptions to this restriction.
+
+
 # Configurations
-This plugin adds four configurations which may be used to define dependencies which should be handled in a special way. These configurations have no impact on the build outside of this plugin.
+This plugin adds the following configurations which may be used to define dependencies which should be handled in a special way. These configurations have no impact on the build outside of this plugin.
 * `permitUnusedDeclared`
 * `permitTestUnusedDeclared`
 * `permitUsedUndeclared`
 * `permitTestUsedUndeclared`
+* `permit*SourceSet*UnusedDeclared`
+* `permit*SourceSet*UsedUndeclared`
 
-Adding dependencies to `permitUnusedDeclared` or `permitTestUnusedDeclared` causes the dependency analyzer to ignore cases where the dependencies are declared but not used. Adding dependencies to `permitUsedUndeclared` or `permitTestUsedUndeclared` causes the dependency analyzer to ignore cases where the dependencies used but not declared. 
+Adding dependencies to `permitUnusedDeclared` causes the dependency analyzer to ignore cases where the dependencies are declared but not used. Adding dependencies to `permitUsedUndeclared` causes the dependency analyzer to ignore cases where the dependencies used but not declared.
 
 ## Examples
 Using these configurations to allow exceptions to the rules is as simple as adding a dependency to your project. The snippet below will provide a compile-time dependency on the JSP API, but the plugin will not complain if it is not used.
