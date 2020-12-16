@@ -16,7 +16,8 @@ class GroovyClass {
     private def buildUsedClasses() {
         def out = ""
         for (String clazz : usedClasses) {
-            out += "  ${clazz} ${clazz}\n"
+            def var = clazz.contains('.') ? clazz.substring(clazz.lastIndexOf('.') + 1) : clazz
+            out += "  ${clazz} _${var.toLowerCase()}\n"
         }
         out
     }

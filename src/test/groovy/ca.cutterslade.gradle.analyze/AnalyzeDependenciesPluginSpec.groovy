@@ -183,6 +183,126 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         "testRuntimeOnly"    | TEST_BUILD_FAILURE
     }
 
+    def "aggregator dependency declared in config and used in build with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withMainClass(new GroovyClass('Main')
+                        .usesClass('Dependent')
+                        .usesClass('org.springframework.context.annotation.ComponentScan')
+                        .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                )
+                .withSubProject(subProject("dependent")
+                        .withMainClass(new GroovyClass("Dependent")))
+                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult)
+
+        where:
+        configuration    | expectedResult
+        "compile"        | SUCCESS
+        "implementation" | SUCCESS
+        "compileOnly"    | SUCCESS
+        "runtimeOnly"    | BUILD_FAILURE
+    }
+
+    def "aggregator dependency not declared in config and used in build with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withMainClass(new GroovyClass('Main')
+                        .usesClass('Dependent')
+                        .usesClass('org.springframework.context.annotation.ComponentScan')
+                        .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                )
+                .withSubProject(subProject("dependent")
+                        .withMainClass(new GroovyClass("Dependent")))
+                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult)
+
+        where:
+        configuration    | expectedResult
+        "compile"        | "usedUndeclaredArtifacts"
+        "implementation" | "usedUndeclaredArtifacts"
+        "compileOnly"    | "usedUndeclaredArtifacts"
+        "runtimeOnly"    | BUILD_FAILURE
+    }
+
+    def "aggregator dependency declared in config and not used in build with dedicated dependency with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
+                .withMainClass(new GroovyClass('Main')
+                        .usesClass('Dependent')
+                        .usesClass('org.springframework.context.annotation.ComponentScan')
+                        .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                )
+                .withSubProject(subProject("dependent")
+                        .withMainClass(new GroovyClass("Dependent")))
+                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult)
+
+        where:
+        configuration    | expectedResult
+        "compile"        | "usedUndeclaredArtifacts"
+        "implementation" | "usedUndeclaredArtifacts"
+        "compileOnly"    | "usedUndeclaredArtifacts"
+        "runtimeOnly"    | BUILD_FAILURE
+    }
+
+    def "aggregator dependency declared in config and used in build together with dedicated dependency with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withMainClass(new GroovyClass('Main')
+                        .usesClass('Dependent')
+                        .usesClass('org.springframework.context.annotation.ComponentScan')
+                        .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                )
+                .withSubProject(subProject("dependent")
+                        .withMainClass(new GroovyClass("Dependent")))
+                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult)
+
+        where:
+        configuration    | expectedResult
+        "compile"        | "unusedDeclaredArtifacts"
+        "implementation" | "unusedDeclaredArtifacts"
+        "compileOnly"    | "unusedDeclaredArtifacts"
+        "runtimeOnly"    | BUILD_FAILURE
+    }
+
     private BuildResult buildGradleProject(String expectedResult) {
         if (expectedResult == SUCCESS) {
             return gradleProject().build()
@@ -213,7 +333,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
 
     private static GradleProject rootProject() {
         new GradleProject("project", true)
-                .withPlugin("ca.cutterslade.analyze")
+                .withPlugin("de.check24.finance.baufi.gradle.dependency.analyze")
                 .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
     }
 
@@ -226,6 +346,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         GradleRunner.create()
                 .withProjectDir(projectDir.getRoot())
                 .withPluginClasspath()
+        .withDebug(true)
                 .withArguments("build")
     }
 

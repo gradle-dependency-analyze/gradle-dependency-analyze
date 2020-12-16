@@ -51,7 +51,6 @@ class ProjectDependencyResolver {
       def artifacts = resolveArtifacts([project.getConfigurations().detachedConfiguration(project.dependencies.create(aggregator))])
       def key = artifacts.find {it.id.componentIdentifier.displayName == aggregator}
       aggregatorsWithDependencies.put(key, artifacts)
-      logger.info(artifacts.toString())
     }
   }
 
@@ -115,18 +114,20 @@ class ProjectDependencyResolver {
       unusedDeclared -= allowedToDeclareArtifacts
     }
 
-    def aggregatorUsage = used(usedArtifacts, aggregatorsWithDependencies).groupBy {it.value.size() > 0}
-    if (aggregatorUsage.containsKey(false)) {
-      unusedDeclared += aggregatorUsage.get(false).keySet()
-    }
-    if (aggregatorUsage.containsKey(true)) {
-      def usedAggregator = aggregatorUsage.get(true)
-      def usedAggregatorDependencies = usedAggregator.keySet()
-      usedDeclared += usedAggregatorDependencies
-      unusedDeclared -= usedAggregatorDependencies
-      def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact)it})
-      unusedDeclared += usedDeclared.intersect(flatten)
-      usedUndeclared -= usedAggregatorDependencies.collect {aggregatorsWithDependencies.get(it)}.flatten()
+    if (!aggregatorsWithDependencies.isEmpty()) {
+      def aggregatorUsage = used(allDependencyArtifacts, usedArtifacts, aggregatorsWithDependencies).groupBy { it.value.size() > 0 }
+      if (aggregatorUsage.containsKey(false)) {
+        unusedDeclared += aggregatorUsage.get(false).keySet()
+      }
+      if (aggregatorUsage.containsKey(true)) {
+        def usedAggregator = aggregatorUsage.get(true)
+        def usedAggregatorDependencies = usedAggregator.keySet()
+        usedDeclared += usedAggregatorDependencies
+        unusedDeclared -= usedAggregatorDependencies
+        def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
+        unusedDeclared += usedDeclared.intersect(flatten)
+        usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
+      }
     }
 
     return new ProjectDependencyAnalysis(
@@ -230,13 +231,15 @@ class ProjectDependencyResolver {
     allArtifacts
   }
 
-  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(Set<File> files, Map<ResolvedArtifact, Set<ResolvedArtifact>> stringSetMap) {
+  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(Set<File> requiredDeps, Set<File> files, Map<ResolvedArtifact, Set<ResolvedArtifact>> stringSetMap) {
     def map = new HashMap<ResolvedArtifact, Collection<ResolvedArtifact>>()
 
     stringSetMap.each {it ->
-      def filesForAggregator = it.value.collect({ it.file })
-      def disjoint = filesForAggregator.intersect(files)
-      map.put(it.key, it.value.findAll {disjoint.contains(it.file)})
+      if (requiredDeps.contains(it.key.file)) {
+        def filesForAggregator = it.value.collect({ it.file })
+        def disjoint = filesForAggregator.intersect(files)
+        map.put(it.key, it.value.findAll { disjoint.contains(it.file) })
+      }
     }
 
     return map
