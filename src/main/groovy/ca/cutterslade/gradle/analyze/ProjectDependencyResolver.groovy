@@ -29,10 +29,11 @@ class ProjectDependencyResolver {
   private final List<Configuration> allowedToUse
   private final List<Configuration> allowedToDeclare
   private final Iterable<File> classesDirs
+  private final Map<ResolvedArtifact, Set<ResolvedArtifact>> aggregatorsWithDependencies = [:]
 
   ProjectDependencyResolver(final Project project, final List<Configuration> require,
       final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
-      final Iterable<File> classesDirs) {
+      final Iterable<File> classesDirs, List<String> aggregators) {
     try {
       this.artifactClassCache =
           project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
@@ -45,6 +46,12 @@ class ProjectDependencyResolver {
     this.allowedToUse = removeNulls(allowedToUse) as List
     this.allowedToDeclare = removeNulls(allowedToDeclare) as List
     this.classesDirs = classesDirs
+
+    for (String aggregator : aggregators) {
+      def artifacts = resolveArtifacts([project.getConfigurations().detachedConfiguration(project.dependencies.create(aggregator))])
+      def key = artifacts.find {it.id.componentIdentifier.displayName == aggregator}
+      aggregatorsWithDependencies.put(key, artifacts)
+    }
   }
 
   static <T> Collection<T> removeNulls(final Collection<T> collection) {
@@ -94,11 +101,7 @@ class ProjectDependencyResolver {
         flatten() as Set<ResolvedArtifact>
     logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
 
-    Set<ResolvedArtifact> allArtifacts = (((require
-        .collect {it.resolvedConfiguration}
-        .collect {it.firstLevelModuleDependencies}.flatten()) as Set<ResolvedDependency>)
-        .collect {it.allModuleArtifacts}.flatten()) as Set<ResolvedArtifact>
-
+    Set<ResolvedArtifact> allArtifacts = resolveArtifacts(require)
     logger.info "allArtifacts = $allArtifacts"
 
     def usedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts}
@@ -109,6 +112,22 @@ class ProjectDependencyResolver {
     def unusedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts}
     if (allowedToDeclareArtifacts) {
       unusedDeclared -= allowedToDeclareArtifacts
+    }
+
+    if (!aggregatorsWithDependencies.isEmpty()) {
+      def aggregatorUsage = used(allDependencyArtifacts, usedArtifacts, aggregatorsWithDependencies).groupBy { it.value.size() > 0 }
+      if (aggregatorUsage.containsKey(false)) {
+        unusedDeclared += aggregatorUsage.get(false).keySet()
+      }
+      if (aggregatorUsage.containsKey(true)) {
+        def usedAggregator = aggregatorUsage.get(true)
+        def usedAggregatorDependencies = usedAggregator.keySet()
+        usedDeclared += usedAggregatorDependencies
+        unusedDeclared -= usedAggregatorDependencies
+        def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
+        unusedDeclared += usedDeclared.intersect(flatten)
+        usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
+      }
     }
 
     return new ProjectDependencyAnalysis(
@@ -202,5 +221,27 @@ class ProjectDependencyResolver {
       }
     }
     return usedArtifacts
+  }
+
+  private Set<ResolvedArtifact> resolveArtifacts(List<Configuration> configurations) {
+    Set<ResolvedArtifact> allArtifacts = (((configurations
+            .collect { it.resolvedConfiguration }
+            .collect { it.firstLevelModuleDependencies }.flatten()) as Set<ResolvedDependency>)
+            .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>
+    allArtifacts
+  }
+
+  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(Set<File> requiredDeps, Set<File> files, Map<ResolvedArtifact, Set<ResolvedArtifact>> stringSetMap) {
+    def map = new HashMap<ResolvedArtifact, Collection<ResolvedArtifact>>()
+
+    stringSetMap.each {it ->
+      if (requiredDeps.contains(it.key.file)) {
+        def filesForAggregator = it.value.collect({ it.file })
+        def disjoint = filesForAggregator.intersect(files)
+        map.put(it.key, it.value.findAll { disjoint.contains(it.file) })
+      }
+    }
+
+    return map
   }
 }
