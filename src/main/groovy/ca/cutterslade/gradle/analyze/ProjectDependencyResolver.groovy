@@ -115,7 +115,7 @@ class ProjectDependencyResolver {
     }
 
     if (!aggregatorsWithDependencies.isEmpty()) {
-      def aggregatorUsage = used(allDependencyArtifacts, usedArtifacts, aggregatorsWithDependencies).groupBy { it.value.size() > 0 }
+      def aggregatorUsage = used(allDependencyArtifacts, usedArtifacts).groupBy { it.value.size() > 0 }
       if (aggregatorUsage.containsKey(false)) {
         unusedDeclared += aggregatorUsage.get(false).keySet()
       }
@@ -231,17 +231,28 @@ class ProjectDependencyResolver {
     allArtifacts
   }
 
-  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(Set<File> requiredDeps, Set<File> files, Map<ResolvedArtifact, Set<ResolvedArtifact>> stringSetMap) {
-    def map = new HashMap<ResolvedArtifact, Collection<ResolvedArtifact>>()
+  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(Set<File> allDependencyArtifacts, Set<File> usedArtifacts) {
+    def usedAggregators = new LinkedHashMap<ResolvedArtifact, Collection<ResolvedArtifact>>()
 
-    stringSetMap.each {it ->
-      if (requiredDeps.contains(it.key.file)) {
+    aggregatorsWithDependencies.each {
+      if (allDependencyArtifacts.contains(it.key.file)) {
         def filesForAggregator = it.value.collect({ it.file })
-        def disjoint = filesForAggregator.intersect(files)
-        map.put(it.key, it.value.findAll { disjoint.contains(it.file) })
+        def disjoint = filesForAggregator.intersect(usedArtifacts)
+        usedAggregators.put(it.key, it.value.findAll { disjoint.contains(it.file) })
       }
     }
 
-    return map
+    removeDuplicates(usedAggregators)
+  }
+
+  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> removeDuplicates(Map<ResolvedArtifact, Collection<ResolvedArtifact>> usedAggregators) {
+    def aggregatorsSortedByDependencies = usedAggregators.sort({-aggregatorsWithDependencies.get(it.key).size()})
+
+    def aggregatorArtifactAlreadySeen = [] as Set
+    aggregatorsSortedByDependencies.removeAll {
+      aggregatorArtifactAlreadySeen.add(it.key)
+      aggregatorsSortedByDependencies.any { it2 -> !aggregatorArtifactAlreadySeen.contains(it2.key) && it2.value.containsAll(it.value) }
+    }
+    return aggregatorsSortedByDependencies
   }
 }
