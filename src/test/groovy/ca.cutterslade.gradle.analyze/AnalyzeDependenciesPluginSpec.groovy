@@ -411,7 +411,6 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         GradleRunner.create()
                 .withProjectDir(projectDir.getRoot())
                 .withPluginClasspath()
-        .withDebug(true)
                 .withArguments("build")
     }
 
