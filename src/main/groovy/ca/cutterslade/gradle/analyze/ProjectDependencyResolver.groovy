@@ -246,7 +246,9 @@ class ProjectDependencyResolver {
   }
 
   private Map<ResolvedArtifact, Collection<ResolvedArtifact>> removeDuplicates(Map<ResolvedArtifact, Collection<ResolvedArtifact>> usedAggregators) {
-    def aggregatorsSortedByDependencies = usedAggregators.sort({-aggregatorsWithDependencies.get(it.key).size()})
+    def aggregatorsSortedByDependencies = usedAggregators.sort{l, r ->
+      l.value.size() <=> r.value.size() ?: aggregatorsWithDependencies.get(r.key).size() <=> aggregatorsWithDependencies.get(l.key).size()
+    }
 
     def aggregatorArtifactAlreadySeen = [] as Set
     aggregatorsSortedByDependencies.removeAll {

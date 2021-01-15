@@ -14,6 +14,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     private static final String SUCCESS = "success"
     private static final String BUILD_FAILURE = "build failure"
     private static final String TEST_BUILD_FAILURE = "test build failure"
+    private static final String VIOLATIONS = "violations"
 
     @Rule
     private TemporaryFolder projectDir
@@ -56,7 +57,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     }
 
     @Unroll
-    def "used transient main dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "used transient main dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass("Main").usesClass("Transient"))
@@ -71,18 +72,18 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult
-        "compile"        | "usedUndeclaredArtifacts"
-        "implementation" | "usedUndeclaredArtifacts"
-        "compileOnly"    | "usedUndeclaredArtifacts"
-        "runtimeOnly"    | BUILD_FAILURE
+        configuration    | expectedResult      | usedUndeclaredArtifacts               | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS          | ["project:transient:unspecified@jar"] | ["project:dependent:unspecified@jar"]
+        "implementation" | VIOLATIONS          | ["project:transient:unspecified@jar"] | ["project:dependent:unspecified@jar"]
+        "compileOnly"    | VIOLATIONS          | ["project:transient:unspecified@jar"] | ["project:dependent:unspecified@jar"]
+        "runtimeOnly"    | BUILD_FAILURE       | []                                    | []
     }
 
     @Unroll
-    def "unused main dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "unused main dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass("Main"))
@@ -95,14 +96,14 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult
-        "compile"        | "unusedDeclaredArtifacts"
-        "implementation" | "unusedDeclaredArtifacts"
-        "compileOnly"    | "unusedDeclaredArtifacts"
-        "runtimeOnly"    | SUCCESS
+        configuration    | expectedResult      | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS          | []                      | ["project:independent:unspecified@jar"]
+        "implementation" | VIOLATIONS          | []                      | ["project:independent:unspecified@jar"]
+        "compileOnly"    | VIOLATIONS          | []                      | ["project:independent:unspecified@jar"]
+        "runtimeOnly"    | SUCCESS             | []                      | []
     }
 
     @Unroll
@@ -131,7 +132,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     }
 
     @Unroll
-    def "unused test dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "unused test dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass("Main"))
@@ -145,18 +146,18 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration        | expectedResult
-        "testCompile"        | "unusedDeclaredArtifacts"
-        "testImplementation" | "unusedDeclaredArtifacts"
-        "testCompileOnly"    | "unusedDeclaredArtifacts"
-        "testRuntimeOnly"    | SUCCESS
+        configuration        | expectedResult      | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        "testCompile"        | VIOLATIONS          | []                      | ["project:dependent:unspecified@jar"]
+        "testImplementation" | VIOLATIONS          | []                      | ["project:dependent:unspecified@jar"]
+        "testCompileOnly"    | VIOLATIONS          | []                      | ["project:dependent:unspecified@jar"]
+        "testRuntimeOnly"    | SUCCESS             | []                      | []
     }
 
     @Unroll
-    def "used transient test dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "used transient test dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass("Main"))
@@ -173,14 +174,14 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration        | expectedResult
-        "testCompile"        | "usedUndeclaredArtifacts"
-        "testImplementation" | "usedUndeclaredArtifacts"
-        "testCompileOnly"    | "usedUndeclaredArtifacts"
-        "testRuntimeOnly"    | TEST_BUILD_FAILURE
+        configuration        | expectedResult      | usedUndeclaredArtifacts               | unusedDeclaredArtifacts
+        "testCompile"        | VIOLATIONS          | ["project:transient:unspecified@jar"] | ["project:dependent:unspecified@jar"]
+        "testImplementation" | VIOLATIONS          | ["project:transient:unspecified@jar"] | ["project:dependent:unspecified@jar"]
+        "testCompileOnly"    | VIOLATIONS          | ["project:transient:unspecified@jar"] | ["project:dependent:unspecified@jar"]
+        "testRuntimeOnly"    | TEST_BUILD_FAILURE  | []                                    | []
     }
 
     @Unroll
@@ -215,7 +216,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     }
 
     @Unroll
-    def "aggregator dependency not declared in config and used in build should report unused aggregator with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "aggregator dependency not declared in config and used in build should report unused aggregator with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -234,18 +235,18 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult
-        "compile"        | "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"
-        "implementation" | "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"
-        "compileOnly"    | "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"
-        "runtimeOnly"    | BUILD_FAILURE
+        configuration    | expectedResult | usedUndeclaredArtifacts                                                                                          | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "compileOnly"    | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "runtimeOnly"    | BUILD_FAILURE  | []                                                                                                               | []
     }
 
     @Unroll
-    def "aggregator dependency declared in config and not used in build with dedicated dependency should report missing dependency with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "aggregator dependency declared in config and not used in build with dedicated dependency should report missing dependency with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -265,18 +266,18 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult
-        "compile"        | "usedUndeclaredArtifacts"
-        "implementation" | "usedUndeclaredArtifacts"
-        "compileOnly"    | "usedUndeclaredArtifacts"
-        "runtimeOnly"    | BUILD_FAILURE
+        configuration    | expectedResult | usedUndeclaredArtifacts                                 | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
+        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
+        "compileOnly"    | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
+        "runtimeOnly"    | BUILD_FAILURE  | []                                                      | []
     }
 
     @Unroll
-    def "aggregator dependency declared in config and used in build together with dedicated dependency should report explicit dependency as unused with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "aggregator dependency declared in config and used in build together with dedicated dependency should report explicit dependency as unused with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -297,18 +298,18 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult
-        "compile"        | "org.springframework:spring-context:5.2.11.RELEASE"
-        "implementation" | "org.springframework:spring-context:5.2.11.RELEASE"
-        "compileOnly"    | "org.springframework:spring-context:5.2.11.RELEASE"
-        "runtimeOnly"    | BUILD_FAILURE
+        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
+        "implementation" | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
+        "compileOnly"    | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
+        "runtimeOnly"    | BUILD_FAILURE  | []                      | []
     }
 
     @Unroll
-    def "multiple aggregator dependencies declared and dependency available in both aggregators should choose the aggregator with less dependencies and report other as unused with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "multiple aggregator dependencies declared and dependency available in both aggregators should choose the aggregator with less dependencies and report other as unused with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -326,18 +327,18 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult
-        "compile"        | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
-        "implementation" | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
-        "compileOnly"    | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
-        "runtimeOnly"    | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
+        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar"]
+        "implementation" | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar"]
+        "compileOnly"    | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar"]
+        "runtimeOnly"    | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar"]
     }
 
     @Unroll
-    def "multiple aggregator dependencies declared in config and dependency available in both aggregators plus one additional should choose aggregators with less dependencies with #configuration results in #expectedResult"(String configuration, String expectedResult) {
+    def "multiple aggregator dependencies declared in config and dependency available in both aggregators plus one additional should choose aggregators with less dependencies with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -358,14 +359,47 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult
-        "compile"        | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
-        "implementation" | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
-        "compileOnly"    | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
-        "runtimeOnly"    | "org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"
+        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "implementation" | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "compileOnly"    | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "runtimeOnly"    | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+    }
+
+    @Unroll
+    def "multiple aggregator dependencies declared in config and dependency available in both aggregators plus one additional should keep only used distinct aggregators with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+                .withAggregator('org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE')
+                .withAggregator('org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE')
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+                .withMainClass(new GroovyClass('Main')
+                        .usesClass('org.springframework.context.annotation.ComponentScan')
+                        .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                        .usesClass('org.springframework.jdbc.BadSqlGrammarException')
+                        .usesClass('org.springframework.web.bind.annotation.RestController')
+                )
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
+
+        where:
+        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "implementation" | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "compileOnly"    | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "runtimeOnly"    | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
     }
 
     private BuildResult buildGradleProject(String expectedResult) {
@@ -376,6 +410,10 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     }
 
     private static void assertBuildResult(BuildResult result, String expectedResult) {
+        assertBuildResult(result, expectedResult, [] as String[], [] as String[])
+    }
+
+    private static void assertBuildResult(BuildResult result, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         if (expectedResult == SUCCESS) {
             if (result.task(":build") == null) {
                 throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
@@ -391,6 +429,18 @@ class AnalyzeDependenciesPluginSpec extends Specification {
                 throw new SpockAssertionError("compileTestGroovy task not run: \n${result.getOutput()}")
             }
             assert result.task(":compileTestGroovy").getOutcome() == TaskOutcome.FAILED
+        } else if (expectedResult == VIOLATIONS) {
+            def violations = new StringBuilder("> Dependency analysis found issues.\n")
+            if (usedUndeclaredArtifacts?.length > 0) {
+                violations.append("  usedUndeclaredArtifacts: \n")
+                usedUndeclaredArtifacts.each { violations.append("   - ${it}\n") }
+            }
+            if (unusedDeclaredArtifacts?.length > 0) {
+                violations.append("  unusedDeclaredArtifacts: \n")
+                unusedDeclaredArtifacts.each { violations.append("   - ${it}\n") }
+            }
+            violations.append("\n")
+            assert result.output.contains(violations)
         } else {
             assert result.output.contains(expectedResult)
         }
