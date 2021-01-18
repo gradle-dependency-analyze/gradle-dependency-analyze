@@ -13,33 +13,28 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new ConcurrentHashMap<>())
     }
     project.plugins.withId('java') {
-      project.configurations.create('permitAggregatorUse')
-
-
       def commonTask = project.task('analyzeDependencies',
           group: 'Verification',
           description: 'Analyze project for dependency issues.'
       )
-        allowedAggregatorsToUse = [
-                project.configurations.permitAggregatorUse
-        ]
 
       project.tasks.check.dependsOn commonTask
 
       project.sourceSets.all { SourceSet sourceSet ->
         def unusedDeclared = project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared'))
         def usedUndeclared = project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared'))
+        def aggregatorUsed = project.configurations.create(sourceSet.getTaskName('permit', 'aggregatorUse'))
 
         def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
                 dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
                 type: AnalyzeDependenciesTask,
                 group: 'Verification',
                 description: "Analyze project for dependency issues related to ${sourceSet.name} source set.") {
-        allowedAggregatorsToUse = [
-                project.configurations.permitAggregatorUse
-        ]
           require = [
               project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
+          ]
+          allowedAggregatorsToUse = [
+              aggregatorUsed
           ]
           allowedToUse = [
               usedUndeclared
