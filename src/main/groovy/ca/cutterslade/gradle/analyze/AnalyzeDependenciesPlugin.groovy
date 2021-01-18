@@ -15,70 +15,46 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
     project.plugins.withId('java') {
       project.configurations.create('permitAggregatorUse')
 
-      project.configurations.create('permitUnusedDeclared')
-      project.configurations.create('permitTestUnusedDeclared')
 
-      project.configurations.create('permitUsedUndeclared')
-      project.configurations.create('permitTestUsedUndeclared')
-
-      def mainTask = project.task('analyzeClassesDependencies',
-          dependsOn: ['classes', project.configurations.compile],
-          type: AnalyzeDependenciesTask,
-          group: 'Verification',
-          description: 'Analyze project for dependency issues related to main source set.'
-      ) {
-        allowedAggregatorsToUse = [
-                project.configurations.permitAggregatorUse
-        ]
-        require = [
-            project.configurations.compile,
-            project.configurations.findByName('compileOnly'),
-            project.configurations.findByName('provided'),
-            project.configurations.findByName('compileClasspath')
-        ]
-        allowedToUse = [
-            project.configurations.permitUsedUndeclared
-        ]
-        allowedToDeclare = [
-            project.configurations.permitUnusedDeclared
-        ]
-        def output = project.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).output
-        classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
-      }
-
-      def testTask = project.task('analyzeTestClassesDependencies',
-          dependsOn: ['testClasses', project.configurations.testCompile],
-          type: AnalyzeDependenciesTask,
-          group: 'Verification',
-          description: 'Analyze project for dependency issues related to test source set.'
-      ) {
-        allowedAggregatorsToUse = [
-                project.configurations.permitAggregatorUse
-        ]
-        require = [
-            project.configurations.testCompile,
-            project.configurations.findByName('testCompileOnly'),
-            project.configurations.findByName('testCompileClasspath')
-        ]
-        allowedToUse = [
-            project.configurations.compile,
-            project.configurations.permitTestUsedUndeclared,
-            project.configurations.findByName('provided'),
-            project.configurations.findByName('compileClasspath'),
-            project.configurations.findByName('runtimeClasspath')
-        ]
-        allowedToDeclare = [
-            project.configurations.permitTestUnusedDeclared
-        ]
-        def output = project.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output
-        classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
-      }
-
-      project.check.dependsOn project.task('analyzeDependencies',
-          dependsOn: [mainTask, testTask],
+      def commonTask = project.task('analyzeDependencies',
           group: 'Verification',
           description: 'Analyze project for dependency issues.'
       )
+        allowedAggregatorsToUse = [
+                project.configurations.permitAggregatorUse
+        ]
+
+      project.tasks.check.dependsOn commonTask
+
+      project.sourceSets.all { SourceSet sourceSet ->
+        def unusedDeclared = project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared'))
+        def usedUndeclared = project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared'))
+
+        def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
+                dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
+                type: AnalyzeDependenciesTask,
+                group: 'Verification',
+                description: "Analyze project for dependency issues related to ${sourceSet.name} source set.") {
+        allowedAggregatorsToUse = [
+                project.configurations.permitAggregatorUse
+        ]
+          require = [
+              project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
+          ]
+          allowedToUse = [
+              usedUndeclared
+          ]
+          if (sourceSet.name == 'test')
+            allowedToUse.add(project.configurations.compileClasspath)
+          allowedToDeclare = [
+              unusedDeclared
+          ]
+          def output = sourceSet.output
+          // classesDirs was defined in gradle 4.0
+          classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
+        }
+        commonTask.dependsOn analyzeTask
+      }
     }
   }
 }
