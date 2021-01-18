@@ -28,7 +28,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
           description: 'Analyze project for dependency issues related to main source set.'
       ) {
         allowedAggregatorsToUse = [
-                project.rootProject.configurations.permitAggregatorUse
+                project.configurations.permitAggregatorUse
         ]
         require = [
             project.configurations.compile,
@@ -53,7 +53,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
           description: 'Analyze project for dependency issues related to test source set.'
       ) {
         allowedAggregatorsToUse = [
-                project.rootProject.configurations.permitAggregatorUse
+                project.configurations.permitAggregatorUse
         ]
         require = [
             project.configurations.testCompile,
