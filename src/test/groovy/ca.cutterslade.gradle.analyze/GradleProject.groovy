@@ -43,6 +43,19 @@ class GradleProject {
         this
     }
 
+    def withAggregator(GradleDependency aggregator) {
+        dependencies.add(aggregator)
+        this
+    }
+
+    def withMavenRepositories() {
+        repositories = "repositories {\n" +
+                "    mavenLocal()\n" +
+                "    mavenCentral()\n" +
+                "}\n"
+        this
+    }
+
     void create(File root) {
         root.mkdirs()
         subProjects.each { it.create(new File(root, it.name)) }
@@ -91,13 +104,6 @@ class GradleProject {
             buildGradle += "}\n"
         }
         buildGradle += repositories ?: ''
-        if (!aggregators.isEmpty()) {
-            buildGradle += "analyzeClassesDependencies {\n"
-            buildGradle += "  aggregators = [\n"
-            buildGradle += aggregators.collect {"    '${it}'"}.join(',\n')
-            buildGradle += "  ]\n"
-            buildGradle += "}\n"
-        }
         if (!dependencies.isEmpty()) {
             buildGradle += "dependencies {\n"
             for (def dep : dependencies) {
@@ -107,18 +113,5 @@ class GradleProject {
         }
 
         new File(root, "build.gradle").text = buildGradle
-    }
-
-    def withMavenRepositories() {
-        repositories = "repositories {\n" +
-                "    mavenLocal()\n" +
-                "    mavenCentral()\n" +
-                "}\n"
-        this
-    }
-
-    def withAggregator(String aggregator) {
-        aggregators.add(aggregator)
-        this
     }
 }

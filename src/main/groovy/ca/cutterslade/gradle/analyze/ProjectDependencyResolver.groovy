@@ -29,11 +29,12 @@ class ProjectDependencyResolver {
   private final List<Configuration> allowedToUse
   private final List<Configuration> allowedToDeclare
   private final Iterable<File> classesDirs
-  private final Map<ResolvedArtifact, Set<ResolvedArtifact>> aggregatorsWithDependencies = [:]
+  private final Map<ResolvedArtifact, Set<ResolvedArtifact>> aggregatorsWithDependencies
+  private final List<Configuration> allowedAggregatorsToUse
 
   ProjectDependencyResolver(final Project project, final List<Configuration> require,
-      final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
-      final Iterable<File> classesDirs, List<String> aggregators) {
+    final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
+    final Iterable<File> classesDirs, final List<Configuration> allowedAggregatorsToUse) {
     try {
       this.artifactClassCache =
           project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
@@ -43,16 +44,13 @@ class ProjectDependencyResolver {
     }
     this.logger = project.logger
     this.require = removeNulls(require) as List
+    this.allowedAggregatorsToUse = removeNulls(allowedAggregatorsToUse) as List
     this.allowedToUse = removeNulls(allowedToUse) as List
     this.allowedToDeclare = removeNulls(allowedToDeclare) as List
     this.classesDirs = classesDirs
-
-    for (String aggregator : aggregators) {
-      def artifacts = resolveArtifacts([project.getConfigurations().detachedConfiguration(project.dependencies.create(aggregator))])
-      def key = artifacts.find {it.id.componentIdentifier.displayName == aggregator}
-      aggregatorsWithDependencies.put(key, artifacts)
-    }
+    this.aggregatorsWithDependencies = getAggregatorsMapping()
   }
+
 
   static <T> Collection<T> removeNulls(final Collection<T> collection) {
     if (null == collection) {
@@ -150,6 +148,22 @@ class ProjectDependencyResolver {
 
   static Set<ResolvedDependency> getFirstLevelDependencies(final List<Configuration> configurations) {
     configurations.collect {it.resolvedConfiguration.firstLevelModuleDependencies}.flatten() as Set<ResolvedDependency>
+  }
+
+  private Map<ResolvedArtifact, Set<ResolvedArtifact>> getAggregatorsMapping() {
+    if (!allowedAggregatorsToUse.empty) {
+      def resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse)
+      def dependencies = getFirstLevelDependencies(allowedAggregatorsToUse)
+
+      dependencies.collectEntries({it ->
+        [
+                resolvedArtifacts.find { it2 -> it2.id.componentIdentifier.displayName == it.name },
+                it.allModuleArtifacts as Set<ResolvedArtifact>
+        ]
+      })
+    } else {
+      [:]
+    }
   }
 
   /**

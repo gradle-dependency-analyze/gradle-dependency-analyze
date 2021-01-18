@@ -15,14 +15,14 @@ import java.lang.reflect.Method
 class AnalyzeDependenciesTask extends DefaultTask {
   @Input
   boolean justWarn = false
-  @Input
-  List<String> aggregators = []
   @InputFiles
   List<Configuration> require = []
   @InputFiles
   List<Configuration> allowedToUse = []
   @InputFiles
   List<Configuration> allowedToDeclare = []
+  @InputFiles
+  List<Configuration> allowedAggregatorsToUse = []
   @InputFiles
   FileCollection classesDirs = project.files()
   @OutputFile
@@ -44,7 +44,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
     logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
         "allowedToDeclare: $allowedToDeclare]"
     ProjectDependencyAnalysis analysis =
-        new ProjectDependencyResolver(project, require, allowedToUse, allowedToDeclare, classesDirs, aggregators)
+        new ProjectDependencyResolver(project, require, allowedToUse, allowedToDeclare, classesDirs, allowedAggregatorsToUse)
             .analyzeDependencies()
     StringBuffer buffer = new StringBuffer()
     ['usedUndeclaredArtifacts', 'unusedDeclaredArtifacts'].each {section ->

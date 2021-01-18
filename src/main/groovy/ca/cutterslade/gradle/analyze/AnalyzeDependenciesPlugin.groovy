@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap
 class AnalyzeDependenciesPlugin implements Plugin<Project> {
   @Override
   void apply(final Project project) {
+    if (project.rootProject.configurations.findByName('permitAggregatorUse') == null) {
+      project.rootProject.configurations.create('permitAggregatorUse')
+    }
     if (project.rootProject == project) {
       project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new ConcurrentHashMap<>())
     }
@@ -25,6 +28,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
           group: 'Verification',
           description: 'Analyze project for dependency issues related to main source set.'
       ) {
+        allowedAggregatorsToUse = [
+                project.rootProject.configurations.permitAggregatorUse
+        ]
         require = [
             project.configurations.compile,
             project.configurations.findByName('compileOnly'),
@@ -47,6 +53,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
           group: 'Verification',
           description: 'Analyze project for dependency issues related to test source set.'
       ) {
+        allowedAggregatorsToUse = [
+                project.rootProject.configurations.permitAggregatorUse
+        ]
         require = [
             project.configurations.testCompile,
             project.configurations.findByName('testCompileOnly'),

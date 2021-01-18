@@ -189,7 +189,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         setup:
         rootProject()
                 .withMavenRepositories()
-                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('Dependent')
@@ -250,7 +250,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         setup:
         rootProject()
                 .withMavenRepositories()
-                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('Dependent')
@@ -281,7 +281,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         setup:
         rootProject()
                 .withMavenRepositories()
-                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
@@ -313,8 +313,8 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         setup:
         rootProject()
                 .withMavenRepositories()
-                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
-                .withAggregator('org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE')
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
@@ -342,9 +342,9 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         setup:
         rootProject()
                 .withMavenRepositories()
-                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
-                .withAggregator('org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE')
-                .withAggregator('org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE')
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
@@ -374,9 +374,9 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         setup:
         rootProject()
                 .withMavenRepositories()
-                .withAggregator('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
-                .withAggregator('org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE')
-                .withAggregator('org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE')
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
