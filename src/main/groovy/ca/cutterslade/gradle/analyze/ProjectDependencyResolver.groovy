@@ -161,7 +161,7 @@ class ProjectDependencyResolver {
                 it.allModuleArtifacts as Set<ResolvedArtifact>
         ]
       })
-      resolvedMapping.retainAll {it.key == null}
+      resolvedMapping.removeAll {it.key == null}
       resolvedMapping
     } else {
       [:]
