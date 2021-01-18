@@ -402,6 +402,36 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         "runtimeOnly"    | VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
     }
 
+    @Unroll
+    def "multiple aggregator dependencies declared in config and another aggregator is smaller with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE'))
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+                .withMainClass(new GroovyClass('Main')
+                        .usesClass('com.fasterxml.jackson.databind.ObjectMapper')
+                        .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                        .usesClass('org.springframework.web.context.request.RequestContextHolder')
+                )
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
+
+        where:
+        configuration    | expectedResult | usedUndeclaredArtifacts                                                 | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "implementation" | VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "compileOnly"    | VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        "runtimeOnly"    | VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+    }
+
     private BuildResult buildGradleProject(String expectedResult) {
         if (expectedResult == SUCCESS) {
             return gradleProject().build()
