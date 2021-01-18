@@ -9,13 +9,12 @@ import java.util.concurrent.ConcurrentHashMap
 class AnalyzeDependenciesPlugin implements Plugin<Project> {
   @Override
   void apply(final Project project) {
-    if (project.rootProject.configurations.findByName('permitAggregatorUse') == null) {
-      project.rootProject.configurations.create('permitAggregatorUse')
-    }
     if (project.rootProject == project) {
       project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new ConcurrentHashMap<>())
     }
     project.plugins.withId('java') {
+      project.configurations.create('permitAggregatorUse')
+
       project.configurations.create('permitUnusedDeclared')
       project.configurations.create('permitTestUnusedDeclared')
 
