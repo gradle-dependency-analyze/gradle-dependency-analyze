@@ -120,11 +120,12 @@ class ProjectDependencyResolver {
       if (aggregatorUsage.containsKey(true)) {
         def usedAggregator = aggregatorUsage.get(true)
         def usedAggregatorDependencies = usedAggregator.keySet()
-        usedDeclared += usedAggregatorDependencies
+        usedDeclared += usedAggregatorDependencies.intersect(unusedDeclared)
         unusedDeclared -= usedAggregatorDependencies
         def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
         unusedDeclared += usedDeclared.intersect(flatten)
         usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
+        usedUndeclared += usedAggregatorDependencies - usedDeclared
       }
     }
 
@@ -271,6 +272,7 @@ class ProjectDependencyResolver {
       aggregatorArtifactAlreadySeen.add(it.key)
       aggregatorsSortedByDependencies.any { it2 -> !aggregatorArtifactAlreadySeen.contains(it2.key) && it2.value.containsAll(it.value) }
     }
+    logger.debug "used aggregators: $aggregatorsSortedByDependencies.keySet()"
     return aggregatorsSortedByDependencies
   }
 }
