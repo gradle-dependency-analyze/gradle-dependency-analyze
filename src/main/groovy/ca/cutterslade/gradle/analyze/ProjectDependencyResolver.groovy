@@ -155,12 +155,14 @@ class ProjectDependencyResolver {
       def resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse)
       def dependencies = getFirstLevelDependencies(allowedAggregatorsToUse)
 
-      dependencies.collectEntries({it ->
+      Map<ResolvedArtifact, Set<ResolvedArtifact>> resolvedMapping = dependencies.collectEntries({ it ->
         [
                 resolvedArtifacts.find { it2 -> it2.id.componentIdentifier.displayName == it.name },
                 it.allModuleArtifacts as Set<ResolvedArtifact>
         ]
       })
+      resolvedMapping.retainAll {it.key == null}
+      resolvedMapping
     } else {
       [:]
     }
