@@ -432,6 +432,37 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         "runtimeOnly"    | VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
     }
 
+    @Unroll
+    def "aggregator from project #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', project: 'bom'))
+                .withDependency(new GradleDependency(configuration: 'compile', project: 'bom'))
+                .withDependency(new GradleDependency(configuration: 'compile', project: 'dependent'))
+                .withSubProject(subProject('bom')
+                        .withDependency(new GradleDependency(configuration: 'compile', project: 'dependent'))
+                )
+                .withSubProject(subProject("dependent")
+                        .withMainClass(new GroovyClass("Dependent"))
+                )
+                .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
+
+        where:
+        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        "compile"        | VIOLATIONS     | []                      | ["project:dependent:unspecified@jar"]
+        "implementation" | VIOLATIONS     | []                      | ["project:dependent:unspecified@jar"]
+        "compileOnly"    | VIOLATIONS     | []                      | ["project:dependent:unspecified@jar"]
+        "runtimeOnly"    | VIOLATIONS     | []                      | ["project:dependent:unspecified@jar"]
+    }
+
     private BuildResult buildGradleProject(String expectedResult) {
         if (expectedResult == SUCCESS) {
             return gradleProject().build()
