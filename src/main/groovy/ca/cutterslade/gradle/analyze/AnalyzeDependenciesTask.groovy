@@ -3,8 +3,8 @@ package ca.cutterslade.gradle.analyze
 import org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalysis
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
@@ -51,7 +51,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
       def violations = analysis."$section"
       if (violations) {
         buffer.append("$section: \n")
-        violations.sort { it.moduleVersion.id.toString() }.each { DefaultResolvedArtifact it ->
+        violations.sort { it.moduleVersion.id.toString() }.each { ResolvedArtifact it ->
           def clas = it.classifier ? ":$it.classifier" : ""
           buffer.append(" - $it.moduleVersion.id$clas@$it.extension\n")
         }
