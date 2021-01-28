@@ -33,8 +33,8 @@ class ProjectDependencyResolver {
   private final List<Configuration> allowedAggregatorsToUse
 
   ProjectDependencyResolver(final Project project, final List<Configuration> require,
-    final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
-    final Iterable<File> classesDirs, final List<Configuration> allowedAggregatorsToUse) {
+      final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
+      final Iterable<File> classesDirs, final List<Configuration> allowedAggregatorsToUse) {
     try {
       this.artifactClassCache =
           project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
@@ -55,9 +55,8 @@ class ProjectDependencyResolver {
   static <T> Collection<T> removeNulls(final Collection<T> collection) {
     if (null == collection) {
       []
-    }
-    else {
-      collection.removeAll {it == null}
+    } else {
+      collection.removeAll { it == null }
       collection
     }
   }
@@ -102,12 +101,12 @@ class ProjectDependencyResolver {
     Set<ResolvedArtifact> allArtifacts = resolveArtifacts(require)
     logger.info "allArtifacts = $allArtifacts"
 
-    def usedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts}
-    def usedUndeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts}
+    def usedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts }
+    def usedUndeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts }
     if (allowedToUseArtifacts) {
       usedUndeclared -= allowedToUseArtifacts
     }
-    def unusedDeclared = allArtifacts.findAll {ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts}
+    def unusedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts }
     if (allowedToDeclareArtifacts) {
       unusedDeclared -= allowedToDeclareArtifacts
     }
@@ -130,9 +129,9 @@ class ProjectDependencyResolver {
     }
 
     return new ProjectDependencyAnalysis(
-        usedDeclared.unique {it.file} as Set<Artifact>,
-        usedUndeclared.unique {it.file} as Set<Artifact>,
-        unusedDeclared.unique {it.file} as Set<Artifact>)
+        usedDeclared.unique { it.file } as Set<Artifact>,
+        usedUndeclared.unique { it.file } as Set<Artifact>,
+        unusedDeclared.unique { it.file } as Set<Artifact>)
   }
 
   private Set<ResolvedDependency> getRequiredDependencies() {
@@ -148,7 +147,7 @@ class ProjectDependencyResolver {
   }
 
   static Set<ResolvedDependency> getFirstLevelDependencies(final List<Configuration> configurations) {
-    configurations.collect {it.resolvedConfiguration.firstLevelModuleDependencies}.flatten() as Set<ResolvedDependency>
+    configurations.collect { it.resolvedConfiguration.firstLevelModuleDependencies }.flatten() as Set<ResolvedDependency>
   }
 
   private Map<ResolvedArtifact, Set<ResolvedArtifact>> getAggregatorsMapping() {
@@ -176,15 +175,14 @@ class ProjectDependencyResolver {
 
     int hits = 0
     int misses = 0
-    dependencyArtifacts.each {File file ->
+    dependencyArtifacts.each { File file ->
       def classes = artifactClassCache[file]
       if (null == classes) {
         logger.debug "Artifact class cache miss for $file"
         misses++
         classes = classAnalyzer.analyze(file.toURI().toURL()).asImmutable()
         artifactClassCache.putIfAbsent(file, classes)
-      }
-      else {
+      } else {
         logger.debug "Artifact class cache hit for $file"
         hits++
       }
@@ -196,14 +194,14 @@ class ProjectDependencyResolver {
 
   private Set<File> findModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
     ((dependencies
-        .collect {it.moduleArtifacts}.flatten()) as Set<ResolvedArtifact>)
-        .collect {it.file}.unique() as Set<File>
+        .collect { it.moduleArtifacts }.flatten()) as Set<ResolvedArtifact>)
+        .collect { it.file }.unique() as Set<File>
   }
 
   private Set<File> findAllModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
     ((dependencies
-        .collect {it.allModuleArtifacts}.flatten()) as Set<ResolvedArtifact>)
-        .collect {it.file}.unique() as Set<File>
+        .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>)
+        .collect { it.file }.unique() as Set<File>
   }
 
   /**
@@ -212,7 +210,7 @@ class ProjectDependencyResolver {
    * @return a Set of class names
    */
   private Set<String> analyzeClassDependencies() {
-    classesDirs.collect {File it -> dependencyAnalyzer.analyze(it.toURI().toURL())}
+    classesDirs.collect { File it -> dependencyAnalyzer.analyze(it.toURI().toURL()) }
         .flatten() as Set<String>
   }
 
@@ -226,8 +224,8 @@ class ProjectDependencyResolver {
   private Set<File> buildUsedArtifacts(Map<File, Set<String>> artifactClassMap, Set<String> dependencyClasses) {
     Set<File> usedArtifacts = new HashSet()
 
-    dependencyClasses.each {String className ->
-      File artifact = artifactClassMap.find {it.value.contains(className)}?.key
+    dependencyClasses.each { String className ->
+      File artifact = artifactClassMap.find { it.value.contains(className) }?.key
       if (artifact) {
         usedArtifacts << artifact
       }
@@ -237,9 +235,9 @@ class ProjectDependencyResolver {
 
   private Set<ResolvedArtifact> resolveArtifacts(List<Configuration> configurations) {
     Set<ResolvedArtifact> allArtifacts = (((configurations
-            .collect { it.resolvedConfiguration }
-            .collect { it.firstLevelModuleDependencies }.flatten()) as Set<ResolvedDependency>)
-            .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>
+        .collect { it.resolvedConfiguration }
+        .collect { it.firstLevelModuleDependencies }.flatten()) as Set<ResolvedDependency>)
+        .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>
     allArtifacts
   }
 
@@ -258,7 +256,7 @@ class ProjectDependencyResolver {
   }
 
   private Map<ResolvedArtifact, Collection<ResolvedArtifact>> removeDuplicates(Map<ResolvedArtifact, Collection<ResolvedArtifact>> usedAggregators) {
-    def aggregatorsSortedByDependencies = usedAggregators.sort{l, r ->
+    def aggregatorsSortedByDependencies = usedAggregators.sort { l, r ->
       l.value.size() <=> r.value.size() ?: aggregatorsWithDependencies.get(r.key).size() <=> aggregatorsWithDependencies.get(l.key).size()
     }
 
