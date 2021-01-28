@@ -12,6 +12,7 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.logging.Logger
 
 import java.util.concurrent.ConcurrentHashMap
@@ -112,19 +113,27 @@ class ProjectDependencyResolver {
     }
 
     if (!aggregatorsWithDependencies.isEmpty()) {
-      def aggregatorUsage = used(allDependencyArtifacts, usedArtifacts).groupBy { it.value.size() > 0 }
+      def usedIdentifiers = (requiredDeps.collect {it.allModuleArtifacts}.flatten() as Set<ResolvedArtifact>)
+          .collect {it.id}
+          .collect {it.componentIdentifier}
+      def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.size() > 0 }
       if (aggregatorUsage.containsKey(false)) {
         unusedDeclared += aggregatorUsage.get(false).keySet()
       }
       if (aggregatorUsage.containsKey(true)) {
         def usedAggregator = aggregatorUsage.get(true)
         def usedAggregatorDependencies = usedAggregator.keySet()
-        usedDeclared += usedAggregatorDependencies.intersect(unusedDeclared)
-        unusedDeclared -= usedAggregatorDependencies
+        usedDeclared += usedAggregatorDependencies.intersect(unusedDeclared, { ResolvedArtifact a, ResolvedArtifact b ->
+          a.id.componentIdentifier == b.id.componentIdentifier ? 0 : 1 } as Comparator<ResolvedArtifact>)
+
+        def usedAggregatorComponentIdentifiers = usedAggregatorDependencies.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
+        unusedDeclared.removeAll { usedAggregatorComponentIdentifiers.contains(it.id.componentIdentifier) }
         def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
         unusedDeclared += usedDeclared.intersect(flatten)
+
         usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
-        usedUndeclared += usedAggregatorDependencies - usedDeclared
+        def usedDeclaredComponentIdentifiers = usedDeclared.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
+        usedUndeclared += usedAggregatorDependencies.findAll { !usedDeclaredComponentIdentifiers.contains(it.id.componentIdentifier) }
       }
     }
 
@@ -241,11 +250,11 @@ class ProjectDependencyResolver {
     allArtifacts
   }
 
-  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(Set<File> allDependencyArtifacts, Set<File> usedArtifacts) {
+  private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(List<ComponentIdentifier> allDependencyArtifacts, Set<File> usedArtifacts) {
     def usedAggregators = new LinkedHashMap<ResolvedArtifact, Collection<ResolvedArtifact>>()
 
     aggregatorsWithDependencies.each {
-      if (allDependencyArtifacts.contains(it.key.file)) {
+      if (allDependencyArtifacts.contains(it.key.id.componentIdentifier)) {
         def filesForAggregator = it.value.collect({ it.file })
         def disjoint = filesForAggregator.intersect(usedArtifacts)
         usedAggregators.put(it.key, it.value.findAll { disjoint.contains(it.file) })
