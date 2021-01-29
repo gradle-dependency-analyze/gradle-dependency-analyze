@@ -113,9 +113,9 @@ class ProjectDependencyResolver {
     }
 
     if (!aggregatorsWithDependencies.isEmpty()) {
-      def usedIdentifiers = (requiredDeps.collect {it.allModuleArtifacts}.flatten() as Set<ResolvedArtifact>)
-          .collect {it.id}
-          .collect {it.componentIdentifier}
+      def usedIdentifiers = (requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+          .collect { it.id }
+          .collect { it.componentIdentifier }
       def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.size() > 0 }
       if (aggregatorUsage.containsKey(false)) {
         unusedDeclared += aggregatorUsage.get(false).keySet()
@@ -124,7 +124,8 @@ class ProjectDependencyResolver {
         def usedAggregator = aggregatorUsage.get(true)
         def usedAggregatorDependencies = usedAggregator.keySet()
         usedDeclared += usedAggregatorDependencies.intersect(unusedDeclared, { ResolvedArtifact a, ResolvedArtifact b ->
-          a.id.componentIdentifier == b.id.componentIdentifier ? 0 : 1 } as Comparator<ResolvedArtifact>)
+          a.id.componentIdentifier == b.id.componentIdentifier ? 0 : a.id.componentIdentifier.displayName <=> b.id.componentIdentifier.displayName
+        } as Comparator<ResolvedArtifact>)
 
         def usedAggregatorComponentIdentifiers = usedAggregatorDependencies.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
         unusedDeclared.removeAll { usedAggregatorComponentIdentifiers.contains(it.id.componentIdentifier) }
