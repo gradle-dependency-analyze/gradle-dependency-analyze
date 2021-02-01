@@ -8,10 +8,10 @@ class GradleProject {
     Set<GradleProject> subProjects = []
     Set<GroovyClass> mainClasses = []
     Set<GroovyClass> testClasses = []
-    Set<String> plugins = ['groovy']
+    Set<String> plugins = []
     Set<GradleDependency> dependencies = []
-    String repositories;
-    Set<String> aggregators = []
+    String repositories
+    String platformConfiguration = ""
 
     GradleProject(String name, boolean rootProject = false) {
         this.name = name
@@ -50,9 +50,28 @@ class GradleProject {
 
     def withMavenRepositories() {
         repositories = "repositories {\n" +
-                "    mavenLocal()\n" +
-                "    mavenCentral()\n" +
-                "}\n"
+            "    mavenLocal()\n" +
+            "    mavenCentral()\n" +
+            "}\n"
+        this
+    }
+
+    def applyPlatformConfiguration() {
+        platformConfiguration = "" +
+            "configurations {\n" +
+            "    myPlatform {\n" +
+            "        canBeResolved = false\n" +
+            "        canBeConsumed = false\n" +
+            "    }\n" +
+            "}\n" +
+            "configurations.all {\n" +
+            "    if (canBeResolved) {\n" +
+            "        extendsFrom(configurations.myPlatform)\n" +
+            "    }\n" +
+            "}\n" +
+            "dependencies {\n" +
+            "    myPlatform platform(project(':platform'))" +
+            "}\n"
         this
     }
 
@@ -103,6 +122,11 @@ class GradleProject {
             }
             buildGradle += "}\n"
         }
+        if (plugins.contains('java-platform')) {
+            buildGradle += "javaPlatform {\n" +
+                "    allowDependencies()\n" +
+                "}\n"
+        }
         buildGradle += repositories ?: ''
         if (!dependencies.isEmpty()) {
             buildGradle += "dependencies {\n"
@@ -111,6 +135,7 @@ class GradleProject {
             }
             buildGradle += "}\n"
         }
+        buildGradle += platformConfiguration
 
         new File(root, "build.gradle").text = buildGradle
     }

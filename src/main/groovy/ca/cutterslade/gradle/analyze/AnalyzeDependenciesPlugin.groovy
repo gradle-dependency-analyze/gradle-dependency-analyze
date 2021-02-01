@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
 
 import java.util.concurrent.ConcurrentHashMap
@@ -21,18 +22,36 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
       project.tasks.check.dependsOn commonTask
 
       project.sourceSets.all { SourceSet sourceSet ->
-        def unusedDeclared = project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared'))
-        def usedUndeclared = project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared'))
-        def aggregatorUsed = project.configurations.create(sourceSet.getTaskName('permit', 'aggregatorUse'))
+        def unusedDeclared = project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared')) {
+          canBeConsumed = false
+          canBeResolved = true
+        }
+        def usedUndeclared = project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared')) {
+          canBeConsumed = false
+          canBeResolved = true
+        }
+        def aggregatorUsed = project.configurations.create(sourceSet.getTaskName('permit', 'aggregatorUse')) {
+          canBeConsumed = false
+          canBeResolved = true
+          attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
+          }
+        }
+        def apiHelper = project.configurations.create(sourceSet.getTaskName('apiHelper', '')) {
+          canBeConsumed = false
+          canBeResolved = true
+        }
 
         def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
-                dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
-                type: AnalyzeDependenciesTask,
-                group: 'Verification',
-                description: "Analyze project for dependency issues related to ${sourceSet.name} source set.") {
+            dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
+            type: AnalyzeDependenciesTask,
+            group: 'Verification',
+            description: "Analyze project for dependency issues related to ${sourceSet.name} source set.") {
           require = [
               project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
           ]
+          apiHelperConfiguration = apiHelper
+          apiConfigurationName = sourceSet.apiConfigurationName
           allowedAggregatorsToUse = [
               aggregatorUsed
           ]

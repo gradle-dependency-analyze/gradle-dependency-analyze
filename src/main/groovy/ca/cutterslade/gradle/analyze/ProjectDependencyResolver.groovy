@@ -27,6 +27,7 @@ class ProjectDependencyResolver {
   private final ConcurrentHashMap<File, Set<String>> artifactClassCache
   private final Logger logger
   private final List<Configuration> require
+  private final List<Configuration> api
   private final List<Configuration> allowedToUse
   private final List<Configuration> allowedToDeclare
   private final Iterable<File> classesDirs
@@ -34,6 +35,7 @@ class ProjectDependencyResolver {
   private final List<Configuration> allowedAggregatorsToUse
 
   ProjectDependencyResolver(final Project project, final List<Configuration> require,
+      final Configuration apiHelperConfiguration, final String apiConfigurationName,
       final List<Configuration> allowedToUse, final List<Configuration> allowedToDeclare,
       final Iterable<File> classesDirs, final List<Configuration> allowedAggregatorsToUse) {
     try {
@@ -45,13 +47,13 @@ class ProjectDependencyResolver {
     }
     this.logger = project.logger
     this.require = removeNulls(require) as List
+    this.api = configureApiHelperConfiguration(apiHelperConfiguration, project, apiConfigurationName)
     this.allowedAggregatorsToUse = removeNulls(allowedAggregatorsToUse) as List
     this.allowedToUse = removeNulls(allowedToUse) as List
     this.allowedToDeclare = removeNulls(allowedToDeclare) as List
     this.classesDirs = classesDirs
     this.aggregatorsWithDependencies = getAggregatorsMapping()
   }
-
 
   static <T> Collection<T> removeNulls(final Collection<T> collection) {
     if (null == collection) {
@@ -131,6 +133,9 @@ class ProjectDependencyResolver {
         unusedDeclared.removeAll { usedAggregatorComponentIdentifiers.contains(it.id.componentIdentifier) }
         def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
         unusedDeclared += usedDeclared.intersect(flatten)
+        def apiComponentIdentifiers = (getFirstLevelDependencies(api).collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+            .collect { it.id.componentIdentifier } as Set<ComponentIdentifier>
+        unusedDeclared.removeAll { apiComponentIdentifiers.contains(it.id.componentIdentifier) }
 
         usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
         def usedDeclaredComponentIdentifiers = usedDeclared.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
@@ -249,6 +254,12 @@ class ProjectDependencyResolver {
         .collect { it.firstLevelModuleDependencies }.flatten()) as Set<ResolvedDependency>)
         .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>
     allArtifacts
+  }
+
+  private List<Configuration> configureApiHelperConfiguration(Configuration apiHelperConfiguration, Project project, String apiConfigurationName) {
+    final def apiConfiguration = [project.configurations.findByName(apiConfigurationName)]
+    apiHelperConfiguration.extendsFrom(removeNulls(apiConfiguration) as Configuration[])
+    [apiHelperConfiguration]
   }
 
   private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(List<ComponentIdentifier> allDependencyArtifacts, Set<File> usedArtifacts) {

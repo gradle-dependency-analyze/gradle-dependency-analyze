@@ -5,10 +5,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 
 import java.lang.reflect.Method
 
@@ -17,6 +14,10 @@ class AnalyzeDependenciesTask extends DefaultTask {
   boolean justWarn = false
   @InputFiles
   List<Configuration> require = []
+  @Internal
+  Configuration apiHelperConfiguration;
+  @Internal
+  String apiConfigurationName = ''
   @InputFiles
   List<Configuration> allowedToUse = []
   @InputFiles
@@ -44,7 +45,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
     logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
         "allowedToDeclare: $allowedToDeclare]"
     ProjectDependencyAnalysis analysis =
-        new ProjectDependencyResolver(project, require, allowedToUse, allowedToDeclare, classesDirs, allowedAggregatorsToUse)
+        new ProjectDependencyResolver(project, require, apiHelperConfiguration, apiConfigurationName, allowedToUse, allowedToDeclare, classesDirs, allowedAggregatorsToUse)
             .analyzeDependencies()
     StringBuffer buffer = new StringBuffer()
     ['usedUndeclaredArtifacts', 'unusedDeclaredArtifacts'].each {section ->

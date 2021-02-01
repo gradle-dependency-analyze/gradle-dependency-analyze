@@ -22,9 +22,9 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     def "simple build without dependencies results in success"() {
         setup:
         rootProject()
-                .withMainClass(new GroovyClass("Main"))
-                .withTestClass(new GroovyClass("MainTest").usesClass("Main"))
-                .create(projectDir.getRoot())
+            .withMainClass(new GroovyClass("Main"))
+            .withTestClass(new GroovyClass("MainTest").usesClass("Main"))
+            .create(projectDir.getRoot())
 
         when:
         def result = gradleProject().build()
@@ -36,11 +36,11 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     def "used main dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult) {
         setup:
         rootProject()
-                .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
-                .withSubProject(subProject("dependent")
-                        .withMainClass(new GroovyClass("Dependent")))
-                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+            .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
+            .withSubProject(subProject("dependent")
+                .withMainClass(new GroovyClass("Dependent")))
+            .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+            .create(projectDir.getRoot())
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -60,13 +60,13 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     def "used transient main dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
-                .withMainClass(new GroovyClass("Main").usesClass("Transient"))
-                .withSubProject(subProject("dependent")
-                        .withDependency(new GradleDependency(configuration: "compile", project: "transient")))
-                .withSubProject(subProject("transient")
-                        .withMainClass(new GroovyClass("Transient")))
-                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+            .withMainClass(new GroovyClass("Main").usesClass("Transient"))
+            .withSubProject(subProject("dependent")
+                .withDependency(new GradleDependency(configuration: "compile", project: "transient")))
+            .withSubProject(subProject("transient")
+                .withMainClass(new GroovyClass("Transient")))
+            .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+            .create(projectDir.getRoot())
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -86,11 +86,11 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     def "unused main dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
-                .withMainClass(new GroovyClass("Main"))
-                .withSubProject(subProject("independent")
-                        .withMainClass(new GroovyClass("Independent")))
-                .withDependency(new GradleDependency(configuration: configuration, project: "independent"))
-                .create(projectDir.getRoot())
+            .withMainClass(new GroovyClass("Main"))
+            .withSubProject(subProject("independent")
+                .withMainClass(new GroovyClass("Independent")))
+            .withDependency(new GradleDependency(configuration: configuration, project: "independent"))
+            .create(projectDir.getRoot())
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -110,12 +110,12 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     def "used test dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult) {
         setup:
         rootProject()
-                .withMainClass(new GroovyClass("Main"))
-                .withTestClass(new GroovyClass("Test").usesClass("Dependent"))
-                .withSubProject(subProject("dependent")
-                        .withMainClass(new GroovyClass("Dependent")))
-                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+            .withMainClass(new GroovyClass("Main"))
+            .withTestClass(new GroovyClass("Test").usesClass("Dependent"))
+            .withSubProject(subProject("dependent")
+                .withMainClass(new GroovyClass("Dependent")))
+            .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+            .create(projectDir.getRoot())
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -135,12 +135,12 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     def "unused test dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
-                .withMainClass(new GroovyClass("Main"))
-                .withTestClass(new GroovyClass("Test"))
-                .withSubProject(subProject("dependent")
-                        .withMainClass(new GroovyClass("Dependent")))
-                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+            .withMainClass(new GroovyClass("Main"))
+            .withTestClass(new GroovyClass("Test"))
+            .withSubProject(subProject("dependent")
+                .withMainClass(new GroovyClass("Dependent")))
+            .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+            .create(projectDir.getRoot())
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -160,15 +160,15 @@ class AnalyzeDependenciesPluginSpec extends Specification {
     def "used transient test dependency declared with #configuration results in #expectedResult"(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
-                .withMainClass(new GroovyClass("Main"))
-                .withTestClass(new GroovyClass("Test").usesClass("Transient"))
-                .withSubProject(subProject("dependent")
-                        .withMainClass(new GroovyClass("Dependent"))
-                        .withDependency(new GradleDependency(configuration: "compile", project: "transient")))
-                .withSubProject(subProject("transient")
-                        .withMainClass(new GroovyClass("Transient")))
-                .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+            .withMainClass(new GroovyClass("Main"))
+            .withTestClass(new GroovyClass("Test").usesClass("Transient"))
+            .withSubProject(subProject("dependent")
+                .withMainClass(new GroovyClass("Dependent"))
+                .withDependency(new GradleDependency(configuration: "compile", project: "transient")))
+            .withSubProject(subProject("transient")
+                .withMainClass(new GroovyClass("Transient")))
+            .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
+            .create(projectDir.getRoot())
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -451,13 +451,13 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         VIOLATIONS     | []                      | ["project:dependent:unspecified@jar"]
     }
 
-    @Unroll
-    def "aggregator from project with used jar dependency results in #expectedResult"(String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+    def "aggregator from project with used jar dependency"() {
         setup:
         rootProject()
             .withMavenRepositories()
             .withAggregator(new GradleDependency(configuration: 'permitTestAggregatorUse', project: 'spring'))
-            .withSubProject(subLibraryProject('spring')
+            .withSubProject(subProject('spring')
+                .withPlugin('java-library')
                 .withDependency(new GradleDependency(configuration: 'api', id: 'org.springframework:spring-beans:5.2.11.RELEASE'))
                 .withDependency(new GradleDependency(configuration: 'api', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
 
@@ -471,14 +471,82 @@ class AnalyzeDependenciesPluginSpec extends Specification {
             .create(projectDir.getRoot())
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = gradleProject().build()
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
+        assertBuildSuccess(result)
+    }
 
-        where:
-        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        SUCCESS        | []                      | []
+    def "aggregator with api and implementation from project with used jar dependency"() {
+        setup:
+        rootProject()
+            .withMavenRepositories()
+            .withAggregator(new GradleDependency(configuration: 'permitTestAggregatorUse', project: 'spring'))
+            .withSubProject(subProject('spring')
+                .withPlugin('java-library')
+                .withMavenRepositories()
+                .withDependency(new GradleDependency(configuration: 'api', id: 'org.apache.commons:commons-collections4:4.4'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
+            )
+            .withSubProject(subProject('tests')
+                .withMavenRepositories()
+                .withDependency(new GradleDependency(configuration: 'testImplementation', project: 'spring'))
+                .withDependency(new GradleDependency(configuration: 'testImplementation', id: 'org.springframework:spring-aop:5.2.11.RELEASE'))
+                .withTestClass(new GroovyClass("Main")
+                    .usesClass('org.springframework.aop.Advisor')
+                    .usesClass('org.apache.commons.collections4.BidiMap'))
+            )
+            .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = gradleProject().build()
+
+        then:
+        assertBuildSuccess(result)
+    }
+
+    def "aggregator with implementation dependency and additional overlapping api dependency"() {
+        setup:
+        rootProject()
+            .withMavenRepositories()
+            .withPlugin('java-library')
+            .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+            .withDependency(new GradleDependency(configuration: 'api', id: 'org.springframework:spring-web:5.2.11.RELEASE'))
+            .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+            .withMainClass(new GroovyClass("Main")
+                .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                .usesClass('org.springframework.web.context.request.RequestContextHolder'))
+            .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = gradleProject().build()
+
+        then:
+        assertBuildSuccess(result)
+    }
+
+    def "aggregator with implementation dependency and additional overlapping api dependency when versions managed by platform"() {
+        setup:
+        rootProject()
+            .withMavenRepositories()
+            .withSubProject(platformProject('platform')
+                .withDependency(new GradleDependency(configuration: 'api', reference: 'enforcedPlatform("org.springframework.boot:spring-boot-dependencies:2.3.6.RELEASE")'))
+            )
+            .withPlugin('java-library')
+            .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web'))
+            .withDependency(new GradleDependency(configuration: 'api', id: 'org.springframework:spring-web'))
+            .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-web'))
+            .withMainClass(new GroovyClass("Main")
+                .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                .usesClass('org.springframework.web.context.request.RequestContextHolder'))
+            .applyPlatformConfiguration()
+            .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = gradleProject().build()
+
+        then:
+        assertBuildSuccess(result)
     }
 
     private BuildResult buildGradleProject(String expectedResult) {
@@ -527,26 +595,27 @@ class AnalyzeDependenciesPluginSpec extends Specification {
 
     private static GradleProject rootProject() {
         new GradleProject("project", true)
-                .withPlugin("ca.cutterslade.analyze")
-                .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
+            .withPlugin('groovy')
+            .withPlugin("ca.cutterslade.analyze")
+            .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
+    }
+
+    private static GradleProject platformProject(String name) {
+        new GradleProject(name)
+            .withPlugin('java-platform')
     }
 
     private static GradleProject subProject(String name) {
         new GradleProject(name)
-                .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
-    }
-
-    private static GradleProject subLibraryProject(String name) {
-        new GradleProject(name)
-                .withPlugin('java-library')
-                .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
+            .withPlugin('groovy')
+            .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
     }
 
     private GradleRunner gradleProject() {
         GradleRunner.create()
-                .withProjectDir(projectDir.getRoot())
-                .withPluginClasspath()
-                .withArguments("build")
+            .withProjectDir(projectDir.getRoot())
+            .withPluginClasspath()
+            .withArguments("build")
     }
 
     private static void assertBuildSuccess(BuildResult result) {
