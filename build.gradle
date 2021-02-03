@@ -3,7 +3,7 @@ plugins {
   id 'groovy'
   id 'maven-publish'
   id 'com.jfrog.bintray' version '1.8.5'
-  id 'com.jfrog.artifactory' version '4.15.2'
+  id 'com.jfrog.artifactory' version '4.20.0'
   id 'com.gradle.plugin-publish' version '0.12.0'
   id 'java-gradle-plugin'
 }
