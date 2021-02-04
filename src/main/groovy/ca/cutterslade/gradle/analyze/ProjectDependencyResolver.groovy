@@ -107,32 +107,35 @@ class ProjectDependencyResolver {
     def usedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts }
     def usedUndeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts }
     if (allowedToUseArtifacts) {
-      usedUndeclared -= allowedToUseArtifacts
+      def allowedToUseComponentIdentifiers = allowedToUseArtifacts.collect { it.id.componentIdentifier }
+      usedUndeclared.removeAll { allowedToUseComponentIdentifiers.contains(it.id.componentIdentifier) }
     }
     def unusedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts }
     if (allowedToDeclareArtifacts) {
-      unusedDeclared -= allowedToDeclareArtifacts
+      def allowedToDeclareComponentIdentifiers = allowedToDeclareArtifacts.collect { it.id.componentIdentifier }
+      unusedDeclared.removeAll { allowedToDeclareComponentIdentifiers.contains(it.id.componentIdentifier) }
     }
 
     if (!aggregatorsWithDependencies.isEmpty()) {
-      def usedIdentifiers = (requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+      def usedIdentifiers = (requiredDependencies.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
           .collect { it.id }
           .collect { it.componentIdentifier }
-      def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.size() > 0 }
-      if (aggregatorUsage.containsKey(false)) {
-        unusedDeclared += aggregatorUsage.get(false).keySet()
-      }
+      def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.isEmpty() }
       if (aggregatorUsage.containsKey(true)) {
-        def usedAggregator = aggregatorUsage.get(true)
+        def unusedAggregatorArtifacts = aggregatorUsage.get(true).keySet() as Set<ResolvedArtifact>
+        unusedDeclared += unusedAggregatorArtifacts.intersect(requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+      }
+      if (aggregatorUsage.containsKey(false)) {
+        def usedAggregator = aggregatorUsage.get(false)
         def usedAggregatorDependencies = usedAggregator.keySet()
         usedDeclared += usedAggregatorDependencies.intersect(unusedDeclared, { ResolvedArtifact a, ResolvedArtifact b ->
           a.id.componentIdentifier == b.id.componentIdentifier ? 0 : a.id.componentIdentifier.displayName <=> b.id.componentIdentifier.displayName
         } as Comparator<ResolvedArtifact>)
 
-        def usedAggregatorComponentIdentifiers = usedAggregatorDependencies.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
-        unusedDeclared.removeAll { usedAggregatorComponentIdentifiers.contains(it.id.componentIdentifier) }
         def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
         unusedDeclared += usedDeclared.intersect(flatten)
+        def usedAggregatorComponentIdentifiers = usedAggregatorDependencies.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
+        unusedDeclared.removeAll { usedAggregatorComponentIdentifiers.contains(it.id.componentIdentifier) }
         def apiComponentIdentifiers = (getFirstLevelDependencies(api).collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
             .collect { it.id.componentIdentifier } as Set<ComponentIdentifier>
         unusedDeclared.removeAll { apiComponentIdentifiers.contains(it.id.componentIdentifier) }
@@ -140,6 +143,7 @@ class ProjectDependencyResolver {
         usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
         def usedDeclaredComponentIdentifiers = usedDeclared.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
         usedUndeclared += usedAggregatorDependencies.findAll { !usedDeclaredComponentIdentifiers.contains(it.id.componentIdentifier) }
+        usedUndeclared.removeIf { allowedToUseArtifacts.contains(it) && aggregatorsWithDependencies.keySet().contains(it) }
       }
     }
 
@@ -169,7 +173,6 @@ class ProjectDependencyResolver {
     if (!allowedAggregatorsToUse.empty) {
       def resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse).collectEntries { [it.moduleVersion.toString(), it] }
       def dependencies = getFirstLevelDependencies(allowedAggregatorsToUse)
-
       dependencies.collectEntries({ it ->
         resolvedArtifacts.containsKey(it.name) ? [resolvedArtifacts.get(it.name), it.allModuleArtifacts as Set<ResolvedArtifact>] : [:]
       })
