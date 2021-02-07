@@ -1,126 +1,53 @@
 plugins {
-  id 'java'
   id 'groovy'
-  id 'maven-publish'
-  id 'com.jfrog.bintray' version '1.8.5'
-  id 'com.jfrog.artifactory' version '4.20.0'
-  id 'com.gradle.plugin-publish' version '0.12.0'
   id 'java-gradle-plugin'
+  id 'maven-publish'
+  id 'com.gradle.plugin-publish' version '0.12.0'
 }
 
 group = 'ca.cutterslade.gradle'
 version = '1.4.3-SNAPSHOT'
 
 repositories {
-  jcenter()
+  mavenCentral()
 }
 
 dependencies {
-  implementation gradleApi()
-  implementation localGroovy()
   implementation 'org.apache.maven.shared:maven-dependency-analyzer:1.11.3'
 
-  testImplementation("commons-io:commons-io:2.6")
-  testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") {
-    exclude module: "groovy-all"
-  }
+  testImplementation('org.spockframework:spock-core:1.3-groovy-2.5')
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-  classifier = 'sources'
-  from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier = 'javadoc'
-  from javadoc.destinationDir
-}
-
-publishing {
-  publications {
-    mavenJava(MavenPublication) {
-      from components.java
-      artifact javadocJar {classifier 'javadoc'}
-      artifact sourcesJar {classifier 'sources'}
-    }
-  }
-
-  repositories {
-    maven {
-      url "$buildDir/repo"
-    }
-  }
-}
-
-if (this.hasProperty('bintrayUser') && this.hasProperty('bintrayApiKey')) {
-  bintray {
-    user = bintrayUser
-    key = bintrayApiKey
-    publications = ['mavenJava']
-    pkg {
-      repo = 'maven'
-      name = project.name
-      desc = 'Dependency analysis plugin for gradle'
-      websiteUrl = 'https://github.com/wfhartford/gradle-dependency-analyze'
-      issueTrackerUrl = 'https://github.com/wfhartford/gradle-dependency-analyze/issues'
-      vcsUrl = 'https://github.com/wfhartford/gradle-dependency-analyze.git'
-    }
-  }
-}
-
-if (this.hasProperty('jfrogUser') && this.hasProperty('jfrogPassword')) {
-  artifactory {
-    contextUrl = 'https://oss.jfrog.org/artifactory'
-    publish {
-      repository {
-        repoKey = 'oss-snapshot-local'
-        username = jfrogUser
-        password = jfrogPassword
-        maven = true
-      }
-      defaults {
-        publications('mavenJava')
-      }
-    }
-  }
-}
-
-task javaVersionCheck() {
-  doLast {
-    if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-      throw new GradleException('Build must be run on Java 8')
-    }
-  }
-}
-
-tasks.withType(PublishToMavenRepository) {
+tasks.named('publishPlugins') {
   it.dependsOn check
-  it.dependsOn javaVersionCheck
 }
 
 gradlePlugin {
   plugins {
     dependencyAnalyze {
       id = 'ca.cutterslade.analyze'
+      displayName = 'Gradle Dependency Analyze'
+      description = 'Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality of the maven dependency plugin\'s analyze goals which fail the build if dependencies are declared but not used or used but not declared.'
       implementationClass = 'ca.cutterslade.gradle.analyze.AnalyzeDependenciesPlugin'
     }
   }
 }
+
 pluginBundle {
-  website = 'https://github.com/wfhartford/gradle-dependency-analyze'
-  vcsUrl = 'https://github.com/wfhartford/gradle-dependency-analyze'
-  description = 'Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality of the maven dependency plugin\'s analyze goals which fail the build if dependencies are declared but not used or used but not declared.'
-  plugins {
-    dependencyAnalyze {
-      displayName = "Gradle Dependency Analyze"
-      tags = ['dependency','verification']
-    }
+  website = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
+  vcsUrl = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
+  tags = ['dependency','verification', 'analyze']
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(8)
   }
-  mavenCoordinates {
-    groupId = 'ca.cutterslade.gradle'
-    artifactId = 'gradle-dependency-analyze'
-  }
+}
+
+tasks.named('wrapper') {
+  gradleVersion '6.8.1'
+  distributionType = Wrapper.DistributionType.ALL
 }
