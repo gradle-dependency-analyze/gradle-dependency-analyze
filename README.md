@@ -1,7 +1,7 @@
 # gradle-dependency-analyze
 
-[![Download](https://api.bintray.com/packages/wesley/maven/gradle-dependency-analyze/images/download.svg) ](https://bintray.com/wesley/maven/gradle-dependency-analyze/_latestVersion)
-[![Build Status](https://travis-ci.org/wfhartford/gradle-dependency-analyze.svg?branch=master)](https://travis-ci.org/wfhartford/gradle-dependency-analyze)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/gradle-dependency-analyze/gradle-dependency-analyze)
+![Java CI](https://github.com/gradle-dependency-analyze/gradle-dependency-analyze/workflows/Java%20CI/badge.svg?branch=master)
 
 Dependency analysis plugin for gradle.
 
@@ -14,7 +14,7 @@ The plugin is available from both JCenter and the gradle plugin repository, so i
 Using the plugin DSL:
 ```gradle
 plugins {
-  id "ca.cutterslade.analyze" version "1.4.2"
+  id "ca.cutterslade.analyze" version "1.4.3"
 }
 ```
 
@@ -22,11 +22,12 @@ Using legacy plugin application:
 ```gradle
 buildscript {
   repositories {
-    maven { url "https://plugins.gradle.org/m2/" }
-    // If you prefer, replace this maven repo with `jcenter()`
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
   }
   dependencies {
-    classpath 'ca.cutterslade.gradle:gradle-dependency-analyze:1.4.2'
+    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.4.3"
   }
 }
 
