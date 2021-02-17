@@ -1,4 +1,4 @@
-package ca.cutterslade.gradle.analyze
+package ca.cutterslade.gradle.analyze.helper
 
 class GradleDependency {
     String configuration

@@ -1,4 +1,4 @@
-package ca.cutterslade.gradle.analyze
+package ca.cutterslade.gradle.analyze.helper
 
 class GradleProject {
 
@@ -8,6 +8,7 @@ class GradleProject {
     Set<GradleProject> subProjects = []
     Set<GroovyClass> mainClasses = []
     Set<GroovyClass> testClasses = []
+    Set<GroovyClass> testFixturesClasses = []
     Set<String> plugins = ['groovy']
     Set<GradleDependency> dependencies = []
 
@@ -31,6 +32,11 @@ class GradleProject {
         this
     }
 
+    def withTestFixturesClass(GroovyClass clazz) {
+        testFixturesClasses.add(clazz)
+        this
+    }
+
     def withPlugin(String plugin) {
         plugins.add(plugin)
         this
@@ -41,6 +47,11 @@ class GradleProject {
         this
     }
 
+    def withGradleDependency(String configuration) {
+        dependencies.add(new GradleDependency(configuration: configuration, reference: 'localGroovy()'))
+        this
+    }
+
     void create(File root) {
         root.mkdirs()
         subProjects.each { it.create(new File(root, it.name)) }
@@ -48,8 +59,15 @@ class GradleProject {
         createBuildGradle(root)
         createSettingsGradle(root)
 
-        createClasses(root, "src/main/groovy", mainClasses)
-        createClasses(root, "src/test/groovy", testClasses)
+        if (!mainClasses.empty) {
+            createClasses(root, "src/main/groovy", mainClasses)
+        }
+        if (!testClasses.empty) {
+            createClasses(root, "src/test/groovy", testClasses)
+        }
+        if (!testFixturesClasses.empty) {
+            createClasses(root, "src/testFixtures/groovy", testFixturesClasses)
+        }
     }
 
     private static void createClasses(File root, String dir, Set<GroovyClass> classes) {
