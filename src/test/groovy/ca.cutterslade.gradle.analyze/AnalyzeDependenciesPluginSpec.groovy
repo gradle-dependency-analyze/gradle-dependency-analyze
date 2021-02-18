@@ -1,23 +1,11 @@
 package ca.cutterslade.gradle.analyze
 
+import ca.cutterslade.gradle.analyze.helper.GradleDependency
+import ca.cutterslade.gradle.analyze.helper.GroovyClass
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import org.spockframework.runtime.SpockAssertionError
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class AnalyzeDependenciesPluginSpec extends Specification {
-
-    private static final String SUCCESS = "success"
-    private static final String BUILD_FAILURE = "build failure"
-    private static final String TEST_BUILD_FAILURE = "test build failure"
-
-    @Rule
-    private TemporaryFolder projectDir
-
+class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
     def "simple build without dependencies results in success"() {
         setup:
         rootProject()
@@ -27,6 +15,7 @@ class AnalyzeDependenciesPluginSpec extends Specification {
 
         when:
         def result = gradleProject().build()
+
         then:
         assertBuildSuccess(result)
     }
@@ -181,58 +170,5 @@ class AnalyzeDependenciesPluginSpec extends Specification {
         "testImplementation" | "usedUndeclaredArtifacts"
         "testCompileOnly"    | "usedUndeclaredArtifacts"
         "testRuntimeOnly"    | TEST_BUILD_FAILURE
-    }
-
-    private BuildResult buildGradleProject(String expectedResult) {
-        if (expectedResult == SUCCESS) {
-            return gradleProject().build()
-        }
-        return gradleProject().buildAndFail()
-    }
-
-    private static void assertBuildResult(BuildResult result, String expectedResult) {
-        if (expectedResult == SUCCESS) {
-            if (result.task(":build") == null) {
-                throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
-            }
-            assert result.task(":build").getOutcome() == TaskOutcome.SUCCESS
-        } else if (expectedResult == BUILD_FAILURE) {
-            if (result.task(":compileGroovy") == null) {
-                throw new SpockAssertionError("compileGroovy task not run: \n${result.getOutput()}")
-            }
-            assert result.task(":compileGroovy").getOutcome() == TaskOutcome.FAILED
-        } else if (expectedResult == TEST_BUILD_FAILURE) {
-            if (result.task(":compileTestGroovy") == null) {
-                throw new SpockAssertionError("compileTestGroovy task not run: \n${result.getOutput()}")
-            }
-            assert result.task(":compileTestGroovy").getOutcome() == TaskOutcome.FAILED
-        } else {
-            assert result.output.contains(expectedResult)
-        }
-    }
-
-    private static GradleProject rootProject() {
-        new GradleProject("project", true)
-                .withPlugin("ca.cutterslade.analyze")
-                .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
-    }
-
-    private static GradleProject subProject(String name) {
-        new GradleProject(name)
-                .withDependency(new GradleDependency(configuration: "compile", reference: "localGroovy()"))
-    }
-
-    private GradleRunner gradleProject() {
-        GradleRunner.create()
-                .withProjectDir(projectDir.getRoot())
-                .withPluginClasspath()
-                .withArguments("build")
-    }
-
-    private static void assertBuildSuccess(BuildResult result) {
-        if (result.task(":build") == null) {
-            throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
-        }
-        assert result.task(":build").getOutcome() == TaskOutcome.SUCCESS
     }
 }
