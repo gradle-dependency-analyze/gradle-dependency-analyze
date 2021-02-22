@@ -2,7 +2,7 @@ plugins {
   id 'groovy'
   id 'java-gradle-plugin'
   id 'maven-publish'
-  id 'com.gradle.plugin-publish' version '0.12.0'
+  id 'com.gradle.plugin-publish' version '0.13.0'
 }
 
 group = 'ca.cutterslade.gradle'
