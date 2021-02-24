@@ -1,0 +1,16 @@
+name: "Automatic Merge"
+
+on:
+  schedule:
+    - cron:  '0 * * * *'
+
+jobs:
+  merge:
+    name: "Merge Pull Requests"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Merge"
+        uses: "nucleos/auto-merge-action@1"
+        env:
+          "GITHUB_TOKEN": ${{ secrets.GRADLE_UPDATE_PAT }}
