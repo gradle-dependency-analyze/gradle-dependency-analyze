@@ -3,6 +3,8 @@ plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id 'com.gradle.plugin-publish' version '0.13.0'
+  id 'jacoco'
+  id 'pl.droidsonroids.jacoco.testkit' version '1.0.7'
 }
 
 group = 'ca.cutterslade.gradle'
@@ -45,6 +47,23 @@ java {
   toolchain {
     languageVersion = JavaLanguageVersion.of(8)
   }
+}
+
+test {
+  finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+  dependsOn test
+  reports {
+    html.enabled true
+    csv.enabled true
+  }
+}
+
+jacoco {
+  toolVersion = '0.8.6'
+
 }
 
 tasks.named('wrapper') {

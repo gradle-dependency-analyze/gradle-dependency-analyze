@@ -38,6 +38,9 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     }
 
     protected GradleRunner gradleProject() {
+        new FileOutputStream(projectDir.newFile('gradle.properties')).withStream {
+            it.write(getClass().classLoader.getResourceAsStream('testkit-gradle.properties').getBytes())
+        }
         GradleRunner.create()
                 .withProjectDir(projectDir.getRoot())
                 .withPluginClasspath()

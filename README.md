@@ -1,6 +1,7 @@
 # gradle-dependency-analyze
-
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/gradle-dependency-analyze/gradle-dependency-analyze)
+![Jacoco Result](/.github/badges/jacoco.svg?raw=true&sanitize=true)
+![Branch coverage](/.github/badges/branches.svg?raw=true&sanitize=true)
 ![Java CI](https://github.com/gradle-dependency-analyze/gradle-dependency-analyze/workflows/Java%20CI/badge.svg?branch=master)
 
 Dependency analysis plugin for gradle.
