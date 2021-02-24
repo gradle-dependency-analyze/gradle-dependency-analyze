@@ -11,21 +11,29 @@ import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
 
 abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
-    protected static final String SUCCESS = 'success'
-    protected static final String BUILD_FAILURE = 'build failure'
-    protected static final String TEST_BUILD_FAILURE = 'test build failure'
+    protected static final def SUCCESS = 'success'
+    protected static final def BUILD_FAILURE = 'build failure'
+    protected static final def TEST_BUILD_FAILURE = 'test build failure'
+    protected static final def VIOLATIONS = 'violations'
 
     @Rule
     public TemporaryFolder projectDir
 
     protected static GradleProject rootProject() {
         new GradleProject('project', true)
+                .withPlugin('groovy')
                 .withPlugin('ca.cutterslade.analyze')
                 .withGradleDependency('implementation')
     }
 
+    private static GradleProject platformProject(String name) {
+        new GradleProject(name)
+                .withPlugin('java-platform')
+    }
+
     protected static GradleProject subProject(String name) {
         new GradleProject(name)
+                .withPlugin('groovy')
                 .withGradleDependency('implementation')
     }
 
@@ -50,7 +58,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
         return gradleProject().buildAndFail()
     }
 
-    protected static void assertBuildResult(BuildResult result, String expectedResult) {
+    protected static void assertBuildResult(BuildResult result, String expectedResult, String[] usedUndeclaredArtifacts = [], String[] unusedDeclaredArtifacts = []) {
         if (expectedResult == SUCCESS) {
             if (result.task(':build') == null) {
                 throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
@@ -66,6 +74,18 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 throw new SpockAssertionError("compileTestGroovy task not run: \n${result.getOutput()}")
             }
             assert result.task(':compileTestGroovy').getOutcome() == TaskOutcome.FAILED
+        } else if (expectedResult == VIOLATIONS) {
+            def violations = new StringBuilder('> Dependency analysis found issues.\n')
+            if (usedUndeclaredArtifacts?.length > 0) {
+                violations.append('  usedUndeclaredArtifacts: \n')
+                usedUndeclaredArtifacts.each { violations.append("   - ${it}\n") }
+            }
+            if (unusedDeclaredArtifacts?.length > 0) {
+                violations.append('  unusedDeclaredArtifacts: \n')
+                unusedDeclaredArtifacts.each { violations.append("   - ${it}\n") }
+            }
+            violations.append('\n')
+            assert result.output.contains(violations)
         } else {
             assert result.output.contains(expectedResult)
         }

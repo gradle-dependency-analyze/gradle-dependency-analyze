@@ -53,7 +53,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
         assertBuildSuccess(result)
     }
 
-    def 'project with test fixture class and main class from different module is not used results in failure'() {
+    def 'project with test fixture class and main class from different module is not used results in failure'(String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
         setup:
         rootProject()
                 .withPlugin('java-test-fixtures')
@@ -67,7 +67,11 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
         def result = buildGradleProject(BUILD_FAILURE)
 
         then:
-        assertBuildResult(result, 'unusedDeclaredArtifacts')
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
+
+        where:
+        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        VIOLATIONS     | []                      | ['project:dependent:unspecified@jar']
     }
 
     def 'project with test, test fixture and main class and main class from different module is used results in success'() {
