@@ -54,11 +54,15 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
         assert result.task(':build').getOutcome() == TaskOutcome.SUCCESS
     }
 
-    protected BuildResult buildGradleProject(String expectedResult) {
-        if (expectedResult == SUCCESS) {
-            return gradleProject().build()
+    protected BuildResult buildGradleProject(String expectedResult, String gradleVersion = null) {
+        def project = gradleProject()
+        if (gradleVersion) {
+            project.withGradleVersion(gradleVersion)
         }
-        return gradleProject().buildAndFail()
+        if (expectedResult == SUCCESS) {
+            return project.build()
+        }
+        return project.buildAndFail()
     }
 
     protected static void assertBuildResult(BuildResult result, String expectedResult, String[] usedUndeclaredArtifacts = [], String[] unusedDeclaredArtifacts = []) {
