@@ -18,6 +18,15 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 15
+      - name: Cache Gradle packages
+        uses: actions/cache@v2.1.4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
       - name: Test with gradle
         run: ./gradlew test
       - name: Generate Jacoco Badge
@@ -50,3 +59,7 @@ jobs:
         with:
           name: jacoco-report
           path: build/reports/jacoco/test/html
+      - name: Cleanup Gradle Cache
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
