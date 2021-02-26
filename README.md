@@ -148,6 +148,9 @@ Users of the `java-library` plugin no longer need to configure custom tasks, and
 
 For more practical examples, see the [plugin source](https://github.com/wfhartford/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy).
 
+# Version 1.5
+Version 1.5 of this plugin adds built in support for the `java-test-fixtures` plugin. Additionally, the plugin was extended to automatically detect custom source sets and provides dedicated tasks for each of them. 
+
 # Version 1.4
 Version 1.4 of this plugin adds built in support for the `java-library` plugin, which has been the recommended default for quite a while. Previously tasks had to be customised to analyze the correct configurations.
 
