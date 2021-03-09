@@ -12,9 +12,14 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
         if (project.rootProject == project) {
             project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new ConcurrentHashMap<>())
         }
+
+        project.sourceSets.all { SourceSet sourceSet ->
+            project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared'))
+            project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared'))
+        }
+
         project.afterEvaluate {
             project.plugins.withId('java') {
-
                 def commonTask = project.task('analyzeDependencies',
                         group: 'Verification',
                         description: 'Analyze project for dependency issues.'
@@ -23,20 +28,22 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                 project.tasks.check.dependsOn commonTask
 
                 project.sourceSets.all { SourceSet sourceSet ->
-                    def unusedDeclared = project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared'))
-                    def usedUndeclared = project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared'))
-
                     def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
                             dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
                             type: AnalyzeDependenciesTask,
                             group: 'Verification',
                             description: "Analyze project for dependency issues related to ${sourceSet.name} source set.") {
+
                         require = [
                                 project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
                         ]
                         allowedToUse = [
-                                usedUndeclared
+                                project.configurations.getByName(sourceSet.getTaskName('permit', 'usedUndeclared'))
                         ]
+                        allowedToDeclare = [
+                                project.configurations.getByName(sourceSet.getTaskName('permit', 'unusedDeclared'))
+                        ]
+
                         if (sourceSet.name == 'test') {
                             allowedToUse.add(project.configurations.compileClasspath)
                             if (project.configurations.any { it.name == 'testFixturesCompileClasspath' })
@@ -45,9 +52,6 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                         if (sourceSet.name == 'testFixtures') {
                             allowedToUse.add(project.configurations.testCompileClasspath)
                         }
-                        allowedToDeclare = [
-                                unusedDeclared
-                        ]
                         def output = sourceSet.output
                         // classesDirs was defined in gradle 4.0
                         classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
