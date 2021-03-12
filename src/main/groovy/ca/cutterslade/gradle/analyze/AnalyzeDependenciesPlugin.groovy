@@ -13,27 +13,28 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
             project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new ConcurrentHashMap<>())
         }
 
-        project.sourceSets.all { SourceSet sourceSet ->
-            project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared'))
-            project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared'))
-        }
+        project.plugins.withId('java') {
+            def commonTask = project.task('analyzeDependencies',
+                    group: 'Verification',
+                    description: 'Analyze project for dependency issues.'
+            )
 
-        project.afterEvaluate {
-            project.plugins.withId('java') {
-                def commonTask = project.task('analyzeDependencies',
+            project.tasks.check.dependsOn commonTask
+
+            project.sourceSets.all { SourceSet sourceSet ->
+                project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared'))
+                project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared'))
+
+                def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
+                        dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
+                        type: AnalyzeDependenciesTask,
                         group: 'Verification',
-                        description: 'Analyze project for dependency issues.'
-                )
+                        description: "Analyze project for dependency issues related to ${sourceSet.name} source set.")
 
-                project.tasks.check.dependsOn commonTask
+                commonTask.dependsOn analyzeTask
 
-                project.sourceSets.all { SourceSet sourceSet ->
-                    def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
-                            dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
-                            type: AnalyzeDependenciesTask,
-                            group: 'Verification',
-                            description: "Analyze project for dependency issues related to ${sourceSet.name} source set.") {
-
+                project.afterEvaluate {
+                    analyzeTask.configure {
                         require = [
                                 project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
                         ]
@@ -56,7 +57,6 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                         // classesDirs was defined in gradle 4.0
                         classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
                     }
-                    commonTask.dependsOn analyzeTask
                 }
             }
         }
