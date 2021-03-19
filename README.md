@@ -46,6 +46,8 @@ subprojects {
 }
 ```
 
+As of version `1.4.1`, this plugin requires a minimum of Gradle 5.x. If you are stuck on Gradle 4.x, use version `1.4.0`.
+
 # Sample Output
 If the dependency analysis finds issues, it will normally cause the build to fail, and print a list of the issues that were found, similar to the following:
 ```
