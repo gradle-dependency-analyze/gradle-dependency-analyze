@@ -45,7 +45,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
     }
 
     @Unroll
-    def 'used transient main dependency declared with #configuration results in #expectedResult'(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+    def 'used transient main dependency declared with #configuration results in #expectedResult'() {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass('Main').usesClass('Transient'))
@@ -71,7 +71,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
     }
 
     @Unroll
-    def 'unused main dependency declared with #configuration results in #expectedResult'(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+    def 'unused main dependency declared with #configuration results in #expectedResult'() {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass('Main'))
@@ -120,7 +120,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
     }
 
     @Unroll
-    def 'unused test dependency declared with #configuration results in #expectedResult'(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+    def 'unused test dependency declared with #configuration results in #expectedResult'() {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass('Main'))
@@ -145,7 +145,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
     }
 
     @Unroll
-    def 'used transient test dependency declared with #configuration results in #expectedResult'(String configuration, String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+    def 'used transient test dependency declared with #configuration results in #expectedResult'() {
         setup:
         rootProject()
                 .withMainClass(new GroovyClass('Main'))

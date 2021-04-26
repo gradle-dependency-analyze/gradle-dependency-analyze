@@ -120,6 +120,73 @@ if (!project.hasProperty('analyzeDependencies')) {
 }
 ```
 
+## (Experimental) Aggregator projects
+
+With version 1.6 a new feature has been added that allows the use of aggregator projects without the need to add many `permit*` dependencies. This makes the life easier when for example a project heavily uses `spring-boot-starters`. Normally you do not want to add all dependencies manually to one gradle project instead you want to dependent on the starter and *trust* the dependencies declared in that place. As this might be against the intention of this plugin we still think it might be a good addition. As a benefit to still have a clean and small classpath the plugin tries to optimize the aggregator usage by picking the one with the smallest overhead (less transitive dependencies).
+
+_Example how to use:_
+```gradle
+dependencies {
+  compile('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+
+  permitAggregatorUse('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+}
+```
+
+With that configuration the plugin will not "complain" about unused declared dependencies for `spring-boot-starter` and also not about used undeclared dependencies for example when the code uses a class from `spring-core` which is a dependency of the starter.
+
+_Example for the optimization when a smaller aggregator is a better fit:_
+```gradle
+dependencies {
+  compile('org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE')
+
+  permitAggregatorUse('org.springframework.boot:spring-boot-starter:2.3.6.RELEASE')
+  permitAggregatorUse('org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE')
+}
+```
+
+When the code in that gradle project now only use classes from `spring-core` and two `permitAggregatorUse` dependencies have been declared the plugin will inform about the change that should be done to use `spring-boot-starter` instead of `spring-boot-starter-web`. This optimization will only work when **multiple** `permitAggregatorUse` dependencies are declared for one gradle project. 
+
+_Example how to use with platform plugin:_
+
+As this feature makes the most sense when used together with the `platform-plugin` the following example shows haw this can be achieved:
+
+```gradle
+plugins {
+  id 'groovy'
+  id 'ca.cutterslade.analyze'
+  id 'java-library'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+  api('org.springframework:spring-web')
+  implementation('org.springframework.boot:spring-boot-starter-web')
+
+  permitAggregatorUse('org.springframework.boot:spring-boot-starter-web')
+}
+
+configurations {
+    myPlatform {
+        canBeResolved = false
+        canBeConsumed = false
+    }
+}
+
+configurations.all {
+    if (canBeResolved) {
+        extendsFrom(configurations.myPlatform)
+    }
+}
+dependencies {
+    myPlatform platform(project(':platform'))
+}
+```
+
 ## Custom task instances
 Applying the plugin creates and configures two instances of the `AnalyzeDependenciesPlugin` task. These two instances, `analyzeClassesDependencies` and `analyzeTestClassesDependencies`, are configured to verify the main and test source set dependencies respectively. Additional instances of this task type can be created and configured in addition to, or instead of, the instances created by the plugin. This may be appropriate when setting up more complex project configurations, or using other plugins which introduce their own configurations.
 
@@ -148,7 +215,10 @@ analyzeDependencies.dependsOn analyzeCustomClassesDependencies
 
 Users of the `java-library` plugin no longer need to configure custom tasks, and should upgrade to version 1.4 as soon as practical.
 
-For more practical examples, see the [plugin source](https://github.com/wfhartford/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy).
+For more practical examples, see the [plugin source](https://github.com/gradle-dependency-analyze/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy).
+
+# Version 1.6
+Version 1.6 of this plugin adds support for aggregator projects. This feature is an experimental feature that needs to be tested by more users to see if it works as expected. see  [aggregator usage] 
 
 # Version 1.5
 Version 1.5 of this plugin adds built in support for the `java-test-fixtures` plugin. Additionally, the plugin was extended to automatically detect custom source sets and provides dedicated tasks for each of them. 

@@ -53,7 +53,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
         assertBuildSuccess(result)
     }
 
-    def 'project with test fixture class and main class from different module is not used results in failure'(String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+    def 'project with test fixture class and main class from different module is not used results in failure'() {
         setup:
         rootProject()
                 .withPlugin('java-test-fixtures')
