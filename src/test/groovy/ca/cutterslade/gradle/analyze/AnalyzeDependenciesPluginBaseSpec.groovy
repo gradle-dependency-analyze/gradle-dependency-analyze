@@ -26,7 +26,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 .withGradleDependency('implementation')
     }
 
-    private static GradleProject platformProject(String name) {
+    protected static GradleProject platformProject(String name) {
         new GradleProject(name)
                 .withPlugin('java-platform')
     }
@@ -65,7 +65,10 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
         return project.buildAndFail()
     }
 
-    protected static void assertBuildResult(BuildResult result, String expectedResult, String[] usedUndeclaredArtifacts = [], String[] unusedDeclaredArtifacts = []) {
+    protected static void assertBuildResult(BuildResult result,
+                                            String expectedResult,
+                                            List<String> usedUndeclaredArtifacts = [],
+                                            List<String> unusedDeclaredArtifacts = []) {
         if (expectedResult == SUCCESS) {
             if (result.task(':build') == null) {
                 throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
@@ -83,11 +86,11 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             assert result.task(':compileTestGroovy').getOutcome() == TaskOutcome.FAILED
         } else if (expectedResult == VIOLATIONS) {
             def violations = new StringBuilder('> Dependency analysis found issues.\n')
-            if (usedUndeclaredArtifacts?.length > 0) {
+            if (!usedUndeclaredArtifacts.empty) {
                 violations.append('  usedUndeclaredArtifacts: \n')
                 usedUndeclaredArtifacts.each { violations.append("   - ${it}\n") }
             }
-            if (unusedDeclaredArtifacts?.length > 0) {
+            if (!unusedDeclaredArtifacts.empty) {
                 violations.append('  unusedDeclaredArtifacts: \n')
                 unusedDeclaredArtifacts.each { violations.append("   - ${it}\n") }
             }
