@@ -76,8 +76,8 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
 
     def determineMinorVersions(String minVersion, String maxVersion, String expectedResult) {
         try {
-            def serviceUrl = new URL("https://services.gradle.org/versions/all");
-            def versions = new ObjectMapper().readValue(serviceUrl, JsonNode.class);
+            def serviceUrl = new URL("https://services.gradle.org/versions/all")
+            def versions = new ObjectMapper().readValue(serviceUrl, JsonNode.class)
             def minGradleVersion = GradleVersion.version(minVersion)
             def maxGradleVersion = GradleVersion.version(maxVersion)
 
@@ -94,14 +94,14 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                     }.collect { k, v -> v.sort().last() }
                     .collect { it -> new Tuple2(it, expectedResult) }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e)
         }
     }
 
     static int ordinalIndexOf(String str, String subStr, int n) {
-        int pos = -1;
+        int pos = -1
         while (true) {
-            def newPos = str.indexOf(subStr, pos + 1);
+            def newPos = str.indexOf(subStr, pos + 1)
             if (newPos == -1) {
                 pos = -1
                 break
@@ -112,6 +112,6 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 }
             }
         }
-        pos;
+        pos
     }
 }
