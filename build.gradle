@@ -1,73 +1,76 @@
 plugins {
-  id 'groovy'
-  id 'java-gradle-plugin'
-  id 'maven-publish'
-  id 'com.gradle.plugin-publish' version '0.14.0'
-  id 'jacoco'
-  id 'pl.droidsonroids.jacoco.testkit' version '1.0.8'
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.14.0'
+    id 'jacoco'
+    id 'pl.droidsonroids.jacoco.testkit' version '1.0.8'
 }
 
 group = 'ca.cutterslade.gradle'
 version = '1.6.1-SNAPSHOT'
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-  implementation 'org.apache.maven.shared:maven-dependency-analyzer:1.11.3'
+    implementation 'org.apache.maven.shared:maven-dependency-analyzer:1.11.3'
 
-  testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
-  testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+    testImplementation platform('org.spockframework:spock-bom:2.0-M5-groovy-3.0')
+    testImplementation 'org.spockframework:spock-core'
+    testImplementation 'org.spockframework:spock-junit4'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
 }
 
 tasks.named('publishPlugins') {
-  it.dependsOn check
+    it.dependsOn check
 }
 
 gradlePlugin {
-  plugins {
-    dependencyAnalyze {
-      id = 'ca.cutterslade.analyze'
-      displayName = 'Gradle Dependency Analyze'
-      description = 'Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality of the maven dependency plugin\'s analyze goals which fail the build if dependencies are declared but not used or used but not declared.'
-      implementationClass = 'ca.cutterslade.gradle.analyze.AnalyzeDependenciesPlugin'
+    plugins {
+        dependencyAnalyze {
+            id = 'ca.cutterslade.analyze'
+            displayName = 'Gradle Dependency Analyze'
+            description = 'Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality of the maven dependency plugin\'s analyze goals which fail the build if dependencies are declared but not used or used but not declared.'
+            implementationClass = 'ca.cutterslade.gradle.analyze.AnalyzeDependenciesPlugin'
+        }
     }
-  }
 }
 
 pluginBundle {
-  website = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
-  vcsUrl = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
-  tags = ['dependency','verification', 'analyze']
+    website = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
+    vcsUrl = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
+    tags = ['dependency', 'verification', 'analyze']
 }
 
 java {
-  withJavadocJar()
-  withSourcesJar()
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(8)
-  }
+    withJavadocJar()
+    withSourcesJar()
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
 
 test {
-  finalizedBy jacocoTestReport
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
-  dependsOn test
-  reports {
-    html.enabled true
-    csv.enabled true
-  }
+    dependsOn test
+    reports {
+        html.enabled true
+        csv.enabled true
+    }
 }
 
 jacoco {
-  toolVersion = '0.8.6'
+    toolVersion = '0.8.6'
 
 }
 
 tasks.named('wrapper') {
-  gradleVersion '6.8.1'
-  distributionType = Wrapper.DistributionType.ALL
+    gradleVersion '7.0'
+    distributionType = Wrapper.DistributionType.ALL
 }

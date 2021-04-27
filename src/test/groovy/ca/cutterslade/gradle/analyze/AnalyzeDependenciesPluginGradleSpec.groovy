@@ -4,6 +4,7 @@ import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
@@ -26,9 +27,9 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
         assertBuildResult(result, expectedResult)
 
         where:
-        pair << determineMinorVersions('5.0', '7.0', SUCCESS)
-        gradleVersion = pair.first.version as String
-        expectedResult = pair.second as String
+        pair << determineMinorVersions()
+        gradleVersion = pair.v1.version as String
+        expectedResult = pair.v2 as String
     }
 
     @Unroll
@@ -48,9 +49,9 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
         assertBuildResult(result, expectedResult)
 
         where:
-        pair << determineMinorVersions('5.0', '7.0', SUCCESS)
-        gradleVersion = pair.first.version as String
-        expectedResult = pair.second as String
+        pair << determineMinorVersions()
+        gradleVersion = pair.v1.version as String
+        expectedResult = pair.v2 as String
     }
 
     @Unroll
@@ -69,12 +70,42 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
         assertBuildResult(result, expectedResult)
 
         where:
-        pair << determineMinorVersions('5.6', '7.0', SUCCESS)
-        gradleVersion = pair.first.version as String
-        expectedResult = pair.second as String
+        pair << determineMinorVersions('5.6')
+        gradleVersion = pair.v1.version as String
+        expectedResult = pair.v2 as String
     }
 
-    def determineMinorVersions(String minVersion, String maxVersion, String expectedResult) {
+    @Unroll
+    def "aggregator dependency declared in config and used in build results in #expectedResult for Gradle version #gradleVersion"() {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withMainClass(new GroovyClass('Main')
+                        .usesClass('Dependent')
+                        .usesClass('org.springframework.context.annotation.ComponentScan')
+                        .usesClass('org.springframework.beans.factory.annotation.Autowired')
+                )
+                .withSubProject(subProject("dependent")
+                        .withMainClass(new GroovyClass("Dependent")))
+                .withDependency(new GradleDependency(configuration: "implementation", project: "dependent"))
+                .create(projectDir.getRoot())
+
+        when:
+        BuildResult result = buildGradleProject(expectedResult)
+
+        then:
+        assertBuildResult(result, expectedResult)
+
+        where:
+        pair << determineMinorVersions()
+        gradleVersion = pair.v1.version as String
+        expectedResult = pair.v2 as String
+    }
+
+
+    def static determineMinorVersions(minVersion = '5.0', maxVersion = '8.0', expectedResult = SUCCESS) {
         try {
             def serviceUrl = new URL("https://services.gradle.org/versions/all")
             def versions = new ObjectMapper().readValue(serviceUrl, JsonNode.class)

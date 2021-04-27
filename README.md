@@ -10,7 +10,7 @@ This plugin is based on the work in a gist at https://gist.github.com/kellyrob99
 
 This plugin attempts to replicate the functionality of the maven dependency plugin's analyze goals which fail the build if dependencies are declared but not used or used but not declared.
 
-The plugin is available from both JCenter and the gradle plugin repository, so it can be added to your build with the following:
+The plugin is available from the gradle plugin repository, so it can be added to your build with the following:
 
 Using the plugin DSL:
 ```gradle
@@ -46,7 +46,14 @@ subprojects {
 }
 ```
 
-As of version `1.4.1`, this plugin requires a minimum of Gradle 5.x. If you are stuck on Gradle 4.x, use version `1.4.0`.
+# Compatibility
+
+The plugin is build with JDK 1.8 and is tested against Gradle 5.0 up to Gradle 7.0.
+
+| Plugin version | Gradle version |
+|----------------|----------------|
+| \<= 1.4.0      | \< 5.0         |
+| \>= 1.4.1      | \>= 5.0        |
 
 # Sample Output
 If the dependency analysis finds issues, it will normally cause the build to fail, and print a list of the issues that were found, similar to the following:
