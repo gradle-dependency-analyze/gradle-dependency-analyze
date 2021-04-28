@@ -38,9 +38,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration    | expectedResult
-        'compile'        | SUCCESS
         'implementation' | SUCCESS
-        'compileOnly'    | SUCCESS
         'runtimeOnly'    | BUILD_FAILURE
     }
 
@@ -50,7 +48,8 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
         rootProject()
                 .withMainClass(new GroovyClass('Main').usesClass('Transient'))
                 .withSubProject(subProject('dependent')
-                        .withDependency(new GradleDependency(configuration: 'compile', project: 'transient')))
+                        .withPlugin('java-library')
+                        .withDependency(new GradleDependency(configuration: 'api', project: 'transient')))
                 .withSubProject(subProject('transient')
                         .withMainClass(new GroovyClass('Transient')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'dependent'))
@@ -64,9 +63,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration    | expectedResult | usedUndeclaredArtifacts               | unusedDeclaredArtifacts
-        'compile'        | VIOLATIONS     | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
         'implementation' | VIOLATIONS     | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
-        'compileOnly'    | VIOLATIONS     | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
         'runtimeOnly'    | BUILD_FAILURE  | []                                    | []
     }
 
@@ -88,9 +85,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        'compile'        | VIOLATIONS     | []                      | ['project:independent:unspecified@jar']
         'implementation' | VIOLATIONS     | []                      | ['project:independent:unspecified@jar']
-        'compileOnly'    | VIOLATIONS     | []                      | ['project:independent:unspecified@jar']
         'runtimeOnly'    | SUCCESS        | []                      | []
     }
 
@@ -113,9 +108,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration        | expectedResult
-        'testCompile'        | SUCCESS
         'testImplementation' | SUCCESS
-        'testCompileOnly'    | SUCCESS
         'testRuntimeOnly'    | TEST_BUILD_FAILURE
     }
 
@@ -138,9 +131,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration        | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        'testCompile'        | VIOLATIONS     | []                      | ['project:dependent:unspecified@jar']
         'testImplementation' | VIOLATIONS     | []                      | ['project:dependent:unspecified@jar']
-        'testCompileOnly'    | VIOLATIONS     | []                      | ['project:dependent:unspecified@jar']
         'testRuntimeOnly'    | SUCCESS        | []                      | []
     }
 
@@ -151,8 +142,9 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .withMainClass(new GroovyClass('Main'))
                 .withTestClass(new GroovyClass('Test').usesClass('Transient'))
                 .withSubProject(subProject('dependent')
+                        .withPlugin('java-library')
                         .withMainClass(new GroovyClass('Dependent'))
-                        .withDependency(new GradleDependency(configuration: 'compile', project: 'transient')))
+                        .withDependency(new GradleDependency(configuration: 'api', project: 'transient')))
                 .withSubProject(subProject('transient')
                         .withMainClass(new GroovyClass('Transient')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'dependent'))
@@ -166,9 +158,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration        | expectedResult     | usedUndeclaredArtifacts               | unusedDeclaredArtifacts
-        'testCompile'        | VIOLATIONS         | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
         'testImplementation' | VIOLATIONS         | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
-        'testCompileOnly'    | VIOLATIONS         | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
         'testRuntimeOnly'    | TEST_BUILD_FAILURE | []                                    | []
     }
 }

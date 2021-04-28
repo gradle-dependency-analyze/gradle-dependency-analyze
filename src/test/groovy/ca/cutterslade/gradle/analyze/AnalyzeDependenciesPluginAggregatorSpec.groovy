@@ -12,7 +12,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         rootProject()
                 .withMavenRepositories()
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('Dependent')
                         .usesClass('org.springframework.context.annotation.ComponentScan')
@@ -31,9 +31,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         configuration    | expectedResult
-        "compile"        | SUCCESS
         "implementation" | SUCCESS
-        "compileOnly"    | SUCCESS
         "runtimeOnly"    | BUILD_FAILURE
     }
 
@@ -42,7 +40,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         setup:
         rootProject()
                 .withMavenRepositories()
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('Dependent')
                         .usesClass('org.springframework.context.annotation.ComponentScan')
@@ -61,9 +59,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         configuration    | expectedResult | usedUndeclaredArtifacts                                                                                          | unusedDeclaredArtifacts
-        "compile"        | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
         "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
-        "compileOnly"    | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
         "runtimeOnly"    | BUILD_FAILURE  | []                                                                                                               | []
     }
 
@@ -73,7 +69,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         rootProject()
                 .withMavenRepositories()
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('Dependent')
                         .usesClass('org.springframework.context.annotation.ComponentScan')
@@ -92,9 +88,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         configuration    | expectedResult | usedUndeclaredArtifacts                                 | unusedDeclaredArtifacts
-        "compile"        | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
         "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
-        "compileOnly"    | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
         "runtimeOnly"    | BUILD_FAILURE  | []                                                      | []
     }
 
@@ -104,8 +98,8 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         rootProject()
                 .withMavenRepositories()
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework:spring-context:5.2.11.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('Dependent')
                         .usesClass('org.springframework.context.annotation.ComponentScan')
@@ -124,9 +118,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        "compile"        | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
         "implementation" | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
-        "compileOnly"    | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
         "runtimeOnly"    | BUILD_FAILURE  | []                      | []
     }
 
@@ -137,8 +129,8 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withMavenRepositories()
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('org.springframework.context.annotation.ComponentScan')
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
@@ -164,9 +156,9 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('org.springframework.context.annotation.ComponentScan')
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
@@ -194,10 +186,10 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-validation:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-validation:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-jdbc:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-validation:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('org.springframework.context.annotation.ComponentScan')
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
@@ -225,8 +217,8 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withMavenRepositories()
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE'))
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
-                .withDependency(new GradleDependency(configuration: 'compile', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE'))
                 .withMainClass(new GroovyClass('Main')
                         .usesClass('com.fasterxml.jackson.databind.ObjectMapper')
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
@@ -251,10 +243,11 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         rootProject()
                 .withMavenRepositories()
                 .withAggregator(new GradleDependency(configuration: 'permitAggregatorUse', project: 'bom'))
-                .withDependency(new GradleDependency(configuration: 'compile', project: 'bom'))
-                .withDependency(new GradleDependency(configuration: 'compile', project: 'dependent'))
+                .withDependency(new GradleDependency(configuration: 'implementation', project: 'bom'))
+                .withDependency(new GradleDependency(configuration: 'implementation', project: 'dependent'))
                 .withSubProject(subProject('bom')
-                        .withDependency(new GradleDependency(configuration: 'compile', project: 'dependent'))
+                        .withPlugin('java-library')
+                        .withDependency(new GradleDependency(configuration: 'api', project: 'dependent'))
                 )
                 .withSubProject(subProject("dependent")
                         .withMainClass(new GroovyClass("Dependent"))
