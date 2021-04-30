@@ -8,10 +8,14 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 
 import java.lang.reflect.Method
+import java.nio.file.Files
 
 class AnalyzeDependenciesTask extends DefaultTask {
+    public static final String DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME = "reports/dependency-analyze"
     @Input
     boolean justWarn = false
+    @Input
+    boolean logDependencyInformationToFiles = false
     @InputFiles
     List<Configuration> require = []
     @Internal
@@ -26,8 +30,8 @@ class AnalyzeDependenciesTask extends DefaultTask {
     List<Configuration> allowedAggregatorsToUse = []
     @InputFiles
     FileCollection classesDirs = project.files()
-    @OutputFile
-    File outputFile = project.file("$project.buildDir/reports/dependency-analyze/$name")
+    @OutputDirectory
+    File outputDirectory = project.file("$project.buildDir/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/")
 
     AnalyzeDependenciesTask() {
         def methods = outputs.class.getMethods().grep { Method m -> m.name == 'cacheIf' }
@@ -46,7 +50,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
                 "allowedToDeclare: $allowedToDeclare]"
         ProjectDependencyAnalysis analysis =
                 new ProjectDependencyResolver(project, require, apiHelperConfiguration, apiConfigurationName, allowedToUse,
-                        allowedToDeclare, classesDirs, allowedAggregatorsToUse).analyzeDependencies()
+                        allowedToDeclare, classesDirs, allowedAggregatorsToUse, logDependencyInformationToFiles).analyzeDependencies()
         StringBuffer buffer = new StringBuffer()
         ['usedUndeclaredArtifacts', 'unusedDeclaredArtifacts'].each { section ->
             def violations = analysis."$section"
@@ -58,6 +62,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
                 }
             }
         }
+        final def outputFile = new File(outputDirectory, name)
         outputFile.parentFile.mkdirs()
         outputFile.text = buffer.toString()
         if (buffer) {
@@ -80,7 +85,15 @@ class AnalyzeDependenciesTask extends DefaultTask {
                             *.allModuleArtifacts
                             *.file.flatten() as Set<File>
             )
-            logger.info "All Artifact Files: $files"
+            if (logDependencyInformationToFiles) {
+                Files.createDirectories(outputDirectory.toPath())
+                new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("allArtifactFiles.log"))).withCloseable { final printWriter ->
+                    printWriter.println("All artifact files:")
+                    files.forEach { final file -> printWriter.println(file) }
+                }
+            } else {
+                logger.info "All Artifact Files: $files"
+            }
             files
         })
     }
@@ -90,7 +103,15 @@ class AnalyzeDependenciesTask extends DefaultTask {
         project.files({
             def files = getFirstLevelFiles(require, 'required') -
                     getFirstLevelFiles(allowedToUse, 'allowed to use')
-            logger.info "Actual required files: $files"
+            if (logDependencyInformationToFiles) {
+                Files.createDirectories(outputDirectory.toPath())
+                new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("allRequiredFiles.log"))).withCloseable { final printWriter ->
+                    printWriter.println("Actual required files:")
+                    files.forEach { final file -> printWriter.println(file) }
+                }
+            } else {
+                logger.info "Actual required files: $files"
+            }
             files
         })
     }
@@ -115,7 +136,15 @@ class AnalyzeDependenciesTask extends DefaultTask {
                         ProjectDependencyResolver.removeNulls(configurations)
                 )*.moduleArtifacts*.file.flatten()
         )
-        logger.info "First level $name files: $files"
+        if (logDependencyInformationToFiles) {
+            Files.createDirectories(outputDirectory.toPath())
+            new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("first level ${name}.log"))).withCloseable { final printWriter ->
+                printWriter.println("First level $name files:")
+                files.forEach { final file -> printWriter.println(file) }
+            }
+        } else {
+            logger.info "First level $name files: $files"
+        }
         files
     }
 }
