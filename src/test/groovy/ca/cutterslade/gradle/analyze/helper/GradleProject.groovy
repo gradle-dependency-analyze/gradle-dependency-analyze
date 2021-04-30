@@ -5,11 +5,13 @@ class GradleProject {
     final String name
     final boolean rootProject
 
+    boolean justWarn = false
     Set<GradleProject> subProjects = []
     Set<GroovyClass> mainClasses = []
     Set<GroovyClass> testClasses = []
     Set<GroovyClass> testFixturesClasses = []
     Set<String> plugins = []
+    Set<String> allProjectPlugins = []
     Set<GradleDependency> dependencies = []
     String repositories
     String platformConfiguration = ""
@@ -41,6 +43,16 @@ class GradleProject {
 
     def withPlugin(String plugin) {
         plugins.add(plugin)
+        this
+    }
+
+    def withAllProjectsPlugin(String plugin) {
+        allProjectPlugins.add(plugin)
+        this
+    }
+
+    def justWarn() {
+        justWarn = true
         this
     }
 
@@ -81,7 +93,7 @@ class GradleProject {
                 "    }\n" +
                 "}\n" +
                 "dependencies {\n" +
-                "    myPlatform platform(project(':platform'))" +
+                "    myPlatform platform(project(':platform'))\n" +
                 "}\n"
         this
     }
@@ -154,6 +166,20 @@ class GradleProject {
             buildGradle += "}\n"
         }
         buildGradle += platformConfiguration
+
+        if (rootProject && !allProjectPlugins.empty) {
+            buildGradle += "allprojects {\n"
+            for (def plugin : allProjectPlugins) {
+                buildGradle += "  apply plugin: '${plugin}'\n"
+            }
+            buildGradle += "}\n"
+        }
+
+        if (justWarn) {
+            buildGradle += "analyzeClassesDependencies {\n" +
+                    "  justWarn = ${justWarn}\n" +
+                    "}\n"
+        }
 
         new File(root, "build.gradle").text = buildGradle
     }
