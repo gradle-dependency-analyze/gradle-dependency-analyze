@@ -15,6 +15,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     protected static final def BUILD_FAILURE = 'build failure'
     protected static final def TEST_BUILD_FAILURE = 'test build failure'
     protected static final def VIOLATIONS = 'violations'
+    protected static final def WARNING = 'warning'
 
     @Rule
     public TemporaryFolder projectDir
@@ -44,6 +45,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
         GradleRunner.create()
                 .withProjectDir(projectDir.getRoot())
                 .withPluginClasspath()
+                .withDebug(true)
                 .withArguments('build')
     }
 
@@ -84,15 +86,20 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 throw new SpockAssertionError("compileTestGroovy task not run: \n${result.getOutput()}")
             }
             assert result.task(':compileTestGroovy').getOutcome() == TaskOutcome.FAILED
-        } else if (expectedResult == VIOLATIONS) {
-            def violations = new StringBuilder('> Dependency analysis found issues.\n')
+        } else if (expectedResult == VIOLATIONS || expectedResult == WARNING) {
+            def spacer = ""
+            if (expectedResult == VIOLATIONS) {
+                spacer = "> "
+            }
+            def violations = new StringBuilder(spacer)
+            violations.append('Dependency analysis found issues.\n')
             if (!usedUndeclaredArtifacts.empty) {
-                violations.append('  usedUndeclaredArtifacts: \n')
-                usedUndeclaredArtifacts.each { violations.append("   - ${it}\n") }
+                violations.append(spacer).append('usedUndeclaredArtifacts: \n')
+                usedUndeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
             }
             if (!unusedDeclaredArtifacts.empty) {
-                violations.append('  unusedDeclaredArtifacts: \n')
-                unusedDeclaredArtifacts.each { violations.append("   - ${it}\n") }
+                violations.append(spacer).append('unusedDeclaredArtifacts: \n')
+                unusedDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
             }
             violations.append('\n')
             assert result.output.contains(violations)

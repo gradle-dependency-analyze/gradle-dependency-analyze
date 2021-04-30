@@ -70,6 +70,16 @@ Execution failed for task ':analyzeClassesDependencies'.
    - net.sf.json-lib:json-lib:2.3:jdk15@jar
 ```
 
+# Restrictions
+This plugin can not properly detect the following use cases and will issue a warning about a problematic dependency declaration.
+1. When a constant is used inside the code that is located in a dependency, and it is the only usage of anything from that dependency the plugin *might* report a problem about an unused dependency
+2. When a constant is used as a value in an annotation is located in a dependency, and it is the only usage of anything from that dependency the plugin is not able to detect that usage as in that case all references to the constant are erased by the java compiler
+3. When a class hierarchy is in place across multiple gradle subprojects or different dependencies the plugin is not able to detect this kind of hierarchies as the byte code only contains references to "direct" classes that are used
+4. When an exception is part of a method signature and this exception is in a dependency and this is the only used class from that dependency the class invoking this method and not using this exception but throwing a more general one the exception usage will not be detected as it is not part of the byte code
+5. Annotations with `@Retention(SOURCE)` are not part of the byte code, so these usages will not be detected the plugin (e.g. `@Generated` from `jakarta-annotation-api` or `javax.annotation-api`)
+
+In these situations a `permit*UnusedDeclared` must be added to not trigger a build failure or warning by this plugin
+
 # Tasks
 This plugin will add the following tasks to your project: `analyzeClassesDependencies`, `analyzeTestClassesDependencies`, and `analyzeDependencies`.
 ## analyzeClassesDependencies
