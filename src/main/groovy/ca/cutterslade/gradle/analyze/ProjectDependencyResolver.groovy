@@ -15,6 +15,8 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.logging.Logger
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
 @CompileStatic
@@ -33,6 +35,8 @@ class ProjectDependencyResolver {
     private final Iterable<File> classesDirs
     private final Map<ResolvedArtifact, Set<ResolvedArtifact>> aggregatorsWithDependencies
     private final List<Configuration> allowedAggregatorsToUse
+    private final boolean logDependencyInformationToFile
+    private final Path buildDirPath
 
     ProjectDependencyResolver(final Project project,
                               final List<Configuration> require,
@@ -41,7 +45,8 @@ class ProjectDependencyResolver {
                               final List<Configuration> allowedToUse,
                               final List<Configuration> allowedToDeclare,
                               final Iterable<File> classesDirs,
-                              final List<Configuration> allowedAggregatorsToUse) {
+                              final List<Configuration> allowedAggregatorsToUse,
+                              final boolean logDependencyInformationToFile) {
         try {
             this.artifactClassCache =
                     project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
@@ -57,6 +62,8 @@ class ProjectDependencyResolver {
         this.allowedToDeclare = removeNulls(allowedToDeclare) as List
         this.classesDirs = classesDirs
         this.aggregatorsWithDependencies = getAggregatorsMapping()
+        this.logDependencyInformationToFile = logDependencyInformationToFile
+        this.buildDirPath = project.buildDir.toPath()
     }
 
     static <T> Collection<T> removeNulls(final Collection<T> collection) {
@@ -70,49 +77,111 @@ class ProjectDependencyResolver {
 
     ProjectDependencyAnalysis analyzeDependencies() {
         Set<ResolvedDependency> allowedToUseDeps = allowedToUseDependencies
+
         Set<ResolvedDependency> allowedToDeclareDeps = allowedToDeclareDependencies
+
         Set<ResolvedDependency> requiredDeps = requiredDependencies
         requiredDeps.removeAll { req ->
             allowedToUseDeps.any { allowed ->
                 req.module.id == allowed.module.id
             }
         }
+
         Set<File> dependencyArtifacts = findModuleArtifactFiles(requiredDeps)
-        logger.info "dependencyArtifacts = $dependencyArtifacts"
 
         Set<File> allDependencyArtifacts = findAllModuleArtifactFiles(requiredDeps)
-        logger.info "allDependencyArtifacts = $allDependencyArtifacts"
 
         Map<File, Set<String>> fileClassMap = buildArtifactClassMap(allDependencyArtifacts)
-        logger.info "fileClassMap = $fileClassMap"
 
         Set<String> dependencyClasses = analyzeClassDependencies()
-        logger.info "dependencyClasses = $dependencyClasses"
 
         Set<File> usedArtifacts = buildUsedArtifacts(fileClassMap, dependencyClasses)
-        logger.info "usedArtifacts = $usedArtifacts"
 
         Set<File> usedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
         usedDeclaredArtifacts.retainAll(usedArtifacts)
-        logger.info "usedDeclaredArtifacts = $usedDeclaredArtifacts"
 
         Set<File> usedUndeclaredArtifacts = new LinkedHashSet<File>(usedArtifacts)
         usedUndeclaredArtifacts.removeAll(dependencyArtifacts)
-        logger.info "usedUndeclaredArtifacts = $usedUndeclaredArtifacts"
 
         Set<File> unusedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
         unusedDeclaredArtifacts.removeAll(usedArtifacts)
-        logger.info "unusedDeclaredArtifacts = $unusedDeclaredArtifacts"
 
         Set<ResolvedArtifact> allowedToUseArtifacts = allowedToUseDeps*.moduleArtifacts?.flatten() as Set<ResolvedArtifact>
-        logger.info "allowedToUseArtifacts = $allowedToUseArtifacts"
+
         Set<ResolvedArtifact> allowedToDeclareArtifacts = allowedToDeclareDeps*.moduleArtifacts?.
                 flatten() as Set<ResolvedArtifact>
-        logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
 
         Set<ResolvedArtifact> allArtifacts = resolveArtifacts(require)
 
-        logger.info "allArtifacts = $allArtifacts"
+        if (logDependencyInformationToFile) {
+            final def outputDirectoryPath = buildDirPath.resolve(AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME)
+            Files.createDirectories(outputDirectoryPath)
+            final Path analyzeOutputPath = outputDirectoryPath.resolve("analyzeDependencies.log")
+            new PrintWriter(Files.newOutputStream(analyzeOutputPath)).withCloseable { final analyzeWriter ->
+                analyzeWriter.println('dependencyArtifacts:')
+                dependencyArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("allDependencyArtifacts:")
+                allDependencyArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("fileClassMap:")
+                for (final def classMapEntry : fileClassMap) {
+                    analyzeWriter.print("${classMapEntry.key}=")
+                    for (final def theClass : classMapEntry.value) {
+                        analyzeWriter.print(theClass)
+                        analyzeWriter.print(', ')
+                    }
+                    analyzeWriter.println()
+                }
+                analyzeWriter.println()
+
+                analyzeWriter.println("dependencyClasses:")
+                dependencyClasses.forEach({ final dependencyClass -> analyzeWriter.println(dependencyClass) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("usedArtifacts:")
+                usedArtifacts.forEach({ final usedArtifact -> analyzeWriter.println(usedArtifact) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("usedDeclaredArtifacts:")
+                usedDeclaredArtifacts.forEach({ final usedDeclaredArtifact -> analyzeWriter.println(usedDeclaredArtifact) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("usedUndeclaredArtifacts:")
+                usedUndeclaredArtifacts.forEach({ final usedUndeclared -> analyzeWriter.println(usedUndeclared) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("unusedDeclaredArtifacts:")
+                unusedDeclaredArtifacts.forEach({ final unusedDeclared -> analyzeWriter.println(unusedDeclared) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("allowedToUseArtifacts:")
+                allowedToUseArtifacts.forEach({ final allowedToUse -> analyzeWriter.println(allowedToUse) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("allowedToDeclareArtifacts:")
+                allowedToDeclareArtifacts.forEach({ final allowedToDeclare -> analyzeWriter.println(allowedToDeclare) })
+                analyzeWriter.println()
+
+                analyzeWriter.println("allArtifacts:")
+                allArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
+                analyzeWriter.println()
+            }
+        } else {
+            logger.info "dependencyArtifacts = $dependencyArtifacts"
+            logger.info "allDependencyArtifacts = $allDependencyArtifacts"
+            logger.info "fileClassMap = $fileClassMap"
+            logger.info "dependencyClasses = $dependencyClasses"
+            logger.info "usedArtifacts = $usedArtifacts"
+            logger.info "usedDeclaredArtifacts = $usedDeclaredArtifacts"
+            logger.info "usedUndeclaredArtifacts = $usedUndeclaredArtifacts"
+            logger.info "unusedDeclaredArtifacts = $unusedDeclaredArtifacts"
+            logger.info "allowedToUseArtifacts = $allowedToUseArtifacts"
+            logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
+            logger.info "allArtifacts = $allArtifacts"
+        }
 
         def usedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts }
         def usedUndeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts }

@@ -115,14 +115,18 @@ dependencies {
 ```
 
 # Task Configuration
-The plugin is not especially configurable, but each task can be configured to log a warning about dependency issues rather than breaking the build like so:
+The plugin is not especially configurable, but each task can be configured to log a warning about dependency issues rather than breaking the build.
+Each task can also be configured to log informational output into a file instead of the Gradle console, this can be helpful for large projects where printing all the dependencies can cause high memory usage.
+Informational messages are logged to $builddir/dependency-analyze/.
 ```gradle
 analyzeClassesDependencies {
   justWarn = true
+  logDependencyInformationToFiles = true
 }
 
 analyzeTestClassesDependencies {
   justWarn = true
+  logDependencyInformationToFiles = true
 }
 ```
 
