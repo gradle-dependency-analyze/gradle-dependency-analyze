@@ -18,7 +18,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
         rootProject()
                 .withMainClass(new GroovyClass('Main'))
                 .withTestClass(new GroovyClass('MainTest').usesClass('Main'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(expectedResult, gradleVersion)
@@ -40,7 +40,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .withSubProject(subProject('dependent')
                         .withMainClass(new GroovyClass('Dependent')))
                 .withDependency(new GradleDependency(configuration: 'implementation', project: 'dependent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(expectedResult, gradleVersion)
@@ -61,7 +61,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .withPlugin('java-test-fixtures')
                 .withTestFixturesClass(new GroovyClass('MainTestFixture'))
                 .withGradleDependency('testFixturesImplementation')
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(expectedResult, gradleVersion)
@@ -90,7 +90,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .withSubProject(subProject("dependent")
                         .withMainClass(new GroovyClass("Dependent")))
                 .withDependency(new GradleDependency(configuration: "implementation", project: "dependent"))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)

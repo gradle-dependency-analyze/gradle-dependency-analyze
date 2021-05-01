@@ -2,9 +2,11 @@ package ca.cutterslade.gradle.analyze
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
+import spock.lang.Unroll
 
 class AnalyzeDependenciesPluginConstantsSpec extends AnalyzeDependenciesPluginBaseSpec {
-    def 'simple build without dependencies results in success'() {
+    @Unroll
+    def 'build with constants usage from dependency results in #expectedResult'() {
         setup:
         rootProject()
                 .withAllProjectsPlugin('ca.cutterslade.analyze')
@@ -22,7 +24,7 @@ class AnalyzeDependenciesPluginConstantsSpec extends AnalyzeDependenciesPluginBa
                                 .addClassConstant("BAZ_VALUE", "String", "BarConstants.BAR_VALUE", false))
                         .withDependency(new GradleDependency(configuration: "implementation", project: "bar"))
                 )
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = gradleProject().forwardOutput().build()

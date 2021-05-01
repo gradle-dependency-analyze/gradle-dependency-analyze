@@ -5,10 +5,9 @@ import ca.cutterslade.gradle.analyze.helper.GradleProject
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
+import spock.lang.TempDir
 
 abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     protected static final def SUCCESS = 'success'
@@ -17,8 +16,8 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     protected static final def VIOLATIONS = 'violations'
     protected static final def WARNING = 'warning'
 
-    @Rule
-    public TemporaryFolder projectDir
+    @TempDir
+    public File projectDir
 
     protected static GradleProject rootProject() {
         new GradleProject('project', true)
@@ -39,11 +38,11 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     }
 
     protected GradleRunner gradleProject() {
-        new FileOutputStream(projectDir.newFile('gradle.properties')).withStream {
+        new FileOutputStream(new File(projectDir, 'gradle.properties')).withStream {
             it.write(getClass().classLoader.getResourceAsStream('testkit-gradle.properties').getBytes())
         }
         GradleRunner.create()
-                .withProjectDir(projectDir.getRoot())
+                .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .withArguments('build')
     }
@@ -86,12 +85,9 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             }
             assert result.task(':compileTestGroovy').getOutcome() == TaskOutcome.FAILED
         } else if (expectedResult == VIOLATIONS || expectedResult == WARNING) {
-            def spacer = ""
-            if (expectedResult == VIOLATIONS) {
-                spacer = "> "
-            }
-            def violations = new StringBuilder(spacer)
+            def violations = expectedResult == WARNING ? new StringBuilder() : new StringBuilder('> ')
             violations.append('Dependency analysis found issues.\n')
+            def spacer = expectedResult == WARNING ? '' : '  '
             if (!usedUndeclaredArtifacts.empty) {
                 violations.append(spacer).append('usedUndeclaredArtifacts: \n')
                 usedUndeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }

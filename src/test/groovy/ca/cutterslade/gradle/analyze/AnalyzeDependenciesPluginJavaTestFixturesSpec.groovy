@@ -10,7 +10,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
                 .withPlugin('java-test-fixtures')
                 .withTestFixturesClass(new GroovyClass('MainTestFixture'))
                 .withGradleDependency('testFixturesImplementation')
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(SUCCESS)
@@ -26,7 +26,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
                 .withMainClass(new GroovyClass('Main'))
                 .withTestFixturesClass(new GroovyClass('MainTestFixture').usesClass('Main'))
                 .withGradleDependency('testFixturesImplementation')
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(SUCCESS)
@@ -44,7 +44,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
                         .withMainClass(new GroovyClass('DependentMain')))
                 .withDependency(new GradleDependency(configuration: 'testFixturesImplementation', project: 'dependent'))
                 .withGradleDependency('testFixturesImplementation')
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(SUCCESS)
@@ -61,7 +61,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
                 .withSubProject(subProject('dependent').withMainClass(new GroovyClass('DependentMain')))
                 .withDependency(new GradleDependency(configuration: 'testFixturesImplementation', project: 'dependent'))
                 .withGradleDependency('testFixturesImplementation')
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(BUILD_FAILURE)
@@ -84,7 +84,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
                 .withSubProject(subProject('dependent').withMainClass(new GroovyClass('DependentMain')))
                 .withDependency(new GradleDependency(configuration: 'implementation', project: 'dependent'))
                 .withGradleDependency('testFixturesImplementation')
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(SUCCESS)

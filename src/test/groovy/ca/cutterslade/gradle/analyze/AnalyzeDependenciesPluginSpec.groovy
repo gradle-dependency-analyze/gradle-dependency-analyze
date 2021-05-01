@@ -11,7 +11,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
         rootProject()
                 .withMainClass(new GroovyClass('Main'))
                 .withTestClass(new GroovyClass('MainTest').usesClass('Main'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = gradleProject().build()
@@ -28,7 +28,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .withSubProject(subProject('dependent')
                         .withMainClass(new GroovyClass('Dependent')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'dependent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -53,7 +53,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .withSubProject(subProject('transient')
                         .withMainClass(new GroovyClass('Transient')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'dependent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -75,7 +75,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .withSubProject(subProject('independent')
                         .withMainClass(new GroovyClass('Independent')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'independent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -98,7 +98,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .withSubProject(subProject('dependent')
                         .withMainClass(new GroovyClass('Dependent')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'dependent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -121,7 +121,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .withSubProject(subProject('dependent')
                         .withMainClass(new GroovyClass('Dependent')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'dependent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -148,7 +148,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .withSubProject(subProject('transient')
                         .withMainClass(new GroovyClass('Transient')))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'dependent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)

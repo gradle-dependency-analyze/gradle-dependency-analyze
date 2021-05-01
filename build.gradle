@@ -17,9 +17,9 @@ repositories {
 dependencies {
     implementation 'org.apache.maven.shared:maven-dependency-analyzer:1.11.3'
 
-    testImplementation platform('org.spockframework:spock-bom:2.0-M5-groovy-3.0')
-    testImplementation 'org.spockframework:spock-core'
-    testImplementation 'org.spockframework:spock-junit4'
+    testImplementation('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
+        exclude group: 'org.codehaus.groovy'
+    }
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
 }
 
@@ -54,6 +54,9 @@ java {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
     finalizedBy jacocoTestReport
 }
 

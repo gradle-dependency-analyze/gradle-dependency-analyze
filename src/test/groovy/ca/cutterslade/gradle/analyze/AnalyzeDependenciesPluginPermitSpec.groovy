@@ -17,7 +17,7 @@ class AnalyzeDependenciesPluginPermitSpec extends AnalyzeDependenciesPluginBaseS
                 .withDependency(new GradleDependency(configuration: 'implementation', project: 'dependent'))
                 .withDependency(new GradleDependency(configuration: 'implementation', project: 'independent'))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'independent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(expectedResult)
@@ -43,7 +43,7 @@ class AnalyzeDependenciesPluginPermitSpec extends AnalyzeDependenciesPluginBaseS
                         .withDependency(new GradleDependency(configuration: 'api', project: 'dependent')))
                 .withDependency(new GradleDependency(configuration: 'implementation', project: 'independent'))
                 .withDependency(new GradleDependency(configuration: configuration, project: 'independent'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         def result = buildGradleProject(expectedResult)

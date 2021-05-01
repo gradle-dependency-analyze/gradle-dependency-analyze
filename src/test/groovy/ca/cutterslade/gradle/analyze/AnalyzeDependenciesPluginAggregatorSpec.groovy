@@ -21,7 +21,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withSubProject(subProject("dependent")
                         .withMainClass(new GroovyClass("Dependent")))
                 .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -49,7 +49,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withSubProject(subProject("dependent")
                         .withMainClass(new GroovyClass("Dependent")))
                 .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -78,7 +78,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withSubProject(subProject("dependent")
                         .withMainClass(new GroovyClass("Dependent")))
                 .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -108,7 +108,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withSubProject(subProject("dependent")
                         .withMainClass(new GroovyClass("Dependent")))
                 .withDependency(new GradleDependency(configuration: configuration, project: "dependent"))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -135,7 +135,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                         .usesClass('org.springframework.context.annotation.ComponentScan')
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
                 )
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -164,7 +164,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
                         .usesClass('org.springframework.jdbc.BadSqlGrammarException')
                 )
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -197,7 +197,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                         .usesClass('org.springframework.web.bind.annotation.RestController')
                         .usesClass('javax.validation.ConstraintValidator')
                 )
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -224,7 +224,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
                         .usesClass('org.springframework.web.context.request.RequestContextHolder')
                 )
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -253,7 +253,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                         .withMainClass(new GroovyClass("Dependent"))
                 )
                 .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = buildGradleProject(expectedResult)
@@ -283,7 +283,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                         .withTestClass(new GroovyClass("Main")
                                 .usesClass('org.springframework.context.annotation.ComponentScan'))
                 )
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = gradleProject().build()
@@ -311,7 +311,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                                 .usesClass('org.springframework.aop.Advisor')
                                 .usesClass('org.apache.commons.collections4.BidiMap'))
                 )
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = gradleProject().build()
@@ -331,7 +331,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .withMainClass(new GroovyClass("Main")
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
                         .usesClass('org.springframework.web.context.request.RequestContextHolder'))
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = gradleProject().build()
@@ -355,7 +355,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                         .usesClass('org.springframework.beans.factory.annotation.Autowired')
                         .usesClass('org.springframework.web.context.request.RequestContextHolder'))
                 .applyPlatformConfiguration()
-                .create(projectDir.getRoot())
+                .create(projectDir)
 
         when:
         BuildResult result = gradleProject().build()
