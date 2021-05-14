@@ -23,6 +23,7 @@ change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add
 exclude-labels:
   - 'skip-changelog'
   - 'automerge'
+sort-by: 'title'
 version-resolver:
   major:
     labels:
