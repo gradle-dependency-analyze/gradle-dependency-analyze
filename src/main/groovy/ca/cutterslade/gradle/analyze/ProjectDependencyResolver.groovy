@@ -1,5 +1,6 @@
 package ca.cutterslade.gradle.analyze
 
+import ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger
 import groovy.transform.CompileStatic
 import org.apache.maven.artifact.Artifact
 import org.apache.maven.shared.dependency.analyzer.ClassAnalyzer
@@ -15,7 +16,6 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.logging.Logger
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
@@ -76,160 +76,110 @@ class ProjectDependencyResolver {
     }
 
     ProjectDependencyAnalysis analyzeDependencies() {
-        Set<ResolvedDependency> allowedToUseDeps = allowedToUseDependencies
-
-        Set<ResolvedDependency> allowedToDeclareDeps = allowedToDeclareDependencies
-
-        Set<ResolvedDependency> requiredDeps = requiredDependencies
-        requiredDeps.removeAll { req ->
-            allowedToUseDeps.any { allowed ->
-                req.module.id == allowed.module.id
-            }
-        }
-
-        Set<File> dependencyArtifacts = findModuleArtifactFiles(requiredDeps)
-
-        Set<File> allDependencyArtifacts = findAllModuleArtifactFiles(requiredDeps)
-
-        Map<File, Set<String>> fileClassMap = buildArtifactClassMap(allDependencyArtifacts)
-
-        Set<String> dependencyClasses = analyzeClassDependencies()
-
-        Set<File> usedArtifacts = buildUsedArtifacts(fileClassMap, dependencyClasses)
-
-        Set<File> usedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
-        usedDeclaredArtifacts.retainAll(usedArtifacts)
-
-        Set<File> usedUndeclaredArtifacts = new LinkedHashSet<File>(usedArtifacts)
-        usedUndeclaredArtifacts.removeAll(dependencyArtifacts)
-
-        Set<File> unusedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
-        unusedDeclaredArtifacts.removeAll(usedArtifacts)
-
-        Set<ResolvedArtifact> allowedToUseArtifacts = allowedToUseDeps*.moduleArtifacts?.flatten() as Set<ResolvedArtifact>
-
-        Set<ResolvedArtifact> allowedToDeclareArtifacts = allowedToDeclareDeps*.moduleArtifacts?.
-                flatten() as Set<ResolvedArtifact>
-
-        Set<ResolvedArtifact> allArtifacts = resolveArtifacts(require)
-
-        if (logDependencyInformationToFile) {
-            final def outputDirectoryPath = buildDirPath.resolve(AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME)
-            Files.createDirectories(outputDirectoryPath)
-            final Path analyzeOutputPath = outputDirectoryPath.resolve("analyzeDependencies.log")
-            new PrintWriter(Files.newOutputStream(analyzeOutputPath)).withCloseable { final analyzeWriter ->
-                analyzeWriter.println('dependencyArtifacts:')
-                dependencyArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("allDependencyArtifacts:")
-                allDependencyArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("fileClassMap:")
-                for (final def classMapEntry : fileClassMap) {
-                    analyzeWriter.print("${classMapEntry.key}=")
-                    for (final def theClass : classMapEntry.value) {
-                        analyzeWriter.print(theClass)
-                        analyzeWriter.print(', ')
-                    }
-                    analyzeWriter.println()
+        AnalyzeDependenciesLogger.create(logger, buildDirPath, logDependencyInformationToFile) { logger ->
+            def allowedToUseDeps = allowedToUseDependencies
+            def allowedToDeclareDeps = allowedToDeclareDependencies
+            def requiredDeps = requiredDependencies
+            requiredDeps.removeAll { req ->
+                allowedToUseDeps.any { allowed ->
+                    req.module.id == allowed.module.id
                 }
-                analyzeWriter.println()
-
-                analyzeWriter.println("dependencyClasses:")
-                dependencyClasses.forEach({ final dependencyClass -> analyzeWriter.println(dependencyClass) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("usedArtifacts:")
-                usedArtifacts.forEach({ final usedArtifact -> analyzeWriter.println(usedArtifact) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("usedDeclaredArtifacts:")
-                usedDeclaredArtifacts.forEach({ final usedDeclaredArtifact -> analyzeWriter.println(usedDeclaredArtifact) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("usedUndeclaredArtifacts:")
-                usedUndeclaredArtifacts.forEach({ final usedUndeclared -> analyzeWriter.println(usedUndeclared) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("unusedDeclaredArtifacts:")
-                unusedDeclaredArtifacts.forEach({ final unusedDeclared -> analyzeWriter.println(unusedDeclared) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("allowedToUseArtifacts:")
-                allowedToUseArtifacts.forEach({ final allowedToUse -> analyzeWriter.println(allowedToUse) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("allowedToDeclareArtifacts:")
-                allowedToDeclareArtifacts.forEach({ final allowedToDeclare -> analyzeWriter.println(allowedToDeclare) })
-                analyzeWriter.println()
-
-                analyzeWriter.println("allArtifacts:")
-                allArtifacts.forEach({ final artifact -> analyzeWriter.println(artifact) })
-                analyzeWriter.println()
             }
-        } else {
-            logger.info "dependencyArtifacts = $dependencyArtifacts"
-            logger.info "allDependencyArtifacts = $allDependencyArtifacts"
-            logger.info "fileClassMap = $fileClassMap"
-            logger.info "dependencyClasses = $dependencyClasses"
-            logger.info "usedArtifacts = $usedArtifacts"
-            logger.info "usedDeclaredArtifacts = $usedDeclaredArtifacts"
-            logger.info "usedUndeclaredArtifacts = $usedUndeclaredArtifacts"
-            logger.info "unusedDeclaredArtifacts = $unusedDeclaredArtifacts"
-            logger.info "allowedToUseArtifacts = $allowedToUseArtifacts"
-            logger.info "allowedToDeclareArtifacts = $allowedToDeclareArtifacts"
-            logger.info "allArtifacts = $allArtifacts"
-        }
 
-        def usedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts }
-        def usedUndeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts }
-        if (allowedToUseArtifacts) {
-            def allowedToUseComponentIdentifiers = allowedToUseArtifacts.collect { it.id.componentIdentifier }
-            usedUndeclared.removeAll { allowedToUseComponentIdentifiers.contains(it.id.componentIdentifier) }
-        }
-        def unusedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts }
-        if (allowedToDeclareArtifacts) {
-            def allowedToDeclareComponentIdentifiers = allowedToDeclareArtifacts.collect { it.id.componentIdentifier }
-            unusedDeclared.removeAll { allowedToDeclareComponentIdentifiers.contains(it.id.componentIdentifier) }
-        }
+            def dependencyArtifacts = findModuleArtifactFiles(requiredDeps)
+            logger.info 'dependencyArtifacts', dependencyArtifacts
 
-        if (!aggregatorsWithDependencies.isEmpty()) {
-            def usedIdentifiers = (requiredDependencies.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
-                    .collect { it.id }
-                    .collect { it.componentIdentifier }
-            def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.isEmpty() }
-            if (aggregatorUsage.containsKey(true)) {
-                def unusedAggregatorArtifacts = aggregatorUsage.get(true).keySet() as Set<ResolvedArtifact>
-                unusedDeclared += unusedAggregatorArtifacts.intersect(requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+            def allDependencyArtifacts = findAllModuleArtifactFiles(requiredDeps)
+            logger.info 'allDependencyArtifacts', allDependencyArtifacts
+
+            def fileClassMap = buildArtifactClassMap(allDependencyArtifacts)
+            logger.info 'fileClassMap', fileClassMap
+
+            def dependencyClasses = analyzeClassDependencies()
+            logger.info 'dependencyClasses', dependencyClasses
+
+            def usedClassesInArtifacts = buildUsedArtifacts(fileClassMap, dependencyClasses)
+            logger.info 'usedClassesInArtifacts', usedClassesInArtifacts
+
+            def usedArtifacts = usedClassesInArtifacts.keySet()
+            logger.info 'usedArtifacts', usedArtifacts
+
+            def usedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
+            usedDeclaredArtifacts.retainAll(usedArtifacts)
+            logger.info 'usedDeclaredArtifacts', usedDeclaredArtifacts
+
+            def usedUndeclaredArtifacts = new LinkedHashSet<File>(usedArtifacts)
+            usedUndeclaredArtifacts.removeAll(dependencyArtifacts)
+            logger.info 'usedUndeclaredArtifacts', usedUndeclaredArtifacts
+
+            def unusedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
+            unusedDeclaredArtifacts.removeAll(usedArtifacts)
+            logger.info 'unusedDeclaredArtifacts', unusedDeclaredArtifacts
+
+            def allowedToUseArtifacts = allowedToUseDeps*.moduleArtifacts?.flatten() as Set<ResolvedArtifact>
+            logger.info 'allowedToUseArtifacts', allowedToUseArtifacts
+            def allowedToDeclareArtifacts = allowedToDeclareDeps*.moduleArtifacts?.
+                    flatten() as Set<ResolvedArtifact>
+            logger.info 'allowedToDeclareArtifacts', allowedToDeclareArtifacts
+
+            def allArtifacts = resolveArtifacts(require)
+            logger.info 'allArtifacts', allArtifacts
+
+            def usedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts }
+            logger.info 'usedDeclared', usedDeclared
+
+            def usedUndeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts }
+            logger.info 'usedUndeclared', usedUndeclared
+            if (allowedToUseArtifacts) {
+                def allowedToUseComponentIdentifiers = allowedToUseArtifacts.collect { it.id.componentIdentifier }
+                usedUndeclared.removeAll { allowedToUseComponentIdentifiers.contains(it.id.componentIdentifier) }
+                logger.info 'usedUndeclared without allowedToUseArtifacts', usedUndeclared
             }
-            if (aggregatorUsage.containsKey(false)) {
-                def usedAggregator = aggregatorUsage.get(false)
-                def usedAggregatorDependencies = usedAggregator.keySet()
-                usedDeclared += usedAggregatorDependencies.intersect(unusedDeclared, { ResolvedArtifact a, ResolvedArtifact b ->
-                    a.id.componentIdentifier == b.id.componentIdentifier ? 0 : a.id.componentIdentifier.displayName <=> b.id.componentIdentifier.displayName
-                } as Comparator<ResolvedArtifact>)
 
-                def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
-                unusedDeclared += usedDeclared.intersect(flatten)
-                def usedAggregatorComponentIdentifiers = usedAggregatorDependencies.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
-                unusedDeclared.removeAll { usedAggregatorComponentIdentifiers.contains(it.id.componentIdentifier) }
-                def apiComponentIdentifiers = (getFirstLevelDependencies(api).collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
-                        .collect { it.id.componentIdentifier } as Set<ComponentIdentifier>
-                unusedDeclared.removeAll { apiComponentIdentifiers.contains(it.id.componentIdentifier) }
-
-                usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
-                def usedDeclaredComponentIdentifiers = usedDeclared.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
-                usedUndeclared += usedAggregatorDependencies.findAll { !usedDeclaredComponentIdentifiers.contains(it.id.componentIdentifier) }
-                usedUndeclared.removeIf { allowedToUseArtifacts.contains(it) && aggregatorsWithDependencies.keySet().contains(it) }
+            def unusedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts }
+            logger.info 'unusedDeclared', unusedDeclared
+            if (allowedToDeclareArtifacts) {
+                def allowedToDeclareComponentIdentifiers = allowedToDeclareArtifacts.collect { it.id.componentIdentifier }
+                unusedDeclared.removeAll { allowedToDeclareComponentIdentifiers.contains(it.id.componentIdentifier) }
+                logger.info 'unusedDeclared without allowedToDeclareArtifacts', unusedDeclared
             }
-        }
 
-        return new ProjectDependencyAnalysis(
-                usedDeclared.unique { it.file } as Set<Artifact>,
-                usedUndeclared.unique { it.file } as Set<Artifact>,
-                unusedDeclared.unique { it.file } as Set<Artifact>)
+            if (!aggregatorsWithDependencies.isEmpty()) {
+                def usedIdentifiers = (requiredDependencies.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+                        .collect { it.id }
+                        .collect { it.componentIdentifier }
+                def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.isEmpty() }
+                if (aggregatorUsage.containsKey(true)) {
+                    def unusedAggregatorArtifacts = aggregatorUsage.get(true).keySet() as Set<ResolvedArtifact>
+                    unusedDeclared += unusedAggregatorArtifacts.intersect(requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+                }
+                if (aggregatorUsage.containsKey(false)) {
+                    def usedAggregator = aggregatorUsage.get(false)
+                    def usedAggregatorDependencies = usedAggregator.keySet()
+                    usedDeclared += usedAggregatorDependencies.intersect(unusedDeclared, { ResolvedArtifact a, ResolvedArtifact b ->
+                        a.id.componentIdentifier == b.id.componentIdentifier ? 0 : a.id.componentIdentifier.displayName <=> b.id.componentIdentifier.displayName
+                    } as Comparator<ResolvedArtifact>)
+
+                    def flatten = usedAggregator.values().flatten().collect({ it -> (ResolvedArtifact) it })
+                    unusedDeclared += usedDeclared.intersect(flatten)
+                    def usedAggregatorComponentIdentifiers = usedAggregatorDependencies.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
+                    unusedDeclared.removeAll { usedAggregatorComponentIdentifiers.contains(it.id.componentIdentifier) }
+                    def apiComponentIdentifiers = (getFirstLevelDependencies(api).collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
+                            .collect { it.id.componentIdentifier } as Set<ComponentIdentifier>
+                    unusedDeclared.removeAll { apiComponentIdentifiers.contains(it.id.componentIdentifier) }
+
+                    usedUndeclared -= usedAggregatorDependencies.collect { aggregatorsWithDependencies.get(it) }.flatten()
+                    def usedDeclaredComponentIdentifiers = usedDeclared.collect { it.id.componentIdentifier } as Set<ResolvedArtifact>
+                    usedUndeclared += usedAggregatorDependencies.findAll { !usedDeclaredComponentIdentifiers.contains(it.id.componentIdentifier) }
+                    usedUndeclared.removeAll { allowedToUseArtifacts.contains(it) && aggregatorsWithDependencies.keySet().contains(it) }
+                }
+            }
+
+            return new ProjectDependencyAnalysis(
+                    usedDeclared.unique { it.file } as Set<Artifact>,
+                    usedUndeclared.unique { it.file } as Set<Artifact>,
+                    unusedDeclared.unique { it.file } as Set<Artifact>)
+        }
     }
 
     private Set<ResolvedDependency> getRequiredDependencies() {
@@ -277,13 +227,13 @@ class ProjectDependencyResolver {
         return artifactClassMap
     }
 
-    private Set<File> findModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
+    private static Set<File> findModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
         ((dependencies
                 .collect { it.moduleArtifacts }.flatten()) as Set<ResolvedArtifact>)
                 .collect { it.file }.unique() as Set<File>
     }
 
-    private Set<File> findAllModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
+    private static Set<File> findAllModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
         ((dependencies
                 .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>)
                 .collect { it.file }.unique() as Set<File>
@@ -304,29 +254,28 @@ class ProjectDependencyResolver {
      *
      * @param artifactClassMap a map of Files to the classes they contain
      * @param dependencyClasses all classes used directly by the project
-     * @return a set of project dependencies confirmed to be used by the project
+     * @return a map of artifact files to used classes in the project
      */
-    private Set<File> buildUsedArtifacts(Map<File, Set<String>> artifactClassMap, Set<String> dependencyClasses) {
-        Set<File> usedArtifacts = new HashSet()
+    private static Map<File, Set<String>> buildUsedArtifacts(Map<File, Set<String>> artifactClassMap, Set<String> dependencyClasses) {
+        def map = [:].withDefault { [] as Set<String> }
 
         dependencyClasses.each { String className ->
-            File artifact = artifactClassMap.find { it.value.contains(className) }?.key
+            def artifact = artifactClassMap.find { it.value.contains(className) }?.key
             if (artifact) {
-                usedArtifacts << artifact
+                map.get(artifact).add(className)
             }
         }
-        return usedArtifacts
+        map as Map<File, Set<String>>
     }
 
-    private Set<ResolvedArtifact> resolveArtifacts(List<Configuration> configurations) {
-        Set<ResolvedArtifact> allArtifacts = (((configurations
+    private static Set<ResolvedArtifact> resolveArtifacts(List<Configuration> configurations) {
+        (((configurations
                 .collect { it.resolvedConfiguration }
                 .collect { it.firstLevelModuleDependencies }.flatten()) as Set<ResolvedDependency>)
                 .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>
-        allArtifacts
     }
 
-    private List<Configuration> configureApiHelperConfiguration(Configuration apiHelperConfiguration, Project project, String apiConfigurationName) {
+    private static List<Configuration> configureApiHelperConfiguration(Configuration apiHelperConfiguration, Project project, String apiConfigurationName) {
         final def apiConfiguration = [project.configurations.findByName(apiConfigurationName)]
         apiHelperConfiguration.extendsFrom(removeNulls(apiConfiguration) as Configuration[])
         [apiHelperConfiguration]

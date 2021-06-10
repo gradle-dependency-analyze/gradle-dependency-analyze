@@ -62,10 +62,13 @@ class AnalyzeDependenciesTask extends DefaultTask {
                 }
             }
         }
-        final def outputFile = new File(outputDirectory, name)
-        outputFile.parentFile.mkdirs()
-        outputFile.text = buffer.toString()
+
         if (buffer) {
+            if (logDependencyInformationToFiles) {
+                final def outputFile = new File(outputDirectory, name)
+                outputFile.parentFile.mkdirs()
+                outputFile.text = buffer.toString()
+            }
             def message = "Dependency analysis found issues.\n$buffer"
             if (justWarn) {
                 logger.warn message

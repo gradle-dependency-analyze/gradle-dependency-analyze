@@ -6,6 +6,7 @@ class GradleProject {
     final boolean rootProject
 
     boolean justWarn = false
+    boolean logDependencyInformationToFiles = false
     Set<GradleProject> subProjects = []
     Set<GroovyClass> mainClasses = []
     Set<GroovyClass> testClasses = []
@@ -53,6 +54,11 @@ class GradleProject {
 
     def justWarn() {
         justWarn = true
+        this
+    }
+
+    def logDependencyInformationToFiles() {
+        logDependencyInformationToFiles = true
         this
     }
 
@@ -175,9 +181,10 @@ class GradleProject {
             buildGradle += "}\n"
         }
 
-        if (justWarn) {
+        if (justWarn || logDependencyInformationToFiles) {
             buildGradle += "analyzeClassesDependencies {\n" +
-                    "  justWarn = ${justWarn}\n" +
+                    (justWarn ? "  justWarn = ${justWarn}\n" : "") +
+                    (logDependencyInformationToFiles ? "  logDependencyInformationToFiles = ${logDependencyInformationToFiles}\n" : "") +
                     "}\n"
         }
 
