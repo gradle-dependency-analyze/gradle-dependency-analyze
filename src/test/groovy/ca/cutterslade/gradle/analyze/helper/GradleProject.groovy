@@ -11,7 +11,7 @@ class GradleProject {
     Set<GroovyClass> mainClasses = []
     Set<GroovyClass> testClasses = []
     Set<GroovyClass> testFixturesClasses = []
-    Set<String> plugins = []
+    Set<Tuple2> plugins = []
     Set<String> allProjectPlugins = []
     Set<GradleDependency> dependencies = []
     String repositories
@@ -43,7 +43,12 @@ class GradleProject {
     }
 
     def withPlugin(String plugin) {
-        plugins.add(plugin)
+        plugins.add(new Tuple2(plugin, null))
+        this
+    }
+
+    def withPlugin(String plugin, String version) {
+        plugins.add(new Tuple2(plugin, version))
         this
     }
 
@@ -149,16 +154,16 @@ class GradleProject {
         }
     }
 
-    private void createBuildGradle(File root) {
+    private void createBuildGradle(final File root) {
         def buildGradle = ""
         if (!plugins.isEmpty()) {
             buildGradle += "plugins {\n"
-            for (def plugin : plugins) {
-                buildGradle += "  id '${plugin}'\n"
+            plugins.forEach {
+                buildGradle += "  id '${it.getFirst()}'${it.getSecond() ? " version '${it.getSecond()}'" : ''}\n"
             }
             buildGradle += "}\n"
         }
-        if (plugins.contains('java-platform')) {
+        if (plugins.collect { it.getFirst() }.contains('java-platform')) {
             buildGradle += "javaPlatform {\n" +
                     "    allowDependencies()\n" +
                     "}\n"

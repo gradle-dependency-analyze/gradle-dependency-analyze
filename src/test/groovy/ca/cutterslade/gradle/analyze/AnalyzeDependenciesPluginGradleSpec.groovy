@@ -76,6 +76,29 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
     }
 
     @Unroll
+    def 'project with providedRuntime is #expectedResult for Gradle version #gradleVersion'() {
+        setup:
+        rootProject()
+                .withMavenRepositories()
+                .withPlugin('war')
+                .withMainClass(new GroovyClass('Main'))
+                .withTestClass(new GroovyClass('MainTest').usesClass('Main'))
+                .withDependency(new GradleDependency(configuration: 'providedRuntime', id: 'org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE'))
+                .create(projectDir)
+
+        when:
+        def result = buildGradleProject(expectedResult, gradleVersion)
+
+        then:
+        assertBuildResult(result, expectedResult)
+
+        where:
+        pair << determineMinorVersions('6.9', '7.1')
+        gradleVersion = pair.v1.version as String
+        expectedResult = pair.v2 as String
+    }
+
+    @Unroll
     def "aggregator dependency declared in config and used in build results in #expectedResult for Gradle version #gradleVersion"() {
         setup:
         rootProject()
