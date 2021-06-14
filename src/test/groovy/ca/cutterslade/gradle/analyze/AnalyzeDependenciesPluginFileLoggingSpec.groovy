@@ -20,7 +20,7 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         then:
         assertBuildSuccess(result)
-        assertLogFile('simple_analyzeDependencies.log')
+        assertLogFile(projectDir, 'simple_analyzeDependencies.log')
     }
 
     @Unroll
@@ -46,15 +46,14 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         then:
         assertBuildSuccess(result)
-        assertLogFile('complex_analyzeDependencies.log')
+        assertLogFile(projectDir, 'complex_analyzeDependencies.log')
     }
 
-    private void assertLogFile(final String fileWithExpectedContent) {
+    private static void assertLogFile(File projectDir, final String fileWithExpectedContent) {
         def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/analyzeDependencies.log").readLines()
                 .collect { it.replaceAll('/spock_[0-9_a-zA-Z]*/', '/') }
         def expected = getClass().getResource('/' + fileWithExpectedContent).readLines()
                 .collect { it.replaceAll('/spock_[0-9_a-zA-Z]*/', '/') }
         assert actual == expected
     }
-
 }
