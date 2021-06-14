@@ -26,15 +26,15 @@ class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger implements
     @Override
     void info(final String title, final Collection<?> files) {
         writer.println(title)
-        files.collect { "- ${it}" }.sort(false).forEach({ writer.println(it) })
+        files.collect { "- ${it instanceof File ? it.name : it}" }.sort(false).forEach({ writer.println(it) })
         writer.println()
     }
 
     @Override
     void info(final String title, final Map<File, Set<String>> fileMap) {
         writer.println(title)
-        fileMap.toSorted().forEach({ key, value ->
-            writer.println("- ${key}")
+        fileMap.toSorted({ it.key.toString() }).forEach({ key, value ->
+            writer.println("- ${key.name}")
             value.collect { "  - ${it}" }.sort(false).forEach({ writer.println(it) })
         })
         writer.println()
