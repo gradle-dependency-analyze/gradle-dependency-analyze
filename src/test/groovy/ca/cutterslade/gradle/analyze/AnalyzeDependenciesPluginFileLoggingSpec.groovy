@@ -59,7 +59,7 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
         if (script.modifications != 0) {
             def visitor = new DisplayVisitor()
             script.visit(visitor)
-            println visitor.left + ' | ' + visitor.right
+            System.err.println visitor.left + ' | ' + visitor.right
         }
 
         assert script.modifications == 0
