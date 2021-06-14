@@ -45,7 +45,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .forwardOutput()
-                .withArguments('build')
+                .withArguments('build', '--info')
     }
 
     protected static void assertBuildSuccess(BuildResult result) {
