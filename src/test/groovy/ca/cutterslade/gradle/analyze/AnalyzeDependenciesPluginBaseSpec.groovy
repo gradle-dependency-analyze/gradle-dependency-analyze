@@ -44,6 +44,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
         GradleRunner.create()
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
+                .forwardOutput()
                 .withArguments('build')
     }
 

@@ -1,8 +1,9 @@
 package ca.cutterslade.gradle.analyze
 
+import ca.cutterslade.gradle.analyze.helper.DisplayVisitor
 import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
-import spock.lang.Unroll
+import org.apache.commons.text.diff.StringsComparator
 
 import static ca.cutterslade.gradle.analyze.AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME
 
@@ -23,7 +24,6 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
         assertLogFile(projectDir, 'simple_analyzeDependencies.log')
     }
 
-    @Unroll
     def 'build with dependency declared in config and used in build'() {
         setup:
         rootProject()
@@ -50,10 +50,19 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
     }
 
     private static void assertLogFile(File projectDir, final String fileWithExpectedContent) {
-        def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/analyzeDependencies.log").readLines()
-                .collect { it.replaceAll('/spock_[0-9_a-zA-Z]*/', '/') }
-        def expected = getClass().getResource('/' + fileWithExpectedContent).readLines()
-                .collect { it.replaceAll('/spock_[0-9_a-zA-Z]*/', '/') }
-        assert actual == expected
+        def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/analyzeDependencies.log").text
+        def expected = getClass().getResource('/' + fileWithExpectedContent).text
+        StringsComparator comparator = new StringsComparator(actual, expected)
+
+        def script = comparator.getScript()
+
+        if (script.modifications != 0) {
+            def visitor = new DisplayVisitor()
+            script.visit(visitor)
+            System.err.println visitor.left
+            System.err.println visitor.right
+        }
+
+        assert script.modifications == 0
     }
 }

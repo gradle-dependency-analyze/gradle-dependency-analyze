@@ -33,7 +33,7 @@ class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger implements
     @Override
     void info(final String title, final Map<File, Set<String>> fileMap) {
         writer.println(title)
-        fileMap.toSorted({ it.key.toString() }).forEach({ key, value ->
+        fileMap.toSorted({ it.key.name }).forEach({ key, value ->
             writer.println("- ${key.name}")
             value.collect { "  - ${it}" }.sort(false).forEach({ writer.println(it) })
         })
