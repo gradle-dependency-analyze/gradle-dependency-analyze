@@ -286,7 +286,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = gradleProject().build()
+        BuildResult result = buildGradleProject(SUCCESS)
 
         then:
         assertBuildSuccess(result)
@@ -314,7 +314,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = gradleProject().build()
+        BuildResult result = buildGradleProject(SUCCESS)
 
         then:
         assertBuildSuccess(result)
@@ -334,7 +334,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = gradleProject().build()
+        BuildResult result = buildGradleProject(SUCCESS)
 
         then:
         assertBuildSuccess(result)
@@ -358,7 +358,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = gradleProject().build()
+        BuildResult result = buildGradleProject(SUCCESS)
 
         then:
         assertBuildSuccess(result)

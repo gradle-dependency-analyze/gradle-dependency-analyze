@@ -37,9 +37,11 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 .withGradleDependency('implementation')
     }
 
-    protected GradleRunner gradleProject() {
-        new FileOutputStream(new File(projectDir, 'gradle.properties')).withStream {
-            it.write(getClass().classLoader.getResourceAsStream('testkit-gradle.properties').getBytes())
+    private GradleRunner gradleProject(boolean withCodeCoverage = true) {
+        if (withCodeCoverage) {
+            new FileOutputStream(new File(projectDir, 'gradle.properties')).withStream {
+                it.write(getClass().classLoader.getResourceAsStream('testkit-gradle.properties').getBytes())
+            }
         }
         GradleRunner.create()
                 .withProjectDir(projectDir)
@@ -55,8 +57,10 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
         assert result.task(':build').getOutcome() == TaskOutcome.SUCCESS
     }
 
-    protected BuildResult buildGradleProject(String expectedResult, String gradleVersion = null) {
-        def project = gradleProject()
+    protected final BuildResult buildGradleProject(String expectedResult,
+                                             String gradleVersion = null,
+                                             boolean withCodeCoverage = true) {
+        def project = gradleProject(withCodeCoverage)
         if (gradleVersion) {
             project.withGradleVersion(gradleVersion)
         }
