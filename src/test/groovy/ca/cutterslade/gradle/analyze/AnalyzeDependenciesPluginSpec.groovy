@@ -14,7 +14,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
                 .create(projectDir)
 
         when:
-        def result = gradleProject().build()
+        def result = buildGradleProject(SUCCESS)
 
         then:
         assertBuildSuccess(result)

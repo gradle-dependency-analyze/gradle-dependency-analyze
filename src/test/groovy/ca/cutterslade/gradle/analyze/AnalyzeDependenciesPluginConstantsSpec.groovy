@@ -27,7 +27,7 @@ class AnalyzeDependenciesPluginConstantsSpec extends AnalyzeDependenciesPluginBa
                 .create(projectDir)
 
         when:
-        def result = gradleProject().forwardOutput().build()
+        def result = buildGradleProject(SUCCESS)
 
         then:
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)

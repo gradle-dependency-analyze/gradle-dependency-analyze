@@ -21,7 +21,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .create(projectDir)
 
         when:
-        def result = buildGradleProject(expectedResult, gradleVersion)
+        def result = buildGradleProject(expectedResult, gradleVersion, false)
 
         then:
         assertBuildResult(result, expectedResult)
@@ -43,7 +43,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .create(projectDir)
 
         when:
-        def result = buildGradleProject(expectedResult, gradleVersion)
+        def result = buildGradleProject(expectedResult, gradleVersion, false)
 
         then:
         assertBuildResult(result, expectedResult)
@@ -64,7 +64,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .create(projectDir)
 
         when:
-        def result = buildGradleProject(expectedResult, gradleVersion)
+        def result = buildGradleProject(expectedResult, gradleVersion, false)
 
         then:
         assertBuildResult(result, expectedResult)
@@ -116,7 +116,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(expectedResult, null, false)
 
         then:
         assertBuildResult(result, expectedResult)

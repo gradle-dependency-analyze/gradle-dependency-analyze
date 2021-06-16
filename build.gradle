@@ -64,17 +64,11 @@ test {
 jacocoTestReport {
     dependsOn test
     reports {
-        html.enabled true
-        csv.enabled true
+        html.required.set true
+        csv.required.set true
     }
 }
 
 jacoco {
-    toolVersion = '0.8.6'
-
-}
-
-tasks.named('wrapper') {
-    gradleVersion '7.0'
-    distributionType = Wrapper.DistributionType.ALL
+    toolVersion = '0.8.7'
 }
