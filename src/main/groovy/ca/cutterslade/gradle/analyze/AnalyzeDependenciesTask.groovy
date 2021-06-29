@@ -51,7 +51,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
                 new ProjectDependencyResolver(project, require, apiHelperConfiguration, apiConfigurationName, allowedToUse,
                         allowedToDeclare, classesDirs, allowedAggregatorsToUse, logDependencyInformationToFiles).analyzeDependencies()
         StringBuffer buffer = new StringBuffer()
-        [new Tuple2<>('usedUndeclaredArtifacts', analysis.getUsedDeclaredArtifacts()),
+        [new Tuple2<>('usedUndeclaredArtifacts', analysis.getUsedUndeclaredArtifacts()),
          new Tuple2<>('unusedDeclaredArtifacts', analysis.getUnusedDeclaredArtifacts())].each { violations ->
             if (violations.second) {
                 buffer.append("$violations.first: \n")
