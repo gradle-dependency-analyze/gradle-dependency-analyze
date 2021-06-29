@@ -15,7 +15,10 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.apache.maven.shared:maven-dependency-analyzer:1.11.3'
+    implementation('org.apache.maven.shared:maven-dependency-analyzer:1.11.3') {
+        exclude group: 'org.apache.maven'
+    }
+    implementation 'org.ow2.asm:asm:9.2'
 
     testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'

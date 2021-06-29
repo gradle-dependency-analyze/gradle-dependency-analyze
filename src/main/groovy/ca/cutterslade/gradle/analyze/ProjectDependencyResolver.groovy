@@ -2,11 +2,9 @@ package ca.cutterslade.gradle.analyze
 
 import ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger
 import groovy.transform.CompileStatic
-import org.apache.maven.artifact.Artifact
 import org.apache.maven.shared.dependency.analyzer.ClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DefaultClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer
-import org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalysis
 import org.apache.maven.shared.dependency.analyzer.asm.ASMDependencyAnalyzer
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
@@ -75,7 +73,7 @@ class ProjectDependencyResolver {
         }
     }
 
-    ProjectDependencyAnalysis analyzeDependencies() {
+    ProjectDependencyAnalysisResult analyzeDependencies() {
         AnalyzeDependenciesLogger.create(logger, buildDirPath, logDependencyInformationToFile) { logger ->
             def allowedToUseDeps = allowedToUseDependencies
             def allowedToDeclareDeps = allowedToDeclareDependencies
@@ -175,10 +173,10 @@ class ProjectDependencyResolver {
                 }
             }
 
-            return new ProjectDependencyAnalysis(
-                    usedDeclared.unique { it.file } as Set<Artifact>,
-                    usedUndeclared.unique { it.file } as Set<Artifact>,
-                    unusedDeclared.unique { it.file } as Set<Artifact>)
+            return new ProjectDependencyAnalysisResult(
+                    usedDeclared.unique { it.file } as Set,
+                    usedUndeclared.unique { it.file } as Set,
+                    unusedDeclared.unique { it.file } as Set)
         }
     }
 

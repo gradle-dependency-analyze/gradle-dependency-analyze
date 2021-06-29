@@ -1,6 +1,5 @@
 package ca.cutterslade.gradle.analyze
 
-import org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalysis
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -48,17 +47,17 @@ class AnalyzeDependenciesTask extends DefaultTask {
     def action() {
         logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
                 "allowedToDeclare: $allowedToDeclare]"
-        ProjectDependencyAnalysis analysis =
+        ProjectDependencyAnalysisResult analysis =
                 new ProjectDependencyResolver(project, require, apiHelperConfiguration, apiConfigurationName, allowedToUse,
                         allowedToDeclare, classesDirs, allowedAggregatorsToUse, logDependencyInformationToFiles).analyzeDependencies()
         StringBuffer buffer = new StringBuffer()
-        ['usedUndeclaredArtifacts', 'unusedDeclaredArtifacts'].each { section ->
-            def violations = analysis."$section"
-            if (violations) {
-                buffer.append("$section: \n")
-                violations.sort { it.moduleVersion.id.toString() }.each { ResolvedArtifact it ->
-                    def clas = it.classifier ? ":$it.classifier" : ""
-                    buffer.append(" - $it.moduleVersion.id$clas@$it.extension\n")
+        [new Tuple2<>('usedUndeclaredArtifacts', analysis.getUsedDeclaredArtifacts()),
+         new Tuple2<>('unusedDeclaredArtifacts', analysis.getUnusedDeclaredArtifacts())].each { violations ->
+            if (violations.second) {
+                buffer.append("$violations.first: \n")
+                violations.second.sort(false) { it.moduleVersion.id.toString() }.each { ResolvedArtifact it ->
+                    def classifier = it.classifier ? ":$it.classifier" : ""
+                    buffer.append(" - $it.moduleVersion.id$classifier@$it.extension\n")
                 }
             }
         }
@@ -137,7 +136,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
         Set<File> files = ProjectDependencyResolver.removeNulls(
                 ProjectDependencyResolver.getFirstLevelDependencies(
                         ProjectDependencyResolver.removeNulls(configurations)
-                )*.moduleArtifacts*.file.flatten()
+                )*.moduleArtifacts*.file.flatten() as Set<File>
         )
         if (logDependencyInformationToFiles) {
             Files.createDirectories(outputDirectory.toPath())
