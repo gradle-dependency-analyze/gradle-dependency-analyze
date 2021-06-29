@@ -48,7 +48,7 @@ subprojects {
 
 # Compatibility
 
-The plugin is build with JDK 1.8 and is tested against Gradle 5.0 up to Gradle 7.0.
+The plugin is build with JDK 1.8 and is tested against Gradle 5.0 up to Gradle 7.1.
 
 | Plugin version | Gradle version |
 |----------------|----------------|
