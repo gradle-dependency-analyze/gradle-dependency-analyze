@@ -148,7 +148,7 @@ class ProjectDependencyResolver {
                 def usedIdentifiers = (requiredDependencies.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
                         .collect { it.id }
                         .collect { it.componentIdentifier }
-                def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.isEmpty() }
+                def aggregatorUsage = used(usedIdentifiers, usedArtifacts, aggregatorsWithDependencies, logger).groupBy { it.value.isEmpty() }
                 if (aggregatorUsage.containsKey(true)) {
                     def unusedAggregatorArtifacts = aggregatorUsage.get(true).keySet() as Set<ResolvedArtifact>
                     unusedDeclared += unusedAggregatorArtifacts.intersect(requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
@@ -249,33 +249,5 @@ class ProjectDependencyResolver {
         } else {
             [:]
         }
-    }
-
-    private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(List<ComponentIdentifier> allDependencyArtifacts, Set<File> usedArtifacts) {
-        def usedAggregators = new LinkedHashMap<ResolvedArtifact, Collection<ResolvedArtifact>>()
-
-        aggregatorsWithDependencies.each {
-            if (allDependencyArtifacts.contains(it.key.id.componentIdentifier)) {
-                def filesForAggregator = it.value.collect({ it.file })
-                def disjoint = filesForAggregator.intersect(usedArtifacts)
-                usedAggregators.put(it.key, it.value.findAll { disjoint.contains(it.file) })
-            }
-        }
-
-        removeDuplicates(usedAggregators)
-    }
-
-    private Map<ResolvedArtifact, Collection<ResolvedArtifact>> removeDuplicates(Map<ResolvedArtifact, Collection<ResolvedArtifact>> usedAggregators) {
-        def aggregatorsSortedByDependencies = usedAggregators.sort { l, r ->
-            l.value.size() <=> r.value.size() ?: aggregatorsWithDependencies.get(r.key).size() <=> aggregatorsWithDependencies.get(l.key).size()
-        }
-
-        def aggregatorArtifactAlreadySeen = [] as Set
-        aggregatorsSortedByDependencies.removeAll {
-            aggregatorArtifactAlreadySeen.add(it.key)
-            aggregatorsSortedByDependencies.any { it2 -> !aggregatorArtifactAlreadySeen.contains(it2.key) && it2.value.containsAll(it.value) }
-        }
-        logger.debug "used aggregators: $aggregatorsSortedByDependencies.keySet()"
-        return aggregatorsSortedByDependencies
     }
 }
