@@ -1,5 +1,6 @@
 package ca.cutterslade.gradle.analyze
 
+import ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -134,7 +135,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
 
     Set<File> getFirstLevelFiles(List<Configuration> configurations, String name) {
         Set<File> files = ProjectDependencyResolver.removeNulls(
-                ProjectDependencyResolver.getFirstLevelDependencies(
+                ProjectDependencyResolverUtils.getFirstLevelDependencies(
                         ProjectDependencyResolver.removeNulls(configurations)
                 )*.moduleArtifacts*.file.flatten() as Set<File>
         )

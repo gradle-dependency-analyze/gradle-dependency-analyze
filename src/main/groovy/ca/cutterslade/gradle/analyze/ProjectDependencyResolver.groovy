@@ -17,6 +17,8 @@ import org.gradle.api.logging.Logger
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
+import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.*
+
 @CompileStatic
 class ProjectDependencyResolver {
     static final String CACHE_NAME = 'ca.cutterslade.gradle.analyze.ProjectDependencyResolver.artifactClassCache'
@@ -192,10 +194,6 @@ class ProjectDependencyResolver {
         getFirstLevelDependencies(allowedToDeclare)
     }
 
-    static Set<ResolvedDependency> getFirstLevelDependencies(final List<Configuration> configurations) {
-        configurations.collect { it.resolvedConfiguration.firstLevelModuleDependencies }.flatten() as Set<ResolvedDependency>
-    }
-
     /**
      * Map each of the files declared on all configurations of the project to a collection of the class names they
      * contain.
@@ -225,18 +223,6 @@ class ProjectDependencyResolver {
         return artifactClassMap
     }
 
-    private static Set<File> findModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
-        ((dependencies
-                .collect { it.moduleArtifacts }.flatten()) as Set<ResolvedArtifact>)
-                .collect { it.file }.unique() as Set<File>
-    }
-
-    private static Set<File> findAllModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
-        ((dependencies
-                .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>)
-                .collect { it.file }.unique() as Set<File>
-    }
-
     /**
      * Find and analyze all class files to determine which external classes are used.
      * @param project
@@ -245,32 +231,6 @@ class ProjectDependencyResolver {
     private Set<String> analyzeClassDependencies() {
         classesDirs.collect { File it -> dependencyAnalyzer.analyze(it.toURI().toURL()) }
                 .flatten() as Set<String>
-    }
-
-    /**
-     * Determine which of the project dependencies are used.
-     *
-     * @param artifactClassMap a map of Files to the classes they contain
-     * @param dependencyClasses all classes used directly by the project
-     * @return a map of artifact files to used classes in the project
-     */
-    private static Map<File, Set<String>> buildUsedArtifacts(Map<File, Set<String>> artifactClassMap, Set<String> dependencyClasses) {
-        def map = [:].withDefault { [] as Set<String> }
-
-        dependencyClasses.each { String className ->
-            def artifact = artifactClassMap.find { it.value.contains(className) }?.key
-            if (artifact) {
-                map.get(artifact).add(className)
-            }
-        }
-        map as Map<File, Set<String>>
-    }
-
-    private static Set<ResolvedArtifact> resolveArtifacts(List<Configuration> configurations) {
-        (((configurations
-                .collect { it.resolvedConfiguration }
-                .collect { it.firstLevelModuleDependencies }.flatten()) as Set<ResolvedDependency>)
-                .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>
     }
 
     private static List<Configuration> configureApiHelperConfiguration(Configuration apiHelperConfiguration, Project project, String apiConfigurationName) {
