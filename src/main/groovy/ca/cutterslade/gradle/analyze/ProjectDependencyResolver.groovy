@@ -66,15 +66,6 @@ class ProjectDependencyResolver {
         this.buildDirPath = project.buildDir.toPath()
     }
 
-    static <T> Collection<T> removeNulls(final Collection<T> collection) {
-        if (null == collection) {
-            []
-        } else {
-            collection.removeAll { it == null }
-            collection
-        }
-    }
-
     ProjectDependencyAnalysisResult analyzeDependencies() {
         AnalyzeDependenciesLogger.create(logger, buildDirPath, logDependencyInformationToFile) { logger ->
             def allowedToUseDeps = allowedToUseDependencies
@@ -231,11 +222,5 @@ class ProjectDependencyResolver {
     private Set<String> analyzeClassDependencies() {
         classesDirs.collect { File it -> dependencyAnalyzer.analyze(it.toURI().toURL()) }
                 .flatten() as Set<String>
-    }
-
-    private static List<Configuration> configureApiHelperConfiguration(Configuration apiHelperConfiguration, Project project, String apiConfigurationName) {
-        final def apiConfiguration = [project.configurations.findByName(apiConfigurationName)]
-        apiHelperConfiguration.extendsFrom(removeNulls(apiConfiguration) as Configuration[])
-        [apiHelperConfiguration]
     }
 }

@@ -9,10 +9,12 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
@@ -133,6 +135,27 @@ public final class ProjectDependencyResolverUtils {
             return dependencies.stream()
                     .filter(d -> resolvedArtifacts.containsKey(d.getName()))
                     .collect(Collectors.toMap(d -> resolvedArtifacts.get(d.getName()), ResolvedDependency::getAllModuleArtifacts));
+        }
+    }
+
+    public static List<Configuration> configureApiHelperConfiguration(final Configuration apiHelperConfiguration,
+                                                                      final Project project,
+                                                                      final String apiConfigurationName) {
+        final Configuration apiConfiguration = project.getConfigurations().findByName(apiConfigurationName);
+        if (apiConfiguration != null) {
+            apiHelperConfiguration.extendsFrom(apiConfiguration);
+            return Collections.singletonList(apiHelperConfiguration);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public static <T> Collection<T> removeNulls(final Collection<T> collection) {
+        if (collection == null) {
+            return Collections.emptyList();
+        } else {
+            collection.removeIf(Objects::isNull);
+            return collection;
         }
     }
 }

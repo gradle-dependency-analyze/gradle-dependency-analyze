@@ -81,8 +81,8 @@ class AnalyzeDependenciesTask extends DefaultTask {
     @InputFiles
     FileCollection getAllArtifacts() {
         project.files({
-            def files = ProjectDependencyResolver.removeNulls(
-                    ProjectDependencyResolver.removeNulls(require)
+            def files = ProjectDependencyResolverUtils.removeNulls(
+                    ProjectDependencyResolverUtils.removeNulls(require)
                             *.resolvedConfiguration
                             *.firstLevelModuleDependencies
                             *.allModuleArtifacts
@@ -134,9 +134,9 @@ class AnalyzeDependenciesTask extends DefaultTask {
     }
 
     Set<File> getFirstLevelFiles(List<Configuration> configurations, String name) {
-        Set<File> files = ProjectDependencyResolver.removeNulls(
+        Set<File> files = ProjectDependencyResolverUtils.removeNulls(
                 ProjectDependencyResolverUtils.getFirstLevelDependencies(
-                        ProjectDependencyResolver.removeNulls(configurations)
+                        ProjectDependencyResolverUtils.removeNulls(configurations)
                 )*.moduleArtifacts*.file.flatten() as Set<File>
         )
         if (logDependencyInformationToFiles) {
