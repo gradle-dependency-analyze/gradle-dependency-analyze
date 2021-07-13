@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze.util;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.gradle.api.artifacts.Configuration;
@@ -119,5 +121,18 @@ public final class ProjectDependencyResolverUtils {
 
         logger.info("used aggregators", aggregatorsSortedByDependencies.keySet());
         return aggregatorsSortedByDependencies;
+    }
+
+    public static Map<ResolvedArtifact, Set<ResolvedArtifact>> getAggregatorsMapping(final Collection<Configuration> allowedAggregatorsToUse) {
+        if (allowedAggregatorsToUse.isEmpty()) {
+            return Collections.emptyMap();
+        } else {
+            final Map<String, ResolvedArtifact> resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse).stream()
+                    .collect(Collectors.toMap(d -> d.getModuleVersion().toString(), Function.identity()));
+            final Set<ResolvedDependency> dependencies = getFirstLevelDependencies(allowedAggregatorsToUse);
+            return dependencies.stream()
+                    .filter(d -> resolvedArtifacts.containsKey(d.getName()))
+                    .collect(Collectors.toMap(d -> resolvedArtifacts.get(d.getName()), ResolvedDependency::getAllModuleArtifacts));
+        }
     }
 }

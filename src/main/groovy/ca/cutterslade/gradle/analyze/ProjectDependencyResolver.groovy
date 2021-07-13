@@ -61,7 +61,7 @@ class ProjectDependencyResolver {
         this.allowedToUse = removeNulls(allowedToUse) as List
         this.allowedToDeclare = removeNulls(allowedToDeclare) as List
         this.classesDirs = classesDirs
-        this.aggregatorsWithDependencies = getAggregatorsMapping()
+        this.aggregatorsWithDependencies = getAggregatorsMapping(this.allowedAggregatorsToUse)
         this.logDependencyInformationToFile = logDependencyInformationToFile
         this.buildDirPath = project.buildDir.toPath()
     }
@@ -237,17 +237,5 @@ class ProjectDependencyResolver {
         final def apiConfiguration = [project.configurations.findByName(apiConfigurationName)]
         apiHelperConfiguration.extendsFrom(removeNulls(apiConfiguration) as Configuration[])
         [apiHelperConfiguration]
-    }
-
-    private Map<ResolvedArtifact, Set<ResolvedArtifact>> getAggregatorsMapping() {
-        if (!allowedAggregatorsToUse.empty) {
-            def resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse).collectEntries { [it.moduleVersion.toString(), it] }
-            def dependencies = getFirstLevelDependencies(allowedAggregatorsToUse)
-            dependencies.collectEntries({ it ->
-                resolvedArtifacts.containsKey(it.name) ? [resolvedArtifacts.get(it.name), it.allModuleArtifacts as Set<ResolvedArtifact>] : [:]
-            })
-        } else {
-            [:]
-        }
     }
 }
