@@ -15,7 +15,7 @@ The plugin is available from the gradle plugin repository, so it can be added to
 Using the plugin DSL:
 ```gradle
 plugins {
-  id "ca.cutterslade.analyze" version "1.7.0"
+  id "ca.cutterslade.analyze" version "1.7.1"
 }
 ```
 
@@ -28,7 +28,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.7.0"
+    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.7.1"
   }
 }
 
