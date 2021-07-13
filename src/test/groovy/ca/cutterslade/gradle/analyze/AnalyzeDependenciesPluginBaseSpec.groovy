@@ -47,7 +47,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .forwardOutput()
-                .withArguments('build')
+                .withArguments()
     }
 
     protected static void assertBuildSuccess(BuildResult result) {
@@ -58,8 +58,8 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     }
 
     protected final BuildResult buildGradleProject(String expectedResult,
-                                             String gradleVersion = null,
-                                             boolean withCodeCoverage = true) {
+                                                   String gradleVersion = null,
+                                                   boolean withCodeCoverage = true) {
         def project = gradleProject(withCodeCoverage)
         if (gradleVersion) {
             project.withGradleVersion(gradleVersion)

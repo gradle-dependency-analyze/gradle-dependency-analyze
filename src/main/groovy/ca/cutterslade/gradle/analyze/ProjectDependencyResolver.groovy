@@ -40,8 +40,7 @@ class ProjectDependencyResolver {
 
     ProjectDependencyResolver(final Project project,
                               final List<Configuration> require,
-                              final Configuration apiHelperConfiguration,
-                              final String apiConfigurationName,
+                              final List<Configuration> apiHelperConfiguration,
                               final List<Configuration> allowedToUse,
                               final List<Configuration> allowedToDeclare,
                               final Iterable<File> classesDirs,
@@ -56,7 +55,7 @@ class ProjectDependencyResolver {
         }
         this.logger = project.logger
         this.require = removeNulls(require) as List
-        this.api = configureApiHelperConfiguration(apiHelperConfiguration, project, apiConfigurationName)
+        this.api = apiHelperConfiguration
         this.allowedAggregatorsToUse = removeNulls(allowedAggregatorsToUse) as List
         this.allowedToUse = removeNulls(allowedToUse) as List
         this.allowedToDeclare = removeNulls(allowedToDeclare) as List

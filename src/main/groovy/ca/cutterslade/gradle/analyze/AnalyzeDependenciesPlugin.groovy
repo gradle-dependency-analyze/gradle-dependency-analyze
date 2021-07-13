@@ -7,6 +7,8 @@ import org.gradle.api.tasks.SourceSet
 
 import java.util.concurrent.ConcurrentHashMap
 
+import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.configureApiHelperConfiguration
+
 class AnalyzeDependenciesPlugin implements Plugin<Project> {
     @Override
     void apply(final Project project) {
@@ -56,8 +58,11 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                         require = [
                                 project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
                         ]
-                        apiHelperConfiguration = project.configurations.getByName(sourceSet.getTaskName('apiHelper', ''))
-                        apiConfigurationName = sourceSet.apiConfigurationName
+                        apiHelperConfiguration = configureApiHelperConfiguration(
+                                project.configurations.getByName(sourceSet.getTaskName('apiHelper', '')),
+                                project,
+                                sourceSet.apiConfigurationName
+                        )
                         allowedAggregatorsToUse = [
                                 project.configurations.getByName(sourceSet.getTaskName('permit', 'aggregatorUse'))
                         ]
