@@ -19,9 +19,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
     @InputFiles
     List<Configuration> require = []
     @Internal
-    Configuration apiHelperConfiguration
-    @Internal
-    String apiConfigurationName = ''
+    List<Configuration> apiHelperConfiguration = []
     @InputFiles
     List<Configuration> allowedToUse = []
     @InputFiles
@@ -49,7 +47,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
         logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
                 "allowedToDeclare: $allowedToDeclare]"
         ProjectDependencyAnalysisResult analysis =
-                new ProjectDependencyResolver(project, require, apiHelperConfiguration, apiConfigurationName, allowedToUse,
+                new ProjectDependencyResolver(project, require, apiHelperConfiguration, allowedToUse,
                         allowedToDeclare, classesDirs, allowedAggregatorsToUse, logDependencyInformationToFiles).analyzeDependencies()
         StringBuffer buffer = new StringBuffer()
         [new Tuple2<>('usedUndeclaredArtifacts', analysis.getUsedUndeclaredArtifacts()),

@@ -42,9 +42,13 @@ class AnalyzeDependenciesPluginConfigurationSpec extends AnalyzeDependenciesPlug
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(SUCCESS)
+        BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildSuccess(result)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
+
+        where:
+        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        VIOLATIONS     | []                      | ["com.google.guava:guava:30.1-jre@jar"]
     }
 }
