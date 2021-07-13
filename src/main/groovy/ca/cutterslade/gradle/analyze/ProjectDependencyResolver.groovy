@@ -2,11 +2,9 @@ package ca.cutterslade.gradle.analyze
 
 import ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger
 import groovy.transform.CompileStatic
-import org.apache.maven.artifact.Artifact
 import org.apache.maven.shared.dependency.analyzer.ClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DefaultClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer
-import org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalysis
 import org.apache.maven.shared.dependency.analyzer.asm.ASMDependencyAnalyzer
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
@@ -18,6 +16,8 @@ import org.gradle.api.logging.Logger
 
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
+
+import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.*
 
 @CompileStatic
 class ProjectDependencyResolver {
@@ -40,8 +40,7 @@ class ProjectDependencyResolver {
 
     ProjectDependencyResolver(final Project project,
                               final List<Configuration> require,
-                              final Configuration apiHelperConfiguration,
-                              final String apiConfigurationName,
+                              final List<Configuration> apiHelperConfiguration,
                               final List<Configuration> allowedToUse,
                               final List<Configuration> allowedToDeclare,
                               final Iterable<File> classesDirs,
@@ -56,26 +55,17 @@ class ProjectDependencyResolver {
         }
         this.logger = project.logger
         this.require = removeNulls(require) as List
-        this.api = configureApiHelperConfiguration(apiHelperConfiguration, project, apiConfigurationName)
+        this.api = apiHelperConfiguration
         this.allowedAggregatorsToUse = removeNulls(allowedAggregatorsToUse) as List
         this.allowedToUse = removeNulls(allowedToUse) as List
         this.allowedToDeclare = removeNulls(allowedToDeclare) as List
         this.classesDirs = classesDirs
-        this.aggregatorsWithDependencies = getAggregatorsMapping()
+        this.aggregatorsWithDependencies = getAggregatorsMapping(this.allowedAggregatorsToUse)
         this.logDependencyInformationToFile = logDependencyInformationToFile
         this.buildDirPath = project.buildDir.toPath()
     }
 
-    static <T> Collection<T> removeNulls(final Collection<T> collection) {
-        if (null == collection) {
-            []
-        } else {
-            collection.removeAll { it == null }
-            collection
-        }
-    }
-
-    ProjectDependencyAnalysis analyzeDependencies() {
+    ProjectDependencyAnalysisResult analyzeDependencies() {
         AnalyzeDependenciesLogger.create(logger, buildDirPath, logDependencyInformationToFile) { logger ->
             def allowedToUseDeps = allowedToUseDependencies
             def allowedToDeclareDeps = allowedToDeclareDependencies
@@ -148,7 +138,7 @@ class ProjectDependencyResolver {
                 def usedIdentifiers = (requiredDependencies.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
                         .collect { it.id }
                         .collect { it.componentIdentifier }
-                def aggregatorUsage = used(usedIdentifiers, usedArtifacts).groupBy { it.value.isEmpty() }
+                def aggregatorUsage = used(usedIdentifiers, usedArtifacts, aggregatorsWithDependencies, logger).groupBy { it.value.isEmpty() }
                 if (aggregatorUsage.containsKey(true)) {
                     def unusedAggregatorArtifacts = aggregatorUsage.get(true).keySet() as Set<ResolvedArtifact>
                     unusedDeclared += unusedAggregatorArtifacts.intersect(requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
@@ -175,10 +165,10 @@ class ProjectDependencyResolver {
                 }
             }
 
-            return new ProjectDependencyAnalysis(
-                    usedDeclared.unique { it.file } as Set<Artifact>,
-                    usedUndeclared.unique { it.file } as Set<Artifact>,
-                    unusedDeclared.unique { it.file } as Set<Artifact>)
+            return new ProjectDependencyAnalysisResult(
+                    usedDeclared.unique { it.file } as Set,
+                    usedUndeclared.unique { it.file } as Set,
+                    unusedDeclared.unique { it.file } as Set)
         }
     }
 
@@ -192,10 +182,6 @@ class ProjectDependencyResolver {
 
     private Set<ResolvedDependency> getAllowedToDeclareDependencies() {
         getFirstLevelDependencies(allowedToDeclare)
-    }
-
-    static Set<ResolvedDependency> getFirstLevelDependencies(final List<Configuration> configurations) {
-        configurations.collect { it.resolvedConfiguration.firstLevelModuleDependencies }.flatten() as Set<ResolvedDependency>
     }
 
     /**
@@ -227,18 +213,6 @@ class ProjectDependencyResolver {
         return artifactClassMap
     }
 
-    private static Set<File> findModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
-        ((dependencies
-                .collect { it.moduleArtifacts }.flatten()) as Set<ResolvedArtifact>)
-                .collect { it.file }.unique() as Set<File>
-    }
-
-    private static Set<File> findAllModuleArtifactFiles(Set<ResolvedDependency> dependencies) {
-        ((dependencies
-                .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>)
-                .collect { it.file }.unique() as Set<File>
-    }
-
     /**
      * Find and analyze all class files to determine which external classes are used.
      * @param project
@@ -247,77 +221,5 @@ class ProjectDependencyResolver {
     private Set<String> analyzeClassDependencies() {
         classesDirs.collect { File it -> dependencyAnalyzer.analyze(it.toURI().toURL()) }
                 .flatten() as Set<String>
-    }
-
-    /**
-     * Determine which of the project dependencies are used.
-     *
-     * @param artifactClassMap a map of Files to the classes they contain
-     * @param dependencyClasses all classes used directly by the project
-     * @return a map of artifact files to used classes in the project
-     */
-    private static Map<File, Set<String>> buildUsedArtifacts(Map<File, Set<String>> artifactClassMap, Set<String> dependencyClasses) {
-        def map = [:].withDefault { [] as Set<String> }
-
-        dependencyClasses.each { String className ->
-            def artifact = artifactClassMap.find { it.value.contains(className) }?.key
-            if (artifact) {
-                map.get(artifact).add(className)
-            }
-        }
-        map as Map<File, Set<String>>
-    }
-
-    private static Set<ResolvedArtifact> resolveArtifacts(List<Configuration> configurations) {
-        (((configurations
-                .collect { it.resolvedConfiguration }
-                .collect { it.firstLevelModuleDependencies }.flatten()) as Set<ResolvedDependency>)
-                .collect { it.allModuleArtifacts }.flatten()) as Set<ResolvedArtifact>
-    }
-
-    private static List<Configuration> configureApiHelperConfiguration(Configuration apiHelperConfiguration, Project project, String apiConfigurationName) {
-        final def apiConfiguration = [project.configurations.findByName(apiConfigurationName)]
-        apiHelperConfiguration.extendsFrom(removeNulls(apiConfiguration) as Configuration[])
-        [apiHelperConfiguration]
-    }
-
-    private Map<ResolvedArtifact, Set<ResolvedArtifact>> getAggregatorsMapping() {
-        if (!allowedAggregatorsToUse.empty) {
-            def resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse).collectEntries { [it.moduleVersion.toString(), it] }
-            def dependencies = getFirstLevelDependencies(allowedAggregatorsToUse)
-            dependencies.collectEntries({ it ->
-                resolvedArtifacts.containsKey(it.name) ? [resolvedArtifacts.get(it.name), it.allModuleArtifacts as Set<ResolvedArtifact>] : [:]
-            })
-        } else {
-            [:]
-        }
-    }
-
-    private Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(List<ComponentIdentifier> allDependencyArtifacts, Set<File> usedArtifacts) {
-        def usedAggregators = new LinkedHashMap<ResolvedArtifact, Collection<ResolvedArtifact>>()
-
-        aggregatorsWithDependencies.each {
-            if (allDependencyArtifacts.contains(it.key.id.componentIdentifier)) {
-                def filesForAggregator = it.value.collect({ it.file })
-                def disjoint = filesForAggregator.intersect(usedArtifacts)
-                usedAggregators.put(it.key, it.value.findAll { disjoint.contains(it.file) })
-            }
-        }
-
-        removeDuplicates(usedAggregators)
-    }
-
-    private Map<ResolvedArtifact, Collection<ResolvedArtifact>> removeDuplicates(Map<ResolvedArtifact, Collection<ResolvedArtifact>> usedAggregators) {
-        def aggregatorsSortedByDependencies = usedAggregators.sort { l, r ->
-            l.value.size() <=> r.value.size() ?: aggregatorsWithDependencies.get(r.key).size() <=> aggregatorsWithDependencies.get(l.key).size()
-        }
-
-        def aggregatorArtifactAlreadySeen = [] as Set
-        aggregatorsSortedByDependencies.removeAll {
-            aggregatorArtifactAlreadySeen.add(it.key)
-            aggregatorsSortedByDependencies.any { it2 -> !aggregatorArtifactAlreadySeen.contains(it2.key) && it2.value.containsAll(it.value) }
-        }
-        logger.debug "used aggregators: $aggregatorsSortedByDependencies.keySet()"
-        return aggregatorsSortedByDependencies
     }
 }

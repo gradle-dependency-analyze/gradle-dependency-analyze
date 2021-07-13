@@ -8,19 +8,22 @@ plugins {
 }
 
 group = 'ca.cutterslade.gradle'
-version = '1.6.1-SNAPSHOT'
+version = '1.7.1-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.apache.maven.shared:maven-dependency-analyzer:1.11.3'
+    implementation('org.apache.maven.shared:maven-dependency-analyzer:1.11.3') {
+        exclude group: 'org.apache.maven'
+    }
+    implementation 'org.ow2.asm:asm:9.2'
 
     testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
     testImplementation 'org.apache.commons:commons-text:1.9'
 }
 

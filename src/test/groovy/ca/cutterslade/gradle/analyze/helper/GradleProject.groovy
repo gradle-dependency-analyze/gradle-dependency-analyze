@@ -16,6 +16,7 @@ class GradleProject {
     Set<GradleDependency> dependencies = []
     String repositories
     String platformConfiguration = ""
+    Map<String, String> additionalTasks = new LinkedHashMap<>()
 
     GradleProject(String name, boolean rootProject = false) {
         this.name = name
@@ -82,6 +83,11 @@ class GradleProject {
         this
     }
 
+    def withAdditionalTask(String taskName, String buildGradleSnippet) {
+        additionalTasks.put(taskName, buildGradleSnippet)
+        this
+    }
+
     def withMavenRepositories() {
         repositories = "repositories {\n" +
                 "    mavenLocal()\n" +
@@ -110,6 +116,8 @@ class GradleProject {
     }
 
     void create(File root) {
+        additionalTasks.putIfAbsent("build", "")
+
         root.mkdirs()
         subProjects.each { it.create(new File(root, it.name)) }
 
@@ -176,6 +184,9 @@ class GradleProject {
             }
             buildGradle += "}\n"
         }
+
+        buildGradle += "\ndefaultTasks " + additionalTasks.keySet().collect { "'${it}'" }.join(", ") + "\n"
+
         buildGradle += platformConfiguration
 
         if (rootProject && !allProjectPlugins.empty) {
@@ -192,6 +203,8 @@ class GradleProject {
                     (logDependencyInformationToFiles ? "  logDependencyInformationToFiles = ${logDependencyInformationToFiles}\n" : "") +
                     "}\n"
         }
+
+        additionalTasks.values().forEach(it -> buildGradle += "${it}\n")
 
         new File(root, "build.gradle").text = buildGradle
     }

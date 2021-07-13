@@ -15,7 +15,7 @@ The plugin is available from the gradle plugin repository, so it can be added to
 Using the plugin DSL:
 ```gradle
 plugins {
-  id "ca.cutterslade.analyze" version "1.6.0"
+  id "ca.cutterslade.analyze" version "1.7.0"
 }
 ```
 
@@ -28,7 +28,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.6.0"
+    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.7.0"
   }
 }
 
@@ -48,7 +48,7 @@ subprojects {
 
 # Compatibility
 
-The plugin is build with JDK 1.8 and is tested against Gradle 5.0 up to Gradle 7.0.
+The plugin is build with JDK 1.8 and is tested against Gradle 5.0 up to Gradle 7.1.
 
 | Plugin version | Gradle version |
 |----------------|----------------|
@@ -117,7 +117,7 @@ dependencies {
 # Task Configuration
 The plugin is not especially configurable, but each task can be configured to log a warning about dependency issues rather than breaking the build.
 Each task can also be configured to log informational output into a file instead of the Gradle console, this can be helpful for large projects where printing all the dependencies can cause high memory usage.
-Informational messages are logged to $builddir/dependency-analyze/.
+Informational messages are logged to `$builddir/reports/dependency-analyze/`.
 ```gradle
 analyzeClassesDependencies {
   justWarn = true
@@ -143,7 +143,7 @@ if (!project.hasProperty('analyzeDependencies')) {
 
 ## (Experimental) Aggregator projects
 
-With version 1.6 a new feature has been added that allows the use of aggregator projects without the need to add many `permit*` dependencies. This makes the life easier when for example a project heavily uses `spring-boot-starters`. Normally you do not want to add all dependencies manually to one gradle project instead you want to dependent on the starter and *trust* the dependencies declared in that place. As this might be against the intention of this plugin we still think it might be a good addition. As a benefit to still have a clean and small classpath the plugin tries to optimize the aggregator usage by picking the one with the smallest overhead (less transitive dependencies).
+With version 1.6.0 a new feature has been added that allows the use of aggregator projects without the need to add many `permit*` dependencies. This makes the life easier when for example a project heavily uses `spring-boot-starters`. Normally you do not want to add all dependencies manually to one gradle project instead you want to dependent on the starter and *trust* the dependencies declared in that place. As this might be against the intention of this plugin we still think it might be a good addition. As a benefit to still have a clean and small classpath the plugin tries to optimize the aggregator usage by picking the one with the smallest overhead (less transitive dependencies).
 
 _Example how to use:_
 ```gradle
@@ -234,21 +234,24 @@ task analyzeCustomClassesDependencies(type: AnalyzeDependenciesTask, dependsOn: 
 analyzeDependencies.dependsOn analyzeCustomClassesDependencies
 ```
 
-Users of the `java-library` plugin no longer need to configure custom tasks, and should upgrade to version 1.4 as soon as practical.
+Users of the `java-library` plugin no longer need to configure custom tasks, and should upgrade to version 1.4.0 as soon as practical.
 
 For more practical examples, see the [plugin source](https://github.com/gradle-dependency-analyze/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy).
 
-# Version 1.6
-Version 1.6 of this plugin adds support for aggregator projects. This feature is an experimental feature that needs to be tested by more users to see if it works as expected. see  [aggregator usage] 
+# Version 1.7.0
+Version 1.7.0 adds support for writing all logging information (used artifacts/classes/dependencies) to a folder located in `build/reports/dependency-analyze`.
 
-# Version 1.5
-Version 1.5 of this plugin adds built in support for the `java-test-fixtures` plugin. Additionally, the plugin was extended to automatically detect custom source sets and provides dedicated tasks for each of them. 
+# Version 1.6.0
+Version 1.6.0 of this plugin adds support for aggregator projects. This feature is an experimental feature that needs to be tested by more users to see if it works as expected. see  [aggregator usage] 
 
-# Version 1.4
-Version 1.4 of this plugin adds built in support for the `java-library` plugin, which has been the recommended default for quite a while. Previously tasks had to be customised to analyze the correct configurations.
+# Version 1.5.0
+Version 1.5.0 of this plugin adds built in support for the `java-test-fixtures` plugin. Additionally, the plugin was extended to automatically detect custom source sets and provides dedicated tasks for each of them. 
 
-# Version 1.3
-Version 1.3 of this plugin introduces only minor functional changes, but adds support for Java version 9, 10, and 11, while dropping support for Java versions 6 and 7.
+# Version 1.4.0
+Version 1.4.0 of this plugin adds built in support for the `java-library` plugin, which has been the recommended default for quite a while. Previously tasks had to be customised to analyze the correct configurations.
+
+# Version 1.3.0
+Version 1.3.0 of this plugin introduces only minor functional changes, but adds support for Java version 9, 10, and 11, while dropping support for Java versions 6 and 7.
 
 The dependency analyzer has been upgraded to version `1.10`, this new version adds detection of inlined dependencies, which can cause some false positives (the lack of this detection used to cause false negatives). In order to assist in working around these false positives, two new configurations have been added to the plugin:
 * `permitUsedUndeclared`
@@ -256,26 +259,26 @@ The dependency analyzer has been upgraded to version `1.10`, this new version ad
 
 These configurations are described above.
 
-# Version 1.2
-Version 1.2 of this plugin introduces a couple significant changes.
+# Version 1.2.0
+Version 1.2.0 of this plugin introduces a couple significant changes.
 
 * For multi project builds, the plugin must now be applied to the root project. If it has not been applied to the root project, the build will fail with the message `Dependency analysis plugin must also be applied to the root project`.
 * The plugin will no longer fail to apply if the java plugin has not been applied. Applying this plugin to a project without the java plugin will have no effect.
-* The plugin no longer caches caches dependency information in a static cache which would persist across executions when the gradle daemon was in use. It now caches dependency information in the root project. This represents a small performance penalty but avoids a potential issue if a dependency file is modified, and a potential memory leak if the path of dependency files changes regularly.
+* The plugin no longer caches dependency information in a static cache which would persist across executions when the gradle daemon was in use. It now caches dependency information in the root project. This represents a small performance penalty but avoids a potential issue if a dependency file is modified, and a potential memory leak if the path of dependency files changes regularly.
 * The tasks now produce output files at `$buildDir/dependency-analyse/$taskName`. This contains the exception message if the task causes the build to fail, or is empty if the task does not cause the build to fail.
 * The tasks now specify inputs and outputs allowing gradle to consider a task up-to-date if nothing has changed.
 * The tasks allows caching of outputs on gradle versions which support the task output cache. This allows the task work to be skipped even on clean builds if an appropriate cached result exists.
 * Tasks will now appear in the listing produced by `gradle tasks` under the Verification group.
 
-## Migration from 1.1
-Migrating from version 1.1 to version 1.2 of the plugin should be very simple. Most users will not have to make any changes, users with multi-project builds will have to ensure that the plugin is applied to the root project. This can be accomplished by applying the plugin in the `allprojects {}` block.
+## Migration from 1.1.0
+Migrating from version 1.1.0 to version 1.2.0 of the plugin should be very simple. Most users will not have to make any changes, users with multi-project builds will have to ensure that the plugin is applied to the root project. This can be accomplished by applying the plugin in the `allprojects {}` block.
 
-# Version 1.1
-Version 1.1 of this plugin introduced a couple significant changes.
+# Version 1.1.0
+Version 1.1.0 of this plugin introduced a couple significant changes.
 
 * The plugin now supports the `compileOnly` and `testCompileOnly` configurations introduced by gradle in version 2.12. This feature was discussed in detail in a [posting on the gradle blog](https://gradle.org/blog/compile-only-dependencies/). These configurations should generally be used where [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin) would have been used.
 * The `permitUnusedDeclared` and `permitTestUnusedDeclared` configurations were introduced to allow for specific exceptions to the restriction which requires all declared dependencies to be used.
 * If the project makes use of the [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin) configuration, these dependencies are now treated the same as the `compile` configuration; specifically, dependencies of the `provided` configuration must be used by compiled class files. Previously, the `provided` configuration was an exception to that rule, allowing for the type of exception now supported by the `permitUnusedDeclared` configuration.
 
-## Migration from 1.0
+## Migration from 1.0.0
 If you previously made use of the [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin) configuration, upgrading to version 1.1 of this plugin may cause dependency analysis failures, since the `provided` configuration is now treated in the same way as the `compile` configuration. After investigating these failures to ensure that they do not represent a misconfiguration of the project dependencies, the offending dependencies can be added to the `permitUnusedDeclared` configuration to suppress the failure.
