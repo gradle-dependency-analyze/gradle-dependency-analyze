@@ -5,7 +5,8 @@ class GradleProject {
     final String name
     final boolean rootProject
 
-    boolean justWarn = false
+    boolean warnUsedUndeclared = false
+    boolean warnUnusedDeclared = false
     boolean logDependencyInformationToFiles = false
     Set<GradleProject> subProjects = []
     Set<GroovyClass> mainClasses = []
@@ -53,8 +54,13 @@ class GradleProject {
         this
     }
 
-    def justWarn() {
-        justWarn = true
+    def warnUsedUndeclared() {
+        warnUsedUndeclared = true
+        this
+    }
+
+    def warnUnusedDeclared() {
+        warnUnusedDeclared = true
         this
     }
 
@@ -192,9 +198,10 @@ class GradleProject {
             buildGradle += "}\n"
         }
 
-        if (justWarn || logDependencyInformationToFiles) {
+        if (warnUsedUndeclared || warnUnusedDeclared || logDependencyInformationToFiles) {
             buildGradle += "analyzeClassesDependencies {\n" +
-                    (justWarn ? "  justWarn = ${justWarn}\n" : "") +
+                    (warnUsedUndeclared ? "  warnUsedUndeclared = ${warnUsedUndeclared}\n" : "") +
+                    (warnUnusedDeclared ? "  warnUnusedDeclared = ${warnUnusedDeclared}\n" : "") +
                     (logDependencyInformationToFiles ? "  logDependencyInformationToFiles = ${logDependencyInformationToFiles}\n" : "") +
                     "}\n"
         }

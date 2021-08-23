@@ -13,7 +13,9 @@ import java.nio.file.Files
 class AnalyzeDependenciesTask extends DefaultTask {
     public static final String DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME = "reports/dependency-analyze"
     @Input
-    boolean justWarn = false
+    boolean warnUsedUndeclared = false
+    @Input
+    boolean warnUnusedDeclared = false
     @Input
     boolean logDependencyInformationToFiles = false
     @InputFiles
@@ -42,6 +44,22 @@ class AnalyzeDependenciesTask extends DefaultTask {
         this.classesDirs = project.files(classesDir)
     }
 
+    private static String getArtifactSummary(String sectionName, Set<ResolvedArtifact> resolvedArtifacts) {
+        StringBuffer buffer = new StringBuffer()
+        if (resolvedArtifacts) {
+            buffer.append("$sectionName: \n")
+            resolvedArtifacts.sort(false) { it.moduleVersion.id.toString() }.each { ResolvedArtifact it ->
+                def classifier = it.classifier ? ":$it.classifier" : ""
+                buffer.append(" - $it.moduleVersion.id$classifier@$it.extension\n")
+            }
+        }
+        return buffer.toString()
+    }
+
+    private static GString foundIssues(String issues) {
+        return "Dependency analysis found issues.\n$issues"
+    }
+
     @TaskAction
     def action() {
         logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
@@ -49,29 +67,40 @@ class AnalyzeDependenciesTask extends DefaultTask {
         ProjectDependencyAnalysisResult analysis =
                 new ProjectDependencyResolver(project, require, apiHelperConfiguration, allowedToUse,
                         allowedToDeclare, classesDirs, allowedAggregatorsToUse, logDependencyInformationToFiles).analyzeDependencies()
-        StringBuffer buffer = new StringBuffer()
-        [new Tuple2<>('usedUndeclaredArtifacts', analysis.getUsedUndeclaredArtifacts()),
-         new Tuple2<>('unusedDeclaredArtifacts', analysis.getUnusedDeclaredArtifacts())].each { violations ->
-            if (violations.second) {
-                buffer.append("$violations.first: \n")
-                violations.second.sort(false) { it.moduleVersion.id.toString() }.each { ResolvedArtifact it ->
-                    def classifier = it.classifier ? ":$it.classifier" : ""
-                    buffer.append(" - $it.moduleVersion.id$classifier@$it.extension\n")
-                }
-            }
-        }
+        String usedUndeclaredViolations = getArtifactSummary('usedUndeclaredArtifacts', analysis.getUsedUndeclaredArtifacts())
+        String unusedDeclaredViolations = getArtifactSummary('unusedDeclaredArtifacts', analysis.getUnusedDeclaredArtifacts())
+        String combinedViolations = usedUndeclaredViolations.concat(unusedDeclaredViolations)
 
-        if (buffer) {
+        if (!combinedViolations.isEmpty()) {
             if (logDependencyInformationToFiles) {
                 final def outputFile = new File(outputDirectory, name)
                 outputFile.parentFile.mkdirs()
-                outputFile.text = buffer.toString()
+                outputFile.text = combinedViolations
             }
-            def message = "Dependency analysis found issues.\n$buffer"
-            if (justWarn) {
-                logger.warn message
-            } else {
-                throw new DependencyAnalysisException(message)
+
+            if (!warnUsedUndeclared && !warnUnusedDeclared) {
+                throw new DependencyAnalysisException(foundIssues(combinedViolations))
+            }
+
+            boolean processedUsedUndeclared = false
+            boolean processedUnusedDeclared = false
+
+            if (warnUsedUndeclared && !usedUndeclaredViolations.isEmpty()) {
+                logger.warn foundIssues(usedUndeclaredViolations)
+                processedUsedUndeclared = true
+            }
+
+            if (warnUnusedDeclared && !unusedDeclaredViolations.isEmpty()) {
+                logger.warn foundIssues(unusedDeclaredViolations)
+                processedUnusedDeclared = true
+            }
+
+            if (!processedUsedUndeclared && !usedUndeclaredViolations.isEmpty()) {
+                throw new DependencyAnalysisException(foundIssues(usedUndeclaredViolations))
+            }
+
+            if (!processedUnusedDeclared && !unusedDeclaredViolations.isEmpty()) {
+                throw new DependencyAnalysisException(foundIssues(unusedDeclaredViolations))
             }
         }
     }
