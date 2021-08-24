@@ -4,11 +4,11 @@ plugins {
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.15.0'
     id 'jacoco'
-    id 'pl.droidsonroids.jacoco.testkit' version '1.0.8'
+    id 'pl.droidsonroids.jacoco.testkit' version '1.0.9'
 }
 
 group = 'ca.cutterslade.gradle'
-version = '1.7.1-SNAPSHOT'
+version = '1.7.2-SNAPSHOT'
 
 repositories {
     mavenCentral()
