@@ -120,15 +120,25 @@ Each task can also be configured to log informational output into a file instead
 Informational messages are logged to `$builddir/reports/dependency-analyze/`.
 ```gradle
 analyzeClassesDependencies {
-  justWarn = true
+  warnUsedUndeclared = true
+  warnUnusedDeclared = true
   logDependencyInformationToFiles = true
 }
 
 analyzeTestClassesDependencies {
-  justWarn = true
+  warnUsedUndeclared = true
+  warnUnusedDeclared = true
   logDependencyInformationToFiles = true
 }
 ```
+* `warnUsedUndeclared` - only warn if used undeclared dependencies are found, default: `false`
+* `warnUnusedDeclared` - only warn if unused declared dependencies are found, default: `false`
+* `logDependencyInformationToFiles` - logs dependency violations to log file, default: `false`
+
+
+Note: Starting with version **1.8.0** `justWarn` is deprecated in favor of much more fine-grained `warnUsedUndeclared` and
+`warnUnusedDeclared` options. Setting `justWarn=true` is equivalent to setting both `warnUsedUndeclared=true` and
+`warnUnusedDeclared=true`. This option will be removed in the future
 
 ## Disabling/enabling the plugin
 In addition to using the `justWarn`-property, many cases want the build to fail only under given conditions (i.e nightly builds or integration builds). This can be achieved by disabling and enabling dependency analyzing in the following manner.

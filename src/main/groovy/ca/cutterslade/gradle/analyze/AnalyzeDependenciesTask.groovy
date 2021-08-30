@@ -12,6 +12,9 @@ import java.nio.file.Files
 
 class AnalyzeDependenciesTask extends DefaultTask {
     public static final String DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME = "reports/dependency-analyze"
+    @Deprecated
+    @Input
+    boolean justWarn = false
     @Input
     boolean warnUsedUndeclared = false
     @Input
@@ -62,6 +65,13 @@ class AnalyzeDependenciesTask extends DefaultTask {
 
     @TaskAction
     def action() {
+        if (justWarn) {
+            logger.warn("justWarn is deprecated in favor of warnUsedUndeclared and warnUnusedDeclared. Forcefully setting " +
+                    "warnUsedUndeclared=true and warnUnusedDeclared=true options")
+            warnUnusedDeclared = true
+            warnUsedUndeclared = true
+        }
+
         logger.info "Analyzing dependencies of $classesDirs for [require: $require, allowedToUse: $allowedToUse, " +
                 "allowedToDeclare: $allowedToDeclare]"
         ProjectDependencyAnalysisResult analysis =
