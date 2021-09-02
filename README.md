@@ -178,7 +178,7 @@ dependencies {
 }
 ```
 
-When the code in that gradle project now only use classes from `spring-core` and two `permitAggregatorUse` dependencies have been declared the plugin will inform about the change that should be done to use `spring-boot-starter` instead of `spring-boot-starter-web`. This optimization will only work when **multiple** `permitAggregatorUse` dependencies are declared for one gradle project. 
+When the code in that gradle project now only use classes from `spring-core` and two `permitAggregatorUse` dependencies have been declared the plugin will inform about the change that should be done to use `spring-boot-starter` instead of `spring-boot-starter-web`. This optimization will only work when **multiple** `permitAggregatorUse` dependencies are declared for one gradle project.
 
 _Example how to use with platform plugin:_
 
@@ -256,10 +256,10 @@ For more practical examples, see the [plugin source](https://github.com/gradle-d
 Version 1.7.0 adds support for writing all logging information (used artifacts/classes/dependencies) to a folder located in `build/reports/dependency-analyze`.
 
 ### Version 1.6.0
-Version 1.6.0 of this plugin adds support for aggregator projects. This feature is an experimental feature that needs to be tested by more users to see if it works as expected. see  [aggregator usage] 
+Version 1.6.0 of this plugin adds support for aggregator projects. This feature is an experimental feature that needs to be tested by more users to see if it works as expected. see  [aggregator usage]
 
 ### Version 1.5.0
-Version 1.5.0 of this plugin adds built in support for the `java-test-fixtures` plugin. Additionally, the plugin was extended to automatically detect custom source sets and provides dedicated tasks for each of them. 
+Version 1.5.0 of this plugin adds built in support for the `java-test-fixtures` plugin. Additionally, the plugin was extended to automatically detect custom source sets and provides dedicated tasks for each of them.
 
 ### Version 1.4.0
 Version 1.4.0 of this plugin adds built in support for the `java-library` plugin, which has been the recommended default for quite a while. Previously tasks had to be customised to analyze the correct configurations.
