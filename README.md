@@ -20,7 +20,7 @@ Using the plugin DSL:
 
 ```gradle
 plugins {
-  id "ca.cutterslade.analyze" version "1.7.1"
+  id "ca.cutterslade.analyze" version "1.8.0"
 }
 ```
 
@@ -34,7 +34,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.7.1"
+    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.8.0"
   }
 }
 
@@ -329,6 +329,12 @@ the [plugin source](https://github.com/gradle-dependency-analyze/gradle-dependen
 .
 
 ## Changelog
+
+### Version 1.8.0
+
+Version 1.8.0 adds support for different handling when a dependency issue is found. This means if the plugin finds
+an `unusedDeclared` dependency can can now fail while at the same time when it finds an `usedUndeclared` one it will
+only print a warning. So the `justWarn` is now deprecated in favor of the more specific configuration options.
 
 ### Version 1.7.0
 
