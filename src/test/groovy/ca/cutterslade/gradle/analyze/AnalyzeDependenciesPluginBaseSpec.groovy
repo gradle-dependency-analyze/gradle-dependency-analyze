@@ -5,6 +5,7 @@ import ca.cutterslade.gradle.analyze.helper.GradleProject
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.GradleVersion
 import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -58,11 +59,11 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     }
 
     protected final BuildResult buildGradleProject(String expectedResult,
-                                                   String gradleVersion = null,
+                                                   GradleVersion gradleVersion = null,
                                                    boolean withCodeCoverage = true) {
         def project = gradleProject(withCodeCoverage)
         if (gradleVersion) {
-            project.withGradleVersion(gradleVersion)
+            project.withGradleVersion(gradleVersion.version)
         }
         if (expectedResult == SUCCESS) {
             return project.build()

@@ -90,12 +90,14 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
         def result = buildGradleProject(expectedResult, gradleVersion)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildResult(result, expectedResult, [], unusedDeclaredArtifacts)
 
         where:
-        pair << determineMinorVersions('6.9', '7.1')
-        gradleVersion = pair.v1.version as String
-        expectedResult = pair.v2 as String
+        pair << determineMinorVersions('6.9', '7.3')
+        isBrokenGradleVersion = pair.v1 >= GradleVersion.version('7.0') && pair.v1 < GradleVersion.version('7.3')
+        gradleVersion = pair.v1 as GradleVersion
+        expectedResult = isBrokenGradleVersion ? VIOLATIONS : SUCCESS
+        unusedDeclaredArtifacts = isBrokenGradleVersion ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE@jar'] : []
     }
 
     @Unroll
