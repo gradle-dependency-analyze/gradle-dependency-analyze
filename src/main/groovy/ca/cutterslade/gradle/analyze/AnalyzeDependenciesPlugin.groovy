@@ -1,9 +1,11 @@
 package ca.cutterslade.gradle.analyze
 
+import ca.cutterslade.gradle.analyze.util.GradleVersionUtil
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
+import org.gradle.util.GradleVersion
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -55,6 +57,10 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
 
                 project.afterEvaluate {
                     analyzeTask.configure {
+                        if (!project.configurations.findByName("providedRuntime")?.resolvedConfiguration?.firstLevelModuleDependencies?.isEmpty()) {
+                            GradleVersionUtil.warnAboutWarPluginBrokenWhenUsingProvidedRuntime(GradleVersion.current(), project.logger)
+                        }
+
                         require = [
                                 project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
                         ]

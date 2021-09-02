@@ -11,6 +11,8 @@ import spock.lang.Unroll
 import java.util.stream.Collectors
 import java.util.stream.StreamSupport
 
+import static ca.cutterslade.gradle.analyze.util.GradleVersionUtil.isWarPluginBrokenWhenUsingProvidedRuntime
+
 class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseSpec {
     @Unroll
     def 'simple build without dependencies results in #expectedResult for Gradle version #gradleVersion'() {
@@ -28,8 +30,8 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
 
         where:
         pair << determineMinorVersions()
-        gradleVersion = pair.v1.version as String
-        expectedResult = pair.v2 as String
+        gradleVersion = pair.v1
+        expectedResult = pair.v2
     }
 
     @Unroll
@@ -50,8 +52,8 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
 
         where:
         pair << determineMinorVersions()
-        gradleVersion = pair.v1.version as String
-        expectedResult = pair.v2 as String
+        gradleVersion = pair.v1
+        expectedResult = pair.v2
     }
 
     @Unroll
@@ -71,8 +73,8 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
 
         where:
         pair << determineMinorVersions('5.6')
-        gradleVersion = pair.v1.version as String
-        expectedResult = pair.v2 as String
+        gradleVersion = pair.v1
+        expectedResult = pair.v2
     }
 
     @Unroll
@@ -94,10 +96,9 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
 
         where:
         pair << determineMinorVersions('6.9', '7.3')
-        isBrokenGradleVersion = pair.v1 >= GradleVersion.version('7.0') && pair.v1 < GradleVersion.version('7.3')
         gradleVersion = pair.v1 as GradleVersion
-        expectedResult = isBrokenGradleVersion ? VIOLATIONS : SUCCESS
-        unusedDeclaredArtifacts = isBrokenGradleVersion ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE@jar'] : []
+        expectedResult = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? VIOLATIONS : SUCCESS
+        unusedDeclaredArtifacts = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE@jar'] : []
     }
 
     @Unroll
@@ -130,7 +131,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
     }
 
 
-    def static determineMinorVersions(minVersion = '5.0', maxVersion = '8.0', expectedResult = SUCCESS) {
+    static List<Tuple2<GradleVersion, String>> determineMinorVersions(minVersion = '5.0', maxVersion = '8.0', expectedResult = SUCCESS) {
         try {
             def serviceUrl = new URL("https://services.gradle.org/versions/all")
             def versions = new ObjectMapper().readValue(serviceUrl, JsonNode.class)
@@ -148,7 +149,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                         def idx = ordinalIndexOf(it.version, '.', 2)
                         idx == -1 ? it.version : it.version.substring(0, idx)
                     }.collect { k, v -> v.sort().last() }
-                    .collect { it -> new Tuple2(it, expectedResult) }
+                    .collect { it -> new Tuple2<GradleVersion, String>(it, expectedResult) }
         } catch (IOException e) {
             throw new UncheckedIOException(e)
         }
