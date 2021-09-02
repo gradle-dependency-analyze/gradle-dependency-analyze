@@ -96,7 +96,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
 
         where:
         pair << determineMinorVersions('6.9', '7.3')
-        gradleVersion = pair.v1 as GradleVersion
+        gradleVersion = pair.v1
         expectedResult = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? VIOLATIONS : SUCCESS
         unusedDeclaredArtifacts = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE@jar'] : []
     }
@@ -119,15 +119,15 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult, null, false)
+        BuildResult result = buildGradleProject(expectedResult, gradleVersion, false)
 
         then:
         assertBuildResult(result, expectedResult)
 
         where:
         pair << determineMinorVersions()
-        gradleVersion = pair.v1.version as String
-        expectedResult = pair.v2 as String
+        gradleVersion = pair.v1
+        expectedResult = pair.v2
     }
 
 
