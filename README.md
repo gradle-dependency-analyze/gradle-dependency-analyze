@@ -309,7 +309,8 @@ task analyzeCustomClassesDependencies(type: AnalyzeDependenciesTask, dependsOn: 
   // List of configurations which the analyzed output may use but is not required to
   allowedToUse = [ configurations.compile, configurations.provided ]
   
-  // List of configurations which the analyzed output is not required to use, even if dependencies are present in the 'require' list above
+  // List of configurations which the analyzed output is not required to use, even if dependencies are present in the
+  // 'require' list above
   allowedToDeclare = [ configurations.permitCustomUnusedDeclared ]
   
   // Location of class output directories to analyze
