@@ -57,7 +57,8 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
 
                 project.afterEvaluate {
                     analyzeTask.configure {
-                        if (!project.configurations.findByName("providedRuntime")?.resolvedConfiguration?.firstLevelModuleDependencies?.isEmpty()) {
+                        final def configuration = project.configurations.findByName("providedRuntime")
+                        if (configuration != null && !configuration.resolvedConfiguration.firstLevelModuleDependencies.empty) {
                             GradleVersionUtil.warnAboutWarPluginBrokenWhenUsingProvidedRuntime(GradleVersion.current(), project.logger)
                         }
 
