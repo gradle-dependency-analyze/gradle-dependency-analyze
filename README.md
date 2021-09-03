@@ -20,7 +20,7 @@ Using the plugin DSL:
 
 ```gradle
 plugins {
-  id "ca.cutterslade.analyze" version "1.8.0"
+  id "ca.cutterslade.analyze" version "1.8.1"
 }
 ```
 
@@ -34,7 +34,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.8.0"
+    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.8.1"
   }
 }
 
