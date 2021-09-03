@@ -83,7 +83,7 @@ class AnalyzeDependenciesTask extends DefaultTask {
 
         if (!combinedViolations.isEmpty()) {
             if (logDependencyInformationToFiles) {
-                final def outputFile = new File(outputDirectory, name)
+                final def outputFile = new File(outputDirectory, "${name}.log")
                 outputFile.parentFile.mkdirs()
                 outputFile.text = combinedViolations
             }

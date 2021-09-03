@@ -21,7 +21,44 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         then:
         assertBuildSuccess(result)
-        assertLogFile(projectDir, 'simple_analyzeDependencies.log')
+    }
+
+    def 'simple build with unused dependencies results in violation'() {
+        setup:
+        rootProject()
+                .logDependencyInformationToFiles()
+                .withMavenRepositories()
+                .withMainClass(new GroovyClass('Main'))
+                .withTestClass(new GroovyClass('MainTest').usesClass('Main'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .create(projectDir)
+
+        when:
+        def result = buildGradleProject(VIOLATIONS)
+
+        then:
+        assertBuildResult(result, VIOLATIONS, [], ['org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar'])
+        assertLogFile(projectDir, 'analyzeClassesDependencies.log', 'analyzeClassesDependencies.log')
+    }
+
+    def 'simple build with unused dependencies results in success when justWarn'() {
+        setup:
+        rootProject()
+                .logDependencyInformationToFiles()
+                .withMavenRepositories()
+                .withWarnUnusedDeclared(true)
+                .withWarnUsedUndeclared(true)
+                .withMainClass(new GroovyClass('Main'))
+                .withTestClass(new GroovyClass('MainTest').usesClass('Main'))
+                .withDependency(new GradleDependency(configuration: 'implementation', id: 'org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'))
+                .create(projectDir)
+
+        when:
+        def result = buildGradleProject(SUCCESS)
+
+        then:
+        assertBuildSuccess(result)
+        assertLogFile(projectDir, 'analyzeClassesDependencies.log', 'analyzeClassesDependencies.log')
     }
 
     def 'build with dependency declared in config and used in build'() {
@@ -46,11 +83,13 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         then:
         assertBuildSuccess(result)
-        assertLogFile(projectDir, 'complex_analyzeDependencies.log')
+        assertLogFile(projectDir, 'complex_analyzeDependencies.log', 'analyzeDependencies.log')
     }
 
-    private static void assertLogFile(File projectDir, final String fileWithExpectedContent) {
-        def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/analyzeDependencies.log").text
+    private static void assertLogFile(final File projectDir,
+                                      final String fileWithExpectedContent,
+                                      final String fileName) {
+        def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/$fileName").text
         def expected = getClass().getResource('/' + fileWithExpectedContent).text
         StringsComparator comparator = new StringsComparator(actual, expected)
 
