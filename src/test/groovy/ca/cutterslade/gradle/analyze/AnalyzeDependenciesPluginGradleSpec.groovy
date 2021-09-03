@@ -93,6 +93,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
 
         then:
         assertBuildResult(result, expectedResult, [], unusedDeclaredArtifacts)
+        result.output.contains('https://github.com/gradle/gradle/issues/17415') == isWarPluginBrokenWhenUsingProvidedRuntime(gradleVersion)
 
         where:
         pair << determineMinorVersions('6.9', '7.3')
