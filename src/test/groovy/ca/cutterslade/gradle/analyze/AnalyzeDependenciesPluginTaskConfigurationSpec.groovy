@@ -25,20 +25,13 @@ class AnalyzeDependenciesPluginTaskConfigurationSpec extends AnalyzeDependencies
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        if (expectedResult == SUCCESS) {
-            assertBuildResult(result, WARNING, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-        } else {
-            assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-        }
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
         warnUsedUndeclared | warnUnusedDeclared | expectedResult | usedUndeclaredArtifacts                | unusedDeclaredArtifacts
         false              | false              | VIOLATIONS     | ['project:dependent2:unspecified@jar'] | ['project:dependent1:unspecified@jar']
-        false              | true               | WARNING        | []                                     | ['project:dependent1:unspecified@jar']
         false              | true               | VIOLATIONS     | ['project:dependent2:unspecified@jar'] | []
-        true               | false              | WARNING        | ['project:dependent2:unspecified@jar'] | []
         true               | false              | VIOLATIONS     | []                                     | ['project:dependent1:unspecified@jar']
-        true               | true               | SUCCESS        | ['project:dependent2:unspecified@jar'] | []
-        true               | true               | SUCCESS        | []                                     | ['project:dependent1:unspecified@jar']
+        true               | true               | SUCCESS        | ['project:dependent2:unspecified@jar'] | ['project:dependent1:unspecified@jar']
     }
 }
