@@ -23,7 +23,7 @@ dependencies {
     testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
     testImplementation 'org.apache.commons:commons-text:1.9'
 }
 
