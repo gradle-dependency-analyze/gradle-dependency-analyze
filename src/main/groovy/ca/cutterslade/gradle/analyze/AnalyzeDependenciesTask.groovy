@@ -1,19 +1,18 @@
 package ca.cutterslade.gradle.analyze
 
-
-import ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 
 import java.lang.reflect.Method
-import java.nio.file.Files
+import java.nio.file.Path
 
 import static ca.cutterslade.gradle.analyze.util.ProjectDependencyAnalysisResultHandler.warnAndLogOrFail
 
 class AnalyzeDependenciesTask extends DefaultTask {
     public static final String DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME = "reports/dependency-analyze"
+
     @Deprecated
     @Input
     boolean justWarn = false
@@ -35,8 +34,6 @@ class AnalyzeDependenciesTask extends DefaultTask {
     List<Configuration> allowedAggregatorsToUse = []
     @InputFiles
     FileCollection classesDirs = project.files()
-    @OutputDirectory
-    File outputDirectory = project.file("$project.buildDir/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/")
 
     AnalyzeDependenciesTask() {
         def methods = outputs.class.getMethods().grep { Method m -> m.name == 'cacheIf' }
@@ -47,6 +44,14 @@ class AnalyzeDependenciesTask extends DefaultTask {
 
     void setClassesDir(File classesDir) {
         this.classesDirs = project.files(classesDir)
+    }
+
+    @Optional
+    @OutputFile
+    Path getLogFilePath() {
+        logDependencyInformationToFiles
+                ? project.buildDir.toPath().resolve("$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME").resolve("${name}.log")
+                : null
     }
 
     @TaskAction
@@ -68,90 +73,15 @@ class AnalyzeDependenciesTask extends DefaultTask {
                 allowedToDeclare,
                 classesDirs,
                 allowedAggregatorsToUse,
-                logDependencyInformationToFiles
+                logFilePath
         ).analyzeDependencies()
 
         warnAndLogOrFail(
                 analysis,
                 warnUsedUndeclared,
                 warnUnusedDeclared,
-                logDependencyInformationToFiles,
-                new File(outputDirectory, "${name}.log"),
+                logFilePath,
                 logger
         )
-    }
-
-
-    @InputFiles
-    FileCollection getAllArtifacts() {
-        project.files({
-            def files = ProjectDependencyResolverUtils.removeNulls(
-                    ProjectDependencyResolverUtils.removeNulls(require)
-                            *.resolvedConfiguration
-                            *.firstLevelModuleDependencies
-                            *.allModuleArtifacts
-                            *.file.flatten() as Set<File>
-            )
-            if (logDependencyInformationToFiles) {
-                Files.createDirectories(outputDirectory.toPath())
-                new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("allArtifactFiles.log"))).withCloseable { final printWriter ->
-                    printWriter.println("All artifact files:")
-                    files.forEach { final file -> printWriter.println(file) }
-                }
-            } else {
-                logger.info "All Artifact Files: $files"
-            }
-            files
-        })
-    }
-
-    @InputFiles
-    FileCollection getRequiredFiles() {
-        project.files({
-            def files = getFirstLevelFiles(require, 'required') -
-                    getFirstLevelFiles(allowedToUse, 'allowed to use')
-            if (logDependencyInformationToFiles) {
-                Files.createDirectories(outputDirectory.toPath())
-                new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("allRequiredFiles.log"))).withCloseable { final printWriter ->
-                    printWriter.println("Actual required files:")
-                    files.forEach { final file -> printWriter.println(file) }
-                }
-            } else {
-                logger.info "Actual required files: $files"
-            }
-            files
-        })
-    }
-
-    @InputFiles
-    FileCollection getAllowedToUseFiles() {
-        getFirstLevelFileCollection(allowedToUse, 'allowed to use')
-    }
-
-    @InputFiles
-    FileCollection getAllowedToDeclareFiles() {
-        getFirstLevelFileCollection(allowedToDeclare, 'allowed to declare')
-    }
-
-    private FileCollection getFirstLevelFileCollection(List<Configuration> configurations, String name) {
-        project.files { getFirstLevelFiles(configurations, name) }
-    }
-
-    Set<File> getFirstLevelFiles(List<Configuration> configurations, String name) {
-        Set<File> files = ProjectDependencyResolverUtils.removeNulls(
-                ProjectDependencyResolverUtils.getFirstLevelDependencies(
-                        ProjectDependencyResolverUtils.removeNulls(configurations)
-                )*.moduleArtifacts*.file.flatten() as Set<File>
-        )
-        if (logDependencyInformationToFiles) {
-            Files.createDirectories(outputDirectory.toPath())
-            new PrintWriter(Files.newOutputStream(outputDirectory.toPath().resolve("first level ${name}.log"))).withCloseable { final printWriter ->
-                printWriter.println("First level $name files:")
-                files.forEach { final file -> printWriter.println(file) }
-            }
-        } else {
-            logger.info "First level $name files: $files"
-        }
-        files
     }
 }

@@ -1,6 +1,5 @@
 package ca.cutterslade.gradle.analyze.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,8 +17,7 @@ public class ProjectDependencyAnalysisResultHandler {
     public static void warnAndLogOrFail(final ProjectDependencyAnalysisResult result,
                                         final boolean warnUsedUndeclared,
                                         final boolean warnUnusedDeclared,
-                                        final boolean logDependencyInformationToFiles,
-                                        final File logFile,
+                                        final Path logFilePath,
                                         final Logger logger) throws IOException {
         final String usedUndeclaredViolations = getArtifactSummary("usedUndeclaredArtifacts", result.getUsedUndeclaredArtifacts());
         final String unusedDeclaredViolations = getArtifactSummary("unusedDeclaredArtifacts", result.getUnusedDeclaredArtifacts());
@@ -27,8 +25,7 @@ public class ProjectDependencyAnalysisResultHandler {
         final String combinedViolations = usedUndeclaredViolations.concat(unusedDeclaredViolations);
 
         if (!combinedViolations.isEmpty()) {
-            if (logDependencyInformationToFiles) {
-                final Path logFilePath = logFile.toPath();
+            if (logFilePath != null) {
                 Files.createDirectories(logFilePath.getParent());
                 Files.newBufferedWriter(logFilePath).append(combinedViolations).close();
             }
@@ -64,7 +61,7 @@ public class ProjectDependencyAnalysisResultHandler {
                             + resolvedArtifact.getModuleVersion().getId()
                             + (resolvedArtifact.getClassifier() != null ? ":" + resolvedArtifact.getClassifier() : "") + "@"
                             + resolvedArtifact.getExtension())
-                    .collect(Collectors.joining("\n", sectionName + ": \n", "")) + "\n";
+                    .collect(Collectors.joining("\n", sectionName + "\n", "")) + "\n";
         } else {
             return "";
         }

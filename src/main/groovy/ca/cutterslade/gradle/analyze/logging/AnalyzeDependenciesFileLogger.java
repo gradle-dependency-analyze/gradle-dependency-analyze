@@ -10,17 +10,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import ca.cutterslade.gradle.analyze.AnalyzeDependenciesTask;
-
 public class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger implements AutoCloseable {
     private final PrintWriter writer;
 
-    public AnalyzeDependenciesFileLogger(final Path buildDirPath) {
+    public AnalyzeDependenciesFileLogger(final Path logFilePath) {
         try {
-            final Path outputDirectoryPath = buildDirPath.resolve(AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME);
-            Files.createDirectories(outputDirectoryPath);
-            final Path analyzeOutputPath = outputDirectoryPath.resolve("analyzeDependencies.log");
-            writer = new PrintWriter(Files.newOutputStream(analyzeOutputPath));
+            Files.createDirectories(logFilePath.getParent());
+            writer = new PrintWriter(Files.newOutputStream(logFilePath));
         } catch (final Exception e) {
             throw new RuntimeException("unable to create file for logging", e);
         }
@@ -28,13 +24,13 @@ public class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger imp
 
     @Override
     public void info(final String title) {
-        writer.println(title);
+        writer.println(title.trim());
         writer.println();
     }
 
     @Override
     public void info(final String title, final Collection<?> files) {
-        writer.println(title);
+        writer.println(title.trim());
         files.stream()
                 .filter(Objects::nonNull)
                 .map(f -> f instanceof File ? ((File) f).getName() : f.toString())
@@ -46,7 +42,7 @@ public class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger imp
 
     @Override
     public void info(final String title, final Map<File, Set<String>> fileMap) {
-        writer.println(title);
+        writer.println(title.trim());
         fileMap.entrySet().stream()
                 .sorted(Comparator.comparing(e -> e.getKey().getName()))
                 .forEach(e -> {

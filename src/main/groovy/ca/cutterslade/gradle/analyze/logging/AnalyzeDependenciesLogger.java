@@ -23,11 +23,10 @@ public abstract class AnalyzeDependenciesLogger {
                               Map<File, Set<String>> fileMap);
 
     public static ProjectDependencyAnalysisResult create(final Logger gradleLogger,
-                                                         final Path buildDirPath,
-                                                         final boolean writeToFile,
+                                                         final Path logFilePath,
                                                          @ClosureParams(value = SimpleType.class, options = "ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger") final Closure<ProjectDependencyAnalysisResult> withLogger) {
-        if (writeToFile) {
-            try (final AnalyzeDependenciesFileLogger logger = new AnalyzeDependenciesFileLogger(buildDirPath)) {
+        if (logFilePath != null) {
+            try (final AnalyzeDependenciesFileLogger logger = new AnalyzeDependenciesFileLogger(logFilePath)) {
                 return withLogger.call(logger);
             }
         } else {

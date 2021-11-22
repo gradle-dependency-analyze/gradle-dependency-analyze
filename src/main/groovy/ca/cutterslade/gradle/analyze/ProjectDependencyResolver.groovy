@@ -35,8 +35,7 @@ class ProjectDependencyResolver {
     private final Iterable<File> classesDirs
     private final Map<ResolvedArtifact, Set<ResolvedArtifact>> aggregatorsWithDependencies
     private final List<Configuration> allowedAggregatorsToUse
-    private final boolean logDependencyInformationToFile
-    private final Path buildDirPath
+    private final Path logFilePath
 
     ProjectDependencyResolver(final Project project,
                               final List<Configuration> require,
@@ -45,14 +44,8 @@ class ProjectDependencyResolver {
                               final List<Configuration> allowedToDeclare,
                               final Iterable<File> classesDirs,
                               final List<Configuration> allowedAggregatorsToUse,
-                              final boolean logDependencyInformationToFile) {
-        try {
-            this.artifactClassCache =
-                    project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
-        }
-        catch (UnknownDomainObjectException e) {
-            throw new IllegalStateException('Dependency analysis plugin must also be applied to the root project', e)
-        }
+                              final Path logFilePath) {
+        this.logFilePath = logFilePath
         this.logger = project.logger
         this.require = removeNulls(require) as List
         this.api = apiHelperConfiguration
@@ -61,12 +54,17 @@ class ProjectDependencyResolver {
         this.allowedToDeclare = removeNulls(allowedToDeclare) as List
         this.classesDirs = classesDirs
         this.aggregatorsWithDependencies = getAggregatorsMapping(this.allowedAggregatorsToUse)
-        this.logDependencyInformationToFile = logDependencyInformationToFile
-        this.buildDirPath = project.buildDir.toPath()
+        try {
+            this.artifactClassCache =
+                    project.rootProject.extensions.getByName(CACHE_NAME) as ConcurrentHashMap<File, Set<String>>
+        }
+        catch (UnknownDomainObjectException e) {
+            throw new IllegalStateException('Dependency analysis plugin must also be applied to the root project', e)
+        }
     }
 
     ProjectDependencyAnalysisResult analyzeDependencies() {
-        AnalyzeDependenciesLogger.create(logger, buildDirPath, logDependencyInformationToFile) { logger ->
+        AnalyzeDependenciesLogger.create(logger, logFilePath) { logger ->
             def allowedToUseDeps = allowedToUseDependencies
             def allowedToDeclareDeps = allowedToDeclareDependencies
             def requiredDeps = requiredDependencies

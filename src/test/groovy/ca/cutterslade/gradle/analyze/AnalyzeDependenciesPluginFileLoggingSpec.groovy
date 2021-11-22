@@ -83,7 +83,7 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         then:
         assertBuildSuccess(result)
-        assertLogFile(projectDir, 'complex_analyzeDependencies.log', 'analyzeDependencies.log')
+        assertLogFile(projectDir, 'complex_analyzeDependencies.log', 'analyzeClassesDependencies.log')
     }
 
     private static void assertLogFile(final File projectDir,
