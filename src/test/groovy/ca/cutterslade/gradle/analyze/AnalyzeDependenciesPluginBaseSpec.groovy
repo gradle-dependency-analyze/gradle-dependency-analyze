@@ -45,10 +45,11 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             }
         }
         GradleRunner.create()
+        .withDebug(true)
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .forwardOutput()
-                .withArguments()
+                .withArguments("--stacktrace")
     }
 
     protected static void assertBuildSuccess(BuildResult result) {
@@ -95,11 +96,11 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             violations.append('Dependency analysis found issues.\n')
             def spacer = expectedResult == WARNING ? '' : '  '
             if (!usedUndeclaredArtifacts.empty) {
-                violations.append(spacer).append('usedUndeclaredArtifacts: \n')
+                violations.append(spacer).append('usedUndeclaredArtifacts\n')
                 usedUndeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
             }
             if (!unusedDeclaredArtifacts.empty) {
-                violations.append(spacer).append('unusedDeclaredArtifacts: \n')
+                violations.append(spacer).append('unusedDeclaredArtifacts\n')
                 unusedDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
             }
             violations.append('\n')

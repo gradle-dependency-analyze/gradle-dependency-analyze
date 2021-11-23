@@ -142,7 +142,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
             StreamSupport.stream(versions.spliterator(), false)
                     .filter { node -> !node.get("broken") }
                     .map { node -> GradleVersion.version(node.get("version").asText()) }
-                    .filter { version -> version >= minGradleVersion && version < maxGradleVersion }
+                    .filter { version -> version >= minGradleVersion && version <= maxGradleVersion }
                     .filter { version -> version == version.getBaseVersion() }
                     .sorted { a, b -> a <=> b }
                     .collect(Collectors.toList())
