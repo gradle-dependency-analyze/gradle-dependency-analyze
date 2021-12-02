@@ -170,15 +170,15 @@ class ProjectDependencyResolver {
         }
     }
 
-    private Set<ResolvedDependency> getRequiredDependencies() {
+    private List<ResolvedDependency> getRequiredDependencies() {
         getFirstLevelDependencies(require)
     }
 
-    private Set<ResolvedDependency> getAllowedToUseDependencies() {
+    private List<ResolvedDependency> getAllowedToUseDependencies() {
         getFirstLevelDependencies(allowedToUse)
     }
 
-    private Set<ResolvedDependency> getAllowedToDeclareDependencies() {
+    private List<ResolvedDependency> getAllowedToDeclareDependencies() {
         getFirstLevelDependencies(allowedToDeclare)
     }
 
@@ -189,8 +189,8 @@ class ProjectDependencyResolver {
      * @return a Map of files to their classes
      * @throws IOException
      */
-    private Map<File, Set<String>> buildArtifactClassMap(Set<File> dependencyArtifacts) throws IOException {
-        final Map<File, Set<String>> artifactClassMap = [:]
+    private Map<File, Set<String>> buildArtifactClassMap(List<File> dependencyArtifacts) throws IOException {
+        final Map<File, Set<String>> artifactClassMap = new LinkedHashMap<>()
 
         int hits = 0
         int misses = 0
