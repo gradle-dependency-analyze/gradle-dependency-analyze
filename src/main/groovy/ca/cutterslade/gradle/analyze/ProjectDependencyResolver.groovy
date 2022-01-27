@@ -1,9 +1,8 @@
 package ca.cutterslade.gradle.analyze
 
 import ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger
+import ca.cutterslade.gradle.analyze.util.ClassFileCollectorUtil
 import groovy.transform.CompileStatic
-import org.apache.maven.shared.dependency.analyzer.ClassAnalyzer
-import org.apache.maven.shared.dependency.analyzer.DefaultClassAnalyzer
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer
 import org.apache.maven.shared.dependency.analyzer.asm.ASMDependencyAnalyzer
 import org.gradle.api.Project
@@ -23,7 +22,6 @@ import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.
 class ProjectDependencyResolver {
     static final String CACHE_NAME = 'ca.cutterslade.gradle.analyze.ProjectDependencyResolver.artifactClassCache'
 
-    private final ClassAnalyzer classAnalyzer = new DefaultClassAnalyzer()
     private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer()
 
     private final ConcurrentHashMap<File, Set<String>> artifactClassCache
@@ -199,7 +197,7 @@ class ProjectDependencyResolver {
             if (null == classes) {
                 logger.debug "Artifact class cache miss for $file"
                 misses++
-                classes = classAnalyzer.analyze(file.toURI().toURL()).asImmutable()
+                classes = ClassFileCollectorUtil.collectFromFile(file).asImmutable()
                 artifactClassCache.putIfAbsent(file, classes)
             } else {
                 logger.debug "Artifact class cache hit for $file"
