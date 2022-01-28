@@ -16,7 +16,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -29,8 +28,10 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     private boolean justWarn = false;
     private boolean warnUsedUndeclared = false;
     private boolean warnUnusedDeclared = false;
+    private boolean warnCompileOnly = false;
     private boolean logDependencyInformationToFiles = false;
     private List<Configuration> require = new ArrayList<>();
+    private List<Configuration> compileOnly = new ArrayList<>();
     private List<Configuration> apiHelperConfiguration = new ArrayList<>();
     private List<Configuration> allowedToUse = new ArrayList<>();
     private List<Configuration> allowedToDeclare = new ArrayList<>();
@@ -58,10 +59,10 @@ public class AnalyzeDependenciesTask extends DefaultTask {
                 ", allowedToDeclare: " + getAllowedToDeclare() + "]");
 
         final ProjectDependencyAnalysisResult analysis = new ProjectDependencyResolver(
-                getProject(), require, apiHelperConfiguration, allowedToUse, allowedToDeclare, classesDirs,
+                getProject(), require, compileOnly, apiHelperConfiguration, allowedToUse, allowedToDeclare, classesDirs,
                 allowedAggregatorsToUse, getLogFilePath()).analyzeDependencies();
 
-        warnAndLogOrFail(analysis, warnUsedUndeclared, warnUnusedDeclared, getLogFilePath(), getLogger());
+        warnAndLogOrFail(analysis, warnUsedUndeclared, warnUnusedDeclared, warnCompileOnly, getLogFilePath(), getLogger());
     }
 
     @Input
@@ -94,12 +95,31 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     }
 
     @Input
+    public boolean isWarnCompileOnly() {
+        return warnCompileOnly;
+    }
+
+    public void setWarnCompileOnly(final boolean warnCompileOnly) {
+        this.warnCompileOnly = warnCompileOnly;
+    }
+
+    @Input
     public boolean isLogDependencyInformationToFiles() {
         return logDependencyInformationToFiles;
     }
 
     public void setLogDependencyInformationToFiles(final boolean logDependencyInformationToFiles) {
         this.logDependencyInformationToFiles = logDependencyInformationToFiles;
+    }
+
+    @InputFiles
+    @CompileClasspath
+    public List<Configuration> getCompileOnly() {
+        return compileOnly;
+    }
+
+    public void setCompileOnly(final List<Configuration> compileOnly) {
+        this.compileOnly = compileOnly;
     }
 
     @InputFiles

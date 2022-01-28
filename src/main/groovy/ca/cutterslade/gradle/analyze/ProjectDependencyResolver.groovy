@@ -27,6 +27,7 @@ class ProjectDependencyResolver {
     private final ConcurrentHashMap<File, Set<String>> artifactClassCache
     private final Logger logger
     private final List<Configuration> require
+    private final List<Configuration> compileOnly
     private final List<Configuration> api
     private final List<Configuration> allowedToUse
     private final List<Configuration> allowedToDeclare
@@ -37,15 +38,16 @@ class ProjectDependencyResolver {
 
     ProjectDependencyResolver(final Project project,
                               final List<Configuration> require,
+                              final List<Configuration> compileOnly,
                               final List<Configuration> apiHelperConfiguration,
                               final List<Configuration> allowedToUse,
                               final List<Configuration> allowedToDeclare,
                               final Iterable<File> classesDirs,
-                              final List<Configuration> allowedAggregatorsToUse,
-                              final Path logFilePath) {
+                              final List<Configuration> allowedAggregatorsToUse, final Path logFilePath) {
         this.logFilePath = logFilePath
         this.logger = project.logger
         this.require = removeNulls(require) as List
+        this.compileOnly = compileOnly
         this.api = apiHelperConfiguration
         this.allowedAggregatorsToUse = removeNulls(allowedAggregatorsToUse) as List
         this.allowedToUse = removeNulls(allowedToUse) as List
@@ -161,10 +163,14 @@ class ProjectDependencyResolver {
                 }
             }
 
+            def compileOnlyDependencies = getFirstLevelDependencies(compileOnly).collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>
+            logger.info 'compileOnlyDependencies', compileOnlyDependencies
+
             return new ProjectDependencyAnalysisResult(
                     usedDeclared.unique { it.file } as Set,
                     usedUndeclared.unique { it.file } as Set,
-                    unusedDeclared.unique { it.file } as Set)
+                    unusedDeclared.unique { it.file } as Set,
+                    compileOnlyDependencies.unique { it.file } as Set)
         }
     }
 

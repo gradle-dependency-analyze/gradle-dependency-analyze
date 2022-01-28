@@ -46,6 +46,10 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                     canBeConsumed = false
                     canBeResolved = true
                 }
+                project.configurations.create(sourceSet.getTaskName('compileOnlyHelper', '')) {
+                    canBeConsumed = false
+                    canBeResolved = true
+                }
 
                 def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
                         dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
@@ -65,6 +69,13 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                         require = [
                                 project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
                         ]
+
+                        compileOnly = configureApiHelperConfiguration(
+                                project.configurations.getByName(sourceSet.getTaskName('compileOnlyHelper', '')),
+                                project,
+                                sourceSet.compileOnlyConfigurationName
+                        )
+
                         apiHelperConfiguration = configureApiHelperConfiguration(
                                 project.configurations.getByName(sourceSet.getTaskName('apiHelper', '')),
                                 project,
@@ -88,9 +99,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                         if (sourceSet.name == 'testFixtures') {
                             allowedToUse.add(project.configurations.testCompileClasspath)
                         }
-                        def output = sourceSet.output
-                        // classesDirs was defined in gradle 4.0
-                        classesDirs = output.hasProperty('classesDirs') ? output.classesDirs : project.files(output.classesDir)
+                        classesDirs = sourceSet.output.classesDirs
                     }
                 }
             }
