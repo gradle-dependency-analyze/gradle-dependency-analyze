@@ -13,7 +13,10 @@ import org.gradle.api.logging.Logger;
 import ca.cutterslade.gradle.analyze.DependencyAnalysisException;
 import ca.cutterslade.gradle.analyze.ProjectDependencyAnalysisResult;
 
-public class ProjectDependencyAnalysisResultHandler {
+public final class ProjectDependencyAnalysisResultHandler {
+    private ProjectDependencyAnalysisResultHandler() {
+    }
+
     public static void warnAndLogOrFail(final ProjectDependencyAnalysisResult result,
                                         final boolean warnUsedUndeclared,
                                         final boolean warnUnusedDeclared,
