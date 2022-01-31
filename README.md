@@ -208,6 +208,23 @@ if (!project.hasProperty('analyzeDependencies')) {
 }
 ```
 
+### compileOnly dependencies
+
+Starting with version 1.9.0 `compileOnly` dependencies will be excluded from the `unusedDeclaredDependencies`.
+Additionally, a new flag named `warnCompileOnly` has been introduced to list all `compileOnly` dependencies that are declared and not needed in runtime.
+If a `compileOnly` dependency is declared and needed based on the analysis in runtime it will fail the build, in that
+case a `permitUsedUndeclared` must be added if this is not correct (mainly when developing libraries which are
+performing safety checks to not access a class that is not in the classpath, e.g. `spring-boot-starter-*` projects).
+
+To enable the logging for `compileOnly` dependencies the following needs to be added to the plugin configuration
+block in `build.gradle`.
+
+```gradle
+analyzeClassesDependencies {
+    warnCompileOnly = true
+}
+```
+
 ### (Experimental) Aggregator projects
 
 With version 1.6.0 a new feature has been added that allows the use of aggregator projects without the need to add
@@ -329,6 +346,10 @@ the [plugin source](https://github.com/gradle-dependency-analyze/gradle-dependen
 .
 
 ## Changelog
+
+### Version 1.9.0
+
+Version 1.9.0 adds support for excluding and warning about the usage of `compileOnly` dependencies.
 
 ### Version 1.8.0
 
