@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation('org.apache.maven.shared:maven-dependency-analyzer:1.11.3') {
+    implementation('org.apache.maven.shared:maven-dependency-analyzer:1.12.0') {
         exclude group: 'org.apache.maven'
     }
     runtimeOnly 'org.ow2.asm:asm:9.2'
