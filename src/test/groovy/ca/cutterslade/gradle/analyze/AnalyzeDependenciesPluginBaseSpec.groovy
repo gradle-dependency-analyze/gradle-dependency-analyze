@@ -45,6 +45,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             }
         }
         GradleRunner.create()
+                .withDebug(true)
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .forwardOutput()
@@ -74,10 +75,18 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     protected static void assertBuildResult(BuildResult result,
                                             String expectedResult,
                                             List<String> usedUndeclaredArtifacts = [],
-                                            List<String> unusedDeclaredArtifacts = []) {
+                                            List<String> unusedDeclaredArtifacts = [],
+                                            List<String> compileOnlyArtifacts = []) {
         if (expectedResult == SUCCESS) {
             if (result.task(':build') == null) {
                 throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
+            }
+            def violations = expectedResult == SUCCESS ? new StringBuilder() : new StringBuilder('> ')
+            if (!compileOnlyArtifacts.empty) {
+                def spacer = expectedResult == SUCCESS ? '' : '  '
+                violations.append(spacer).append('compileOnlyDeclaredArtifacts\n')
+                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                assert result.output.contains(violations)
             }
             assert result.task(':build').getOutcome() == TaskOutcome.SUCCESS
         } else if (expectedResult == BUILD_FAILURE) {
@@ -101,6 +110,10 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             if (!unusedDeclaredArtifacts.empty) {
                 violations.append(spacer).append('unusedDeclaredArtifacts\n')
                 unusedDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+            }
+            if (!compileOnlyArtifacts.empty) {
+                violations.append(spacer).append('compileOnlyDeclaredArtifacts\n')
+                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
             }
             violations.append('\n')
             assert result.output.contains(violations)

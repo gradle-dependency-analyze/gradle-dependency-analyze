@@ -111,14 +111,14 @@ This plugin will add the following tasks to your project: `analyzeClassesDepende
 
 This task depends on the `classes` task and analyzes the dependencies of the main source set's output directory. This
 ensures that all dependencies of the classes are declared in the `compile`, `api`, `implementation`, or `compileOnly`
-configuration. It also ensures the inverse, that all of the dependencies of these configurations are used by classes;
+configuration. It also ensures the inverse, that all the dependencies of these configurations are used by classes;
 use of the `permitUnusedDeclared` configuration allows for exceptions to this restriction.
 
 ### analyzeTestClassesDependencies
 
 This task depends on the `testClasses` task and analyzes the dependencies of the test source set's output directory.
 This ensures that all dependencies of the classes are declared in the `testCompile`, `testApi`, `testImplementation`
-or `testCompileOnly` configuration. It also ensures the inverse, that all of the dependencies of these configurations
+or `testCompileOnly` configuration. It also ensures the inverse, that all the dependencies of these configurations
 are used by classes; use of the `permitTestUnusedDeclared` configuration allows for exceptions to this restriction.
 
 ### analyzeDependencies
@@ -132,14 +132,14 @@ Additionally, the plugin will add analyze action for every custom sourceSet defi
 
 This task depends on the `*sourceSet*Classes` task and analyzes the dependencies of the *sourceSet*'s output directory.
 This ensures that all dependencies of the classes are declared in the `*sourceSet*Compile`, `*sourceSet*api`
-, `*sourceSet*implementation`, or `*sourceSet*CompileOnly` configuration. It also ensures the inverse, that all of the
+, `*sourceSet*implementation`, or `*sourceSet*CompileOnly` configuration. It also ensures the inverse, that all the
 dependencies of these configurations are used by classes; use of the `permit*SourceSet*UnusedDeclared` configuration
 allows for exceptions to this restriction.
 
 ## Configurations
 
 This plugin adds the following configurations which may be used to define dependencies which should be handled in a
-special way. These configurations have no impact on the build outside of this plugin.
+special way. These configurations have no impact on the build outside this plugin.
 
 * `permitUnusedDeclared`
 * `permitTestUnusedDeclared`
@@ -196,7 +196,7 @@ and
 
 ### Disabling/enabling the plugin
 
-In addition to using the `justWarn`-property, many cases want the build to fail only under given conditions (i.e nightly
+In addition to using the `justWarn`-property, many cases want the build to fail only under given conditions (i.e. nightly
 builds or integration builds). This can be achieved by disabling and enabling dependency analyzing in the following
 manner.
 
@@ -205,6 +205,24 @@ if (!project.hasProperty('analyzeDependencies')) {
   tasks.analyzeClassesDependencies.enabled = false
   tasks.analyzeTestClassesDependencies.enabled = false
   tasks.analyzeDependencies.enabled = false
+}
+```
+
+### compileOnly dependencies
+
+Starting with version 1.9.0 `compileOnly` dependencies will be excluded from the `unusedDeclaredDependencies`.
+Additionally, a new flag named `warnCompileOnly` has been introduced to list all `compileOnly` dependencies that
+are declared and not needed in runtime.
+If a `compileOnly` dependency is declared and needed based on the analysis in runtime it will fail the build, in that
+case a `permitUsedUndeclared` must be added if this is not correct (mainly when developing libraries which are
+performing safety checks to not access a class that is not in the classpath, e.g. `spring-boot-starter-*` projects).
+
+To enable the logging for `compileOnly` dependencies the following needs to be added to the plugin configuration
+block in `build.gradle`.
+
+```gradle
+analyzeClassesDependencies {
+    warnCompileOnly = true
 }
 ```
 
@@ -324,11 +342,12 @@ analyzeDependencies.dependsOn analyzeCustomClassesDependencies
 Users of the `java-library` plugin no longer need to configure custom tasks, and should upgrade to version 1.4.0 as soon
 as practical.
 
-For more practical examples, see
-the [plugin source](https://github.com/gradle-dependency-analyze/gradle-dependency-analyze/blob/master/src/main/groovy/ca/cutterslade/gradle/analyze/AnalyzeDependenciesPlugin.groovy)
-.
-
 ## Changelog
+
+### Version 1.9.0
+
+Version 1.9.0 adds support for excluding and warning about the usage of `compileOnly` dependencies. see
+[compileOnly](#compileonly-dependencies)
 
 ### Version 1.8.0
 
@@ -344,16 +363,16 @@ in `build/reports/dependency-analyze`.
 ### Version 1.6.0
 
 Version 1.6.0 of this plugin adds support for aggregator projects. This feature is an experimental feature that needs to
-be tested by more users to see if it works as expected. see  [aggregator usage]
+be tested by more users to see if it works as expected. see [aggregator usage](#experimental-aggregator-projects)
 
 ### Version 1.5.0
 
-Version 1.5.0 of this plugin adds built in support for the `java-test-fixtures` plugin. Additionally, the plugin was
+Version 1.5.0 of this plugin adds built-in support for the `java-test-fixtures` plugin. Additionally, the plugin was
 extended to automatically detect custom source sets and provides dedicated tasks for each of them.
 
 ### Version 1.4.0
 
-Version 1.4.0 of this plugin adds built in support for the `java-library` plugin, which has been the recommended default
+Version 1.4.0 of this plugin adds built-in support for the `java-library` plugin, which has been the recommended default
 for quite a while. Previously tasks had to be customised to analyze the correct configurations.
 
 ### Version 1.3.0

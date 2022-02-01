@@ -20,21 +20,27 @@ public final class ProjectDependencyAnalysisResultHandler {
     public static void warnAndLogOrFail(final ProjectDependencyAnalysisResult result,
                                         final boolean warnUsedUndeclared,
                                         final boolean warnUnusedDeclared,
+                                        final boolean warnCompileOnly,
                                         final Path logFilePath,
                                         final Logger logger) throws IOException {
-        final String usedUndeclaredViolations = getArtifactSummary("usedUndeclaredArtifacts", result.getUsedUndeclaredArtifacts());
-        final String unusedDeclaredViolations = getArtifactSummary("unusedDeclaredArtifacts", result.getUnusedDeclaredArtifacts());
+        final Set<ResolvedArtifact> usedUndeclaredArtifacts = result.getUsedUndeclaredArtifacts();
+        final Set<ResolvedArtifact> unusedDeclaredArtifacts = result.getUnusedDeclaredArtifacts();
+        final Set<ResolvedArtifact> possiblyUnusedCompileOnlyArtifacts = result.getPossiblyUnusedCompileOnlyArtifacts();
+
+        final String compileOnlyViolations = warnCompileOnly ? getArtifactSummary("compileOnlyDeclaredArtifacts", possiblyUnusedCompileOnlyArtifacts) : "";
+        final String usedUndeclaredViolations = getArtifactSummary("usedUndeclaredArtifacts", usedUndeclaredArtifacts);
+        final String unusedDeclaredViolations = getArtifactSummary("unusedDeclaredArtifacts", unusedDeclaredArtifacts);
 
         final String combinedViolations = usedUndeclaredViolations.concat(unusedDeclaredViolations);
 
         if (!combinedViolations.isEmpty()) {
             if (logFilePath != null) {
                 Files.createDirectories(logFilePath.getParent());
-                Files.newBufferedWriter(logFilePath).append(combinedViolations).close();
+                Files.newBufferedWriter(logFilePath).append(combinedViolations.concat(compileOnlyViolations)).close();
             }
 
             if (!warnUsedUndeclared && !warnUnusedDeclared) {
-                throw new DependencyAnalysisException(foundIssues(combinedViolations));
+                throw new DependencyAnalysisException(foundIssues(combinedViolations.concat(compileOnlyViolations)));
             }
 
             if (!usedUndeclaredViolations.isEmpty()) {
@@ -52,6 +58,10 @@ public final class ProjectDependencyAnalysisResultHandler {
                     throw new DependencyAnalysisException(foundIssues(unusedDeclaredViolations));
                 }
             }
+        }
+
+        if (!compileOnlyViolations.isEmpty()) {
+            logger.warn(foundIssues(compileOnlyViolations));
         }
     }
 

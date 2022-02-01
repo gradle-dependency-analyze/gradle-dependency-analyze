@@ -27,6 +27,7 @@ class ProjectDependencyResolver {
     private final ConcurrentHashMap<File, Set<String>> artifactClassCache
     private final Logger logger
     private final List<Configuration> require
+    private final List<Configuration> compileOnly
     private final List<Configuration> api
     private final List<Configuration> allowedToUse
     private final List<Configuration> allowedToDeclare
@@ -37,15 +38,16 @@ class ProjectDependencyResolver {
 
     ProjectDependencyResolver(final Project project,
                               final List<Configuration> require,
+                              final List<Configuration> compileOnly,
                               final List<Configuration> apiHelperConfiguration,
                               final List<Configuration> allowedToUse,
                               final List<Configuration> allowedToDeclare,
                               final Iterable<File> classesDirs,
-                              final List<Configuration> allowedAggregatorsToUse,
-                              final Path logFilePath) {
+                              final List<Configuration> allowedAggregatorsToUse, final Path logFilePath) {
         this.logFilePath = logFilePath
         this.logger = project.logger
         this.require = removeNulls(require) as List
+        this.compileOnly = compileOnly
         this.api = apiHelperConfiguration
         this.allowedAggregatorsToUse = removeNulls(allowedAggregatorsToUse) as List
         this.allowedToUse = removeNulls(allowedToUse) as List
@@ -75,10 +77,10 @@ class ProjectDependencyResolver {
             def dependencyArtifacts = findModuleArtifactFiles(requiredDeps)
             logger.info 'dependencyArtifacts', dependencyArtifacts
 
-            def allDependencyArtifacts = findAllModuleArtifactFiles(requiredDeps)
-            logger.info 'allDependencyArtifacts', allDependencyArtifacts
+            def allDependencyArtifactFiles = findAllModuleArtifactFiles(requiredDeps)
+            logger.info 'allDependencyArtifacts', allDependencyArtifactFiles
 
-            def fileClassMap = buildArtifactClassMap(allDependencyArtifacts)
+            def fileClassMap = buildArtifactClassMap(allDependencyArtifactFiles)
             logger.info 'fileClassMap', fileClassMap
 
             def dependencyClasses = analyzeClassDependencies()
@@ -87,20 +89,20 @@ class ProjectDependencyResolver {
             def usedClassesInArtifacts = buildUsedArtifacts(fileClassMap, dependencyClasses)
             logger.info 'usedClassesInArtifacts', usedClassesInArtifacts
 
-            def usedArtifacts = usedClassesInArtifacts.keySet()
-            logger.info 'usedArtifacts', usedArtifacts
+            def usedArtifactFiles = usedClassesInArtifacts.keySet()
+            logger.info 'usedArtifacts', usedArtifactFiles
 
-            def usedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
-            usedDeclaredArtifacts.retainAll(usedArtifacts)
-            logger.info 'usedDeclaredArtifacts', usedDeclaredArtifacts
+            def usedDeclaredArtifactFiles = new LinkedHashSet<File>(dependencyArtifacts)
+            usedDeclaredArtifactFiles.retainAll(usedArtifactFiles)
+            logger.info 'usedDeclaredArtifacts', usedDeclaredArtifactFiles
 
-            def usedUndeclaredArtifacts = new LinkedHashSet<File>(usedArtifacts)
-            usedUndeclaredArtifacts.removeAll(dependencyArtifacts)
-            logger.info 'usedUndeclaredArtifacts', usedUndeclaredArtifacts
+            def usedUndeclaredArtifactFiles = new LinkedHashSet<File>(usedArtifactFiles)
+            usedUndeclaredArtifactFiles.removeAll(dependencyArtifacts)
+            logger.info 'usedUndeclaredArtifacts', usedUndeclaredArtifactFiles
 
-            def unusedDeclaredArtifacts = new LinkedHashSet<File>(dependencyArtifacts)
-            unusedDeclaredArtifacts.removeAll(usedArtifacts)
-            logger.info 'unusedDeclaredArtifacts', unusedDeclaredArtifacts
+            def unusedDeclaredArtifactFiles = new LinkedHashSet<File>(dependencyArtifacts)
+            unusedDeclaredArtifactFiles.removeAll(usedArtifactFiles)
+            logger.info 'unusedDeclaredArtifacts', unusedDeclaredArtifactFiles
 
             def allowedToUseArtifacts = allowedToUseDeps*.moduleArtifacts?.flatten() as Set<ResolvedArtifact>
             logger.info 'allowedToUseArtifacts', allowedToUseArtifacts
@@ -111,10 +113,10 @@ class ProjectDependencyResolver {
             def allArtifacts = resolveArtifacts(require)
             logger.info 'allArtifacts', allArtifacts
 
-            def usedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifacts }
+            def usedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedDeclaredArtifactFiles }
             logger.info 'usedDeclared', usedDeclared
 
-            def usedUndeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifacts }
+            def usedUndeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in usedUndeclaredArtifactFiles }
             logger.info 'usedUndeclared', usedUndeclared
             if (allowedToUseArtifacts) {
                 def allowedToUseComponentIdentifiers = allowedToUseArtifacts.collect { it.id.componentIdentifier }
@@ -122,7 +124,7 @@ class ProjectDependencyResolver {
                 logger.info 'usedUndeclared without allowedToUseArtifacts', usedUndeclared
             }
 
-            def unusedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifacts }
+            def unusedDeclared = allArtifacts.findAll { ResolvedArtifact artifact -> artifact.file in unusedDeclaredArtifactFiles }
             logger.info 'unusedDeclared', unusedDeclared
             if (allowedToDeclareArtifacts) {
                 def allowedToDeclareComponentIdentifiers = allowedToDeclareArtifacts.collect { it.id.componentIdentifier }
@@ -130,11 +132,11 @@ class ProjectDependencyResolver {
                 logger.info 'unusedDeclared without allowedToDeclareArtifacts', unusedDeclared
             }
 
+            def allDependencyArtifacts = requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>
+
             if (!aggregatorsWithDependencies.isEmpty()) {
-                def usedIdentifiers = (requiredDependencies.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
-                        .collect { it.id }
-                        .collect { it.componentIdentifier }
-                def aggregatorUsage = used(usedIdentifiers, usedArtifacts, aggregatorsWithDependencies, logger).groupBy { it.value.isEmpty() }
+                def usedIdentifiers = allDependencyArtifacts.collect { it.id.componentIdentifier }
+                def aggregatorUsage = used(usedIdentifiers, usedArtifactFiles, aggregatorsWithDependencies, logger).groupBy { it.value.isEmpty() }
                 if (aggregatorUsage.containsKey(true)) {
                     def unusedAggregatorArtifacts = aggregatorUsage.get(true).keySet() as Set<ResolvedArtifact>
                     unusedDeclared += unusedAggregatorArtifacts.intersect(requiredDeps.collect { it.allModuleArtifacts }.flatten() as Set<ResolvedArtifact>)
@@ -161,10 +163,22 @@ class ProjectDependencyResolver {
                 }
             }
 
+            def compileOnlyDependencyArtifacts = resolveArtifacts(compileOnly)
+            logger.info 'compileOnlyDependencies', compileOnlyDependencyArtifacts
+
+            def compileOnlyDependencyModuleIdentifiers = compileOnlyDependencyArtifacts.collect { it.moduleVersion.id }
+            usedDeclared.findAll {
+                def id = it.getModuleVersion().getId()
+                compileOnlyDependencyModuleIdentifiers.contains(id)
+            }.forEach { usedUndeclared.add(it) }
+
+            compileOnlyDependencyArtifacts.forEach { unusedDeclared.remove(it) }
+
             return new ProjectDependencyAnalysisResult(
                     usedDeclared.unique { it.file } as Set,
                     usedUndeclared.unique { it.file } as Set,
-                    unusedDeclared.unique { it.file } as Set)
+                    unusedDeclared.unique { it.file } as Set,
+                    compileOnlyDependencyArtifacts.unique { it.file } as Set)
         }
     }
 

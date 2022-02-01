@@ -5502,3 +5502,5 @@ unusedDeclared
 used aggregators
 - spring-boot-starter-2.3.6.RELEASE.jar (org.springframework.boot:spring-boot-starter:2.3.6.RELEASE)
 
+compileOnlyDependencies
+
