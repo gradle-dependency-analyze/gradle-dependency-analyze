@@ -346,7 +346,7 @@ as practical.
 
 ### Version 1.9.0
 
-Version 1.9.0 adds support for excluding and warning about the usage of `compileOnly` dependencies. see 
+Version 1.9.0 adds support for excluding and warning about the usage of `compileOnly` dependencies. see
 [compileOnly](#compileonly-dependencies)
 
 ### Version 1.8.0
