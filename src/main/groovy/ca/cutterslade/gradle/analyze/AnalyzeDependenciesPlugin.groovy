@@ -56,6 +56,13 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                 def analyzeTask = project.tasks.register(sourceSet.getTaskName('analyze', 'classesDependencies'), AnalyzeDependenciesTask) {
                     group 'Verification'
                     description "Analyze project for dependency issues related to ${sourceSet.name} source set."
+
+                    doFirst {
+                        final def configuration = project.configurations.findByName("providedRuntime")
+                        if (configuration != null && !configuration.resolvedConfiguration.firstLevelModuleDependencies.empty) {
+                            GradleVersionUtil.warnAboutWarPluginBrokenWhenUsingProvidedRuntime(GradleVersion.current(), project.logger)
+                        }
+                    }
                 }
 
                 commonTask.configure {
@@ -64,11 +71,6 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
 
                 project.afterEvaluate {
                     analyzeTask.configure {
-                        final def configuration = project.configurations.findByName("providedRuntime")
-                        if (configuration != null && !configuration.resolvedConfiguration.firstLevelModuleDependencies.empty) {
-                            GradleVersionUtil.warnAboutWarPluginBrokenWhenUsingProvidedRuntime(GradleVersion.current(), project.logger)
-                        }
-
                         require = [
                                 project.configurations.getByName(sourceSet.compileClasspathConfigurationName)
                         ]
