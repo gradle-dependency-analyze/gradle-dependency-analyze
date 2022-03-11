@@ -54,7 +54,6 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                 }
 
                 def analyzeTask = project.tasks.register(sourceSet.getTaskName('analyze', 'classesDependencies'), AnalyzeDependenciesTask) {
-                    dependsOn sourceSet.classesTaskName // needed for pre-4.0, later versions infer this from classesDirs
                     group 'Verification'
                     description "Analyze project for dependency issues related to ${sourceSet.name} source set."
                 }
