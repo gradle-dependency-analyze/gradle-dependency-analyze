@@ -19,12 +19,14 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
         }
 
         project.plugins.withId('java') {
-            def commonTask = project.task('analyzeDependencies',
-                    group: 'Verification',
-                    description: 'Analyze project for dependency issues.'
-            )
+            def commonTask = project.tasks.register('analyzeDependencies') {
+                group 'Verification'
+                description 'Analyze project for dependency issues.'
+            }
 
-            project.tasks.check.dependsOn commonTask
+            project.tasks.named('check').configure {
+                dependsOn commonTask
+            }
 
             project.sourceSets.all { SourceSet sourceSet ->
                 project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared')) {
@@ -51,13 +53,15 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                     canBeResolved = true
                 }
 
-                def analyzeTask = project.task(sourceSet.getTaskName('analyze', 'classesDependencies'),
-                        dependsOn: sourceSet.classesTaskName, // needed for pre-4.0, later versions infer this from classesDirs
-                        type: AnalyzeDependenciesTask,
-                        group: 'Verification',
-                        description: "Analyze project for dependency issues related to ${sourceSet.name} source set.")
+                def analyzeTask = project.tasks.register(sourceSet.getTaskName('analyze', 'classesDependencies'), AnalyzeDependenciesTask) {
+                    dependsOn sourceSet.classesTaskName // needed for pre-4.0, later versions infer this from classesDirs
+                    group 'Verification'
+                    description "Analyze project for dependency issues related to ${sourceSet.name} source set."
+                }
 
-                commonTask.dependsOn analyzeTask
+                commonTask.configure {
+                    dependsOn analyzeTask
+                }
 
                 project.afterEvaluate {
                     analyzeTask.configure {
