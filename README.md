@@ -172,13 +172,13 @@ Gradle console, this can be helpful for large projects where printing all the de
 Informational messages are logged to `$builddir/reports/dependency-analyze/`.
 
 ```gradle
-analyzeClassesDependencies {
+tasks.named('analyzeClassesDependencies').configure {
   warnUsedUndeclared = true
   warnUnusedDeclared = true
   logDependencyInformationToFiles = true
 }
 
-analyzeTestClassesDependencies {
+tasks.named('analyzeTestClassesDependencies').configure {
   warnUsedUndeclared = true
   warnUnusedDeclared = true
   logDependencyInformationToFiles = true
@@ -202,9 +202,15 @@ manner.
 
 ```gradle
 if (!project.hasProperty('analyzeDependencies')) {
-  tasks.analyzeClassesDependencies.enabled = false
-  tasks.analyzeTestClassesDependencies.enabled = false
-  tasks.analyzeDependencies.enabled = false
+  tasks.named('analyzeClassesDependencies').configure {
+    enabled = false
+  }
+  tasks.named('analyzeTestClassesDependencies').configure {
+    enabled = false
+  }
+  tasks.named('analyzeDependencies').configure {
+    enabled = false
+  }
 }
 ```
 
@@ -221,7 +227,7 @@ To enable the logging for `compileOnly` dependencies the following needs to be a
 block in `build.gradle`.
 
 ```gradle
-analyzeClassesDependencies {
+tasks.named('analyzeClassesDependencies').configure {
     warnCompileOnly = true
 }
 ```
@@ -317,26 +323,30 @@ configurations, or using other plugins which introduce their own configurations.
 Example:
 
 ```gradle
-task analyzeCustomClassesDependencies(type: AnalyzeDependenciesTask, dependsOn: customClasses) {
+tasks.register('analyzeCustomClassesDependencies', AnalyzeDependenciesTask) {
+  dependsOn customClasses
+
   // Set to true to print a warning rather than fail the build if the dependency analysis fails
   justWarn = false
 
-  // List of configurations which the analyzed output is required to use 
+  // List of configurations which the analyzed output is required to use
   require = [ configurations.customCompile, configuration.customCompileOnly ]
 
   // List of configurations which the analyzed output may use but is not required to
   allowedToUse = [ configurations.compile, configurations.provided ]
-  
+
   // List of configurations which the analyzed output is not required to use, even if dependencies are present in the
   // 'require' list above
   allowedToDeclare = [ configurations.permitCustomUnusedDeclared ]
-  
+
   // Location of class output directories to analyze
   classesDirs = sourceSets.custom.output.classesDirs
 }
 
 // Add the new task as a dependency of the main analyzeDependencies task
-analyzeDependencies.dependsOn analyzeCustomClassesDependencies
+tasks.named('analyzeDependencies').configure {
+  dependsOn analyzeCustomClassesDependencies
+}
 ```
 
 Users of the `java-library` plugin no longer need to configure custom tasks, and should upgrade to version 1.4.0 as soon
