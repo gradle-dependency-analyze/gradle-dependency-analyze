@@ -25,11 +25,11 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     public static final String DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME = "reports/dependency-analyze";
 
     @Deprecated
-    private boolean justWarn = false;
-    private boolean warnUsedUndeclared = false;
-    private boolean warnUnusedDeclared = false;
-    private boolean warnCompileOnly = false;
-    private boolean logDependencyInformationToFiles = false;
+    private Boolean justWarn = false;
+    private Boolean warnUsedUndeclared = false;
+    private Boolean warnUnusedDeclared = false;
+    private Boolean warnCompileOnly = false;
+    private Boolean logDependencyInformationToFiles = false;
     private List<Configuration> require = new ArrayList<>();
     private List<Configuration> compileOnly = new ArrayList<>();
     private List<Configuration> apiHelperConfiguration = new ArrayList<>();
@@ -67,7 +67,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
     @Input
     @Deprecated
-    public boolean isJustWarn() {
+    public Boolean getJustWarn() {
         return justWarn;
     }
 
@@ -77,7 +77,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     }
 
     @Input
-    public boolean isWarnUsedUndeclared() {
+    public Boolean getWarnUsedUndeclared() {
         return warnUsedUndeclared;
     }
 
@@ -86,7 +86,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     }
 
     @Input
-    public boolean isWarnUnusedDeclared() {
+    public Boolean getWarnUnusedDeclared() {
         return warnUnusedDeclared;
     }
 
@@ -95,7 +95,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     }
 
     @Input
-    public boolean isWarnCompileOnly() {
+    public Boolean getWarnCompileOnly() {
         return warnCompileOnly;
     }
 
@@ -104,7 +104,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     }
 
     @Input
-    public boolean isLogDependencyInformationToFiles() {
+    public Boolean getLogDependencyInformationToFiles() {
         return logDependencyInformationToFiles;
     }
 
