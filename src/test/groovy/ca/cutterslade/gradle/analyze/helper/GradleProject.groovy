@@ -211,7 +211,7 @@ class GradleProject {
         }
 
         if (justWarn || warnUsedUndeclared || warnUnusedDeclared || logDependencyInformationToFiles || warnCompileOnly) {
-            buildGradle += "analyzeClassesDependencies {\n" +
+            buildGradle += "tasks.named('analyzeClassesDependencies').configure {\n" +
                     (justWarn ? "  justWarn = ${justWarn}\n" : "") +
                     (warnCompileOnly ? "  warnCompileOnly = ${warnCompileOnly}\n" : "") +
                     (warnUsedUndeclared ? "  warnUsedUndeclared = ${warnUsedUndeclared}\n" : "") +
