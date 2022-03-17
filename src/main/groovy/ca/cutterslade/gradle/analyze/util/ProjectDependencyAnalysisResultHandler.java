@@ -28,6 +28,9 @@ public final class ProjectDependencyAnalysisResultHandler {
         final Set<ResolvedArtifact> possiblyUnusedCompileOnlyArtifacts = result.getPossiblyUnusedCompileOnlyArtifacts();
 
         final String compileOnlyViolations = warnCompileOnly ? getArtifactSummary("compileOnlyDeclaredArtifacts", possiblyUnusedCompileOnlyArtifacts) : "";
+        if (!warnCompileOnly) {
+            usedUndeclaredArtifacts.removeAll(possiblyUnusedCompileOnlyArtifacts);
+        }
         final String usedUndeclaredViolations = getArtifactSummary("usedUndeclaredArtifacts", usedUndeclaredArtifacts);
         final String unusedDeclaredViolations = getArtifactSummary("unusedDeclaredArtifacts", unusedDeclaredArtifacts);
 

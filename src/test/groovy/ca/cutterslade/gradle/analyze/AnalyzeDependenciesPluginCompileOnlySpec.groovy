@@ -6,7 +6,7 @@ import spock.lang.Unroll
 
 class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPluginBaseSpec {
     @Unroll
-    def 'build with compileOnly dependency not needed in runtime and warnCompileOnly #warnCompileOnly'(boolean warnCompileOnly, compileOnlyArtifacts) {
+    def 'build with compileOnly dependency not needed in runtime and warnCompileOnly #warnCompileOnly'() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -29,7 +29,7 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
     }
 
     @Unroll
-    def 'build with compileOnly dependency needed also in runtime and warnCompileOnly #warnCompileOnly'(boolean warnCompileOnly, compileOnlyArtifacts) {
+    def 'build with compileOnly dependency needed also in runtime and warnCompileOnly #warnCompileOnly'() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -39,19 +39,19 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
                 .create(projectDir)
 
         when:
-        def result = buildGradleProject(VIOLATIONS)
+        def result = buildGradleProject(buildResult)
 
         then:
-        assertBuildResult(result, VIOLATIONS, ['org.projectlombok:lombok:1.18.22@jar'], [], compileOnlyArtifacts)
+        assertBuildResult(result, buildResult, usedUndeclaredArtifacts, [], compileOnlyArtifacts)
 
         where:
-        warnCompileOnly | compileOnlyArtifacts
-        true            | ['org.projectlombok:lombok:1.18.22@jar']
-        false           | []
+        warnCompileOnly | buildResult | usedUndeclaredArtifacts                  | compileOnlyArtifacts
+        true            | VIOLATIONS  | ['org.projectlombok:lombok:1.18.22@jar'] | ['org.projectlombok:lombok:1.18.22@jar']
+        false           | SUCCESS     | []                                       | []
     }
 
     @Unroll
-    def 'build with compileOnly dependency needed also in runtime and compileOnly and warnCompileOnly #warnCompileOnly'(boolean warnCompileOnly, compileOnlyArtifacts) {
+    def 'build with compileOnly dependency needed also in runtime and compileOnly and warnCompileOnly #warnCompileOnly'() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -61,19 +61,19 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
                 .create(projectDir)
 
         when:
-        def result = buildGradleProject(VIOLATIONS)
+        def result = buildGradleProject(buildResult)
 
         then:
-        assertBuildResult(result, VIOLATIONS, ['org.projectlombok:lombok:1.18.22@jar'], [], compileOnlyArtifacts)
+        assertBuildResult(result, buildResult, usedUndeclaredArtifacts, [], compileOnlyArtifacts)
 
         where:
-        warnCompileOnly | compileOnlyArtifacts
-        true            | ['org.projectlombok:lombok:1.18.22@jar']
-        false           | []
+        warnCompileOnly | buildResult | usedUndeclaredArtifacts                  | compileOnlyArtifacts
+        true            | VIOLATIONS  | ['org.projectlombok:lombok:1.18.22@jar'] | ['org.projectlombok:lombok:1.18.22@jar']
+        false           | SUCCESS     | []                                       | []
     }
 
     @Unroll
-    def 'build with compileOnly dependency needed also in implementation and compileOnly and warnCompileOnly #warnCompileOnly'(boolean warnCompileOnly, compileOnlyArtifacts) {
+    def 'build with compileOnly dependency needed also in implementation and compileOnly and warnCompileOnly #warnCompileOnly'() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -95,7 +95,7 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
     }
 
     @Unroll
-    def 'build with compileOnly dependency needed in runtime and compileOnly and warnCompileOnly #warnCompileOnly'(boolean warnCompileOnly, compileOnlyArtifacts) {
+    def 'build with compileOnly dependency needed in runtime and compileOnly and warnCompileOnly #warnCompileOnly'() {
         setup:
         rootProject()
                 .withMavenRepositories()
