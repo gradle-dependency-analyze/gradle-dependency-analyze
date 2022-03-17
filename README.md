@@ -241,7 +241,7 @@ starter and *trust* the dependencies declared in that place. As this might be ag
 still think it might be a good addition. As a benefit to still have a clean and small classpath the plugin tries to
 optimize the aggregator usage by picking the one with the smallest overhead (less transitive dependencies).
 
-_Example how to use:_
+*Example how to use:*
 
 ```gradle
 dependencies {
@@ -255,7 +255,7 @@ With that configuration the plugin will not "complain" about unused declared dep
 also not about used undeclared dependencies for example when the code uses a class from `spring-core` which is a
 dependency of the starter.
 
-_Example for the optimization when a smaller aggregator is a better fit:_
+*Example for the optimization when a smaller aggregator is a better fit:*
 
 ```gradle
 dependencies {
@@ -271,7 +271,7 @@ have been declared the plugin will inform about the change that should be done t
 of `spring-boot-starter-web`. This optimization will only work when **multiple** `permitAggregatorUse` dependencies are
 declared for one gradle project.
 
-_Example how to use with platform plugin:_
+*Example how to use with platform plugin:*
 
 As this feature makes the most sense when used together with the `platform-plugin` the following example shows haw this
 can be achieved:
