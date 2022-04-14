@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v3.0.1
       - uses: gradle-update/update-gradle-wrapper-action@v1.0.17
         with:
           labels: gradle, dependencies, patch
