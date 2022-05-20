@@ -47,7 +47,7 @@ jobs:
             report
             automerge
       - name: Upload JaCoCo coverage report
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: jacoco-report
           path: build/reports/jacoco/test/html
