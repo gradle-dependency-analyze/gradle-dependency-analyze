@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3.0.2
-      - uses: gradle-update/update-gradle-wrapper-action@v1.0.17
+      - uses: gradle-update/update-gradle-wrapper-action@v1.0.18
         with:
           labels: gradle, dependencies, patch
           reviewers: bigmichi1
