@@ -19,7 +19,7 @@ dependencies {
         exclude group: 'org.apache.maven'
     }
 
-    testImplementation('org.spockframework:spock-core:2.2-groovy-3.0') {
+    testImplementation('org.spockframework:spock-core:2.3-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4'
