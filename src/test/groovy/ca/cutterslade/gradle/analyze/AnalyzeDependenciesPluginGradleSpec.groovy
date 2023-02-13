@@ -132,7 +132,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
     }
 
 
-    static List<Tuple2<GradleVersion, String>> determineMinorVersions(minVersion = '5.0', maxVersion = '8.0', expectedResult = SUCCESS) {
+    static List<Tuple2<GradleVersion, String>> determineMinorVersions(String minVersion = '5.0', String maxVersion = '9.0', String expectedResult = SUCCESS) {
         try {
             def serviceUrl = new URL("https://services.gradle.org/versions/all")
             def versions = new ObjectMapper().readValue(serviceUrl, JsonNode.class)
