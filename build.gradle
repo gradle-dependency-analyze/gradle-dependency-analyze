@@ -31,20 +31,17 @@ tasks.named('publishPlugins') {
 }
 
 gradlePlugin {
+    website = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
+    vcsUrl = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze.git'
     plugins {
         dependencyAnalyze {
             id = 'ca.cutterslade.analyze'
             displayName = 'Gradle Dependency Analyze'
             description = 'Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality of the maven dependency plugin\'s analyze goals which fail the build if dependencies are declared but not used or used but not declared.'
+            tags.addAll('dependency', 'verification', 'analyze')
             implementationClass = 'ca.cutterslade.gradle.analyze.AnalyzeDependenciesPlugin'
         }
     }
-}
-
-pluginBundle {
-    website = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
-    vcsUrl = 'https://github.com/gradle-dependency-analyze/gradle-dependency-analyze'
-    tags = ['dependency', 'verification', 'analyze']
 }
 
 java {
