@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '1.2.0'
     id 'jacoco'
-    id 'pl.droidsonroids.jacoco.testkit' version '1.0.9'
+    id 'pl.droidsonroids.jacoco.testkit' version '1.0.11'
 }
 
 group = 'ca.cutterslade.gradle'
