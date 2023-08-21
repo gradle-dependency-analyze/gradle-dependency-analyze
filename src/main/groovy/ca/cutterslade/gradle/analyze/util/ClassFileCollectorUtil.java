@@ -3,16 +3,18 @@ package ca.cutterslade.gradle.analyze.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-
-import org.codehaus.plexus.util.DirectoryScanner;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class ClassFileCollectorUtil {
     private static final String classSuffix = ".class";
-    private static final String[] CLASS_INCLUDES = {"**/*" + classSuffix};
 
     private ClassFileCollectorUtil() {
     }
@@ -43,14 +45,17 @@ public final class ClassFileCollectorUtil {
     }
 
     private static void collectFromDirectory(final File directory, final Set<String> classFiles) {
-        final DirectoryScanner scanner = new DirectoryScanner();
-        scanner.setBasedir(directory);
-        scanner.setIncludes(CLASS_INCLUDES);
-        scanner.scan();
+        List<Path> classes;
+        try (Stream<Path> walk = Files.walk(directory.toPath())) {
+            classes = walk.filter(path -> path.getFileName().toString().endsWith(classSuffix))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    String.format("%s from directory = %s", e.getMessage(), directory), e);
+        }
 
-        for (String path : scanner.getIncludedFiles()) {
-            path = path.replace(File.separatorChar, '/');
-            addToClassFilesIfMatches(path, classFiles);
+        for (final Path path : classes) {
+            addToClassFilesIfMatches(path.toString().replace(File.separatorChar, '/'), classFiles);
         }
     }
 
