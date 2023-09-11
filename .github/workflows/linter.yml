@@ -6,16 +6,27 @@ on:
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      statuses: write  # for github/super-linter to mark status of each linter run
     name: Lint Code Base
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4.0.0
+      - name: Harden Runner
+        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09 # v2.5.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           fetch-depth: 0
-      - uses: github/super-linter@v5.0.0
+      - uses: github/super-linter@45fc0d88288beee4701c62761281edfee85655d7 # v5.0.0
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: master
