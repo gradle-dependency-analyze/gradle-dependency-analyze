@@ -1,0 +1,18 @@
+# .kodiak.toml
+# Minimal config. version is the only required field.
+version = 1
+
+[update]
+always = true # default: false
+require_automerge_label = false # default: true
+ignored_usernames = ["dependabot"]
+
+[merge.automerge_dependencies]
+# auto merge all PRs opened by "dependabot" that are "minor" or "patch" version upgrades. "major" version upgrades will be ignored.
+versions = ["minor", "patch"]
+usernames = ["dependabot"]
+
+[approve]
+# note: remove the "[bot]" suffix from GitHub Bot usernames.
+# Instead of "dependabot[bot]" use "dependabot".
+auto_approve_usernames = ["dependabot"]
