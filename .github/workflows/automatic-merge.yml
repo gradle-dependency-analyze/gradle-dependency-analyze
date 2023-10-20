@@ -11,6 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: nucleos/auto-merge-action@1.3.0
+      - name: Harden Runner
+        uses: step-security/harden-runner@1b05615854632b887b69ae1be8cbefe72d3ae423 # v2.6.0
+        with:
+          egress-policy: audit
+
+      - uses: nucleos/auto-merge-action@7f954e4bc71c78f231bd0901d0b9b01d3b7b9505 # 1.3.0
         env:
           "GITHUB_TOKEN": ${{ secrets.GRADLE_UPDATE_PAT }}
