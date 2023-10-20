@@ -5431,6 +5431,7 @@ dependencyClasses
 - groovy.transform.Generated
 - groovy.transform.Internal
 - java.beans.Transient
+- java.lang.Class
 - java.lang.Object
 - java.lang.String
 - java.lang.ref.SoftReference
