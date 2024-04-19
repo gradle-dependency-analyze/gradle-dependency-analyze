@@ -23,7 +23,7 @@ dependencies {
         exclude group: 'org.codehaus.groovy'
     }
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
-    testImplementation 'org.apache.commons:commons-text:1.11.0'
+    testImplementation 'org.apache.commons:commons-text:1.12.0'
 }
 
 tasks.named('publishPlugins') {
