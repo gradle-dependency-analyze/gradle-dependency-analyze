@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation('org.apache.maven.shared:maven-dependency-analyzer:1.14.0') {
+    implementation('org.apache.maven.shared:maven-dependency-analyzer:1.14.1') {
         exclude group: 'org.apache.maven'
     }
 
