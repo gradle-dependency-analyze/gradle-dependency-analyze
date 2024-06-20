@@ -18,4 +18,4 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: gradle/actions/wrapper-validation@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
+      - uses: gradle/actions/wrapper-validation@dbbdc275be76ac10734476cc723d82dfe7ec6eda # v3.4.2
