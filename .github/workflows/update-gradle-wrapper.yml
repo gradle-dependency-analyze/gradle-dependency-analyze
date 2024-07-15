@@ -5,9 +5,13 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions: { }
+
 jobs:
   update-gradle-wrapper:
     runs-on: ubuntu-latest
+
+    permissions: write-all
 
     steps:
       - name: Harden Runner

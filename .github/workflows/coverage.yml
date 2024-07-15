@@ -5,10 +5,13 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
+permissions: { }
+
 jobs:
   badge:
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions: write-all
 
     steps:
       - name: Harden Runner
