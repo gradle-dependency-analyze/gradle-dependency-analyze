@@ -1,0 +1,12 @@
+plugins {
+    id 'java-library'
+    id 'ca.cutterslade.analyze'
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+defaultTasks = ['build']

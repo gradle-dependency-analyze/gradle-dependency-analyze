@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+    id 'ca.cutterslade.analyze'
+}
+
+dependencies {
+    api libs.commons.math3
+
+    implementation(platform(project(":platform")))
+    implementation libs.jakarta.annotation.api
+}

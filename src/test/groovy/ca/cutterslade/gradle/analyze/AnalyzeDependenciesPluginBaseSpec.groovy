@@ -10,6 +10,8 @@ import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import java.lang.management.ManagementFactory
+
 abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     protected static final def SUCCESS = 'success'
     protected static final def BUILD_FAILURE = 'build failure'
@@ -19,6 +21,8 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
 
     @TempDir
     public File projectDir
+
+    def runtimeMXBean = ManagementFactory.getRuntimeMXBean()
 
     protected static GradleProject rootProject() {
         new GradleProject('project', true)
@@ -44,12 +48,16 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 it.write(getClass().classLoader.getResourceAsStream('testkit-gradle.properties').getBytes())
             }
         }
-        GradleRunner.create()
-                //.withDebug(true)
+        def runner = GradleRunner.create()
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .forwardOutput()
                 .withArguments("--stacktrace")
+
+        if (runtimeMXBean.inputArguments.any { it.startsWith('-agentlib:jdwp=') }) {
+            runner.withDebug(true)
+        }
+        runner
     }
 
     protected static void assertBuildSuccess(BuildResult result) {
