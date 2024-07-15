@@ -20,7 +20,7 @@ Using the plugin DSL:
 
 ```gradle
 plugins {
-  id "ca.cutterslade.analyze" version "1.9.2"
+  id "ca.cutterslade.analyze" version "1.10.0"
 }
 ```
 
@@ -34,7 +34,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.9.2"
+    classpath "ca.cutterslade.gradle:gradle-dependency-analyze:1.10.0"
   }
 }
 
@@ -73,9 +73,9 @@ were found, similar to the following:
 * What went wrong:
 Execution failed for task ':analyzeClassesDependencies'.
 > Dependency analysis found issues.
-  usedUndeclaredArtifacts: 
+  usedUndeclaredArtifacts:
    - ch.qos.logback:logback-core:1.2.3@jar
-  unusedDeclaredArtifacts: 
+  unusedDeclaredArtifacts:
    - com.google.guava:guava:25.1-jre@jar
    - commons-io:commons-io:2.5@jar
    - commons-lang:commons-lang:2.4@jar
@@ -353,6 +353,10 @@ Users of the `java-library` plugin no longer need to configure custom tasks, and
 as practical.
 
 ## Changelog
+
+### Version 1.10.0
+
+Switch from Plexus DirectoryScanner to our own implementation for finding class files
 
 ### Version 1.9.0
 
