@@ -46,16 +46,17 @@ public final class ClassFileCollectorUtil {
 
     private static void collectFromDirectory(final File directory, final Set<String> classFiles) {
         List<Path> classes;
-        try (Stream<Path> walk = Files.walk(directory.toPath())) {
+        final Path directoryPath = directory.toPath();
+        try (Stream<Path> walk = Files.walk(directoryPath)) {
             classes = walk.filter(path -> path.getFileName().toString().endsWith(classSuffix))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(
-                    String.format("%s from directory = %s", e.getMessage(), directory), e);
+                    String.format("%s from directory = %s", e.getMessage(), directoryPath), e);
         }
 
         for (final Path path : classes) {
-            addToClassFilesIfMatches(path.toString().replace(File.separatorChar, '/'), classFiles);
+            addToClassFilesIfMatches(directoryPath.relativize(path).toString().replace(File.separatorChar, '/'), classFiles);
         }
     }
 

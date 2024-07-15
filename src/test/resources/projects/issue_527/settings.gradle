@@ -1,0 +1,10 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'gradle-dependency-analyze-bug-report'
+include "platform"
+include 'lib'
+include 'libother'
