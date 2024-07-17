@@ -41,7 +41,15 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     @Optional
     @OutputFile
     public Path getLogFilePath() {
-        return logDependencyInformationToFiles ? getProject().getBuildDir().toPath().resolve(DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME).resolve(getName() + ".log") : null;
+        if (logDependencyInformationToFiles) {
+            final Path path = getProject().getLayout().getBuildDirectory()
+                    .dir("reports").get().getAsFile().toPath()
+                    .resolve("dependency-analyze")
+                    .resolve(getName() + ".log");
+            getLogger().info("Writing dependency-analyze log to {}", path);
+            return path;
+        }
+        return null;
     }
 
     @TaskAction
