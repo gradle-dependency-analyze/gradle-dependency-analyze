@@ -1,5 +1,11 @@
 package ca.cutterslade.gradle.analyze.util;
 
+import ca.cutterslade.gradle.analyze.util.JavaUtil.LinkedHashSetValuedLinkedHashMap;
+import org.apache.commons.collections4.MapIterator;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.logging.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -33,7 +39,6 @@ public final class ClassFileCollectorUtil {
         return classFiles;
     }
 
-
     private static void collectFormJar(final File jarFile, final Set<String> classFiles) throws IOException {
         try (final FileInputStream fis = new FileInputStream(jarFile);
              final JarInputStream jis = new JarInputStream(fis)) {
@@ -64,5 +69,39 @@ public final class ClassFileCollectorUtil {
         if (fullQualifiedName.endsWith(classSuffix) && fullQualifiedName.indexOf('-') == -1) {
             classFiles.add(fullQualifiedName.substring(0, fullQualifiedName.length() - classSuffix.length()).replace('/', '.'));
         }
+    }
+
+    /**
+     * Map each of the files declared on all configurations of the project to a collection of the class names they
+     * contain.
+     *
+     * @return a Map of files to their classes
+     * @throws IOException
+     */
+    public static MultiValuedMap<ComponentIdentifier, String> buildArtifactClassMap(final Logger logger,
+                                                                                    final MultiValuedMap<ComponentIdentifier, String> cache,
+                                                                                    final MultiValuedMap<ComponentIdentifier, File> dependencyArtifacts) throws IOException {
+        final MultiValuedMap<ComponentIdentifier, String> artifactClassMap = new LinkedHashSetValuedLinkedHashMap<>();
+
+        int hits = 0;
+        int misses = 0;
+
+        final MapIterator<ComponentIdentifier, File> iterator = dependencyArtifacts.mapIterator();
+        while (iterator.hasNext()) {
+            final ComponentIdentifier identifier = iterator.next();
+            final File file = iterator.getValue();
+            if (cache.containsKey(identifier)) {
+                logger.debug("Artifact class cache hit for {}", file);
+                hits++;
+            } else {
+                logger.debug("Artifact class cache miss for {}", file);
+                misses++;
+                final Set<String> classes = collectFromFile(file);
+                cache.putAll(identifier, classes);
+            }
+            artifactClassMap.putAll(identifier, cache.get(identifier));
+        }
+        logger.info("Built artifact class map with {} hits and {} misses; cache size is {}", hits, misses, cache.size());
+        return artifactClassMap;
     }
 }

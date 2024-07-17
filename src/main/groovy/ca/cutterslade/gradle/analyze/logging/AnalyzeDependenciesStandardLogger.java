@@ -1,11 +1,9 @@
 package ca.cutterslade.gradle.analyze.logging;
 
-import java.io.File;
+import org.gradle.api.logging.Logger;
+
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
-
-import org.gradle.api.logging.Logger;
 
 public class AnalyzeDependenciesStandardLogger extends AnalyzeDependenciesLogger {
     private final Logger logger;
@@ -21,11 +19,11 @@ public class AnalyzeDependenciesStandardLogger extends AnalyzeDependenciesLogger
 
     @Override
     public void info(final String title, final Collection<?> files) {
-        logger.info(title + " = " + files);
+        logger.info("{} = {}", title, files);
     }
 
     @Override
-    public void info(final String title, final Map<File, Set<String>> fileMap) {
-        logger.info(title + " = " + fileMap);
+    public void info(final String title, final Map<?, ? extends Collection<?>> fileMap) {
+        logger.info("{} = {}", title, fileMap);
     }
 }

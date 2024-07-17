@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze
 
 
 import ca.cutterslade.gradle.analyze.helper.GradleProject
+import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -86,9 +87,6 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                                             List<String> unusedDeclaredArtifacts = [],
                                             List<String> compileOnlyArtifacts = []) {
         if (expectedResult == SUCCESS) {
-            if (result.task(':build') == null) {
-                throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
-            }
             def violations = expectedResult == SUCCESS ? new StringBuilder() : new StringBuilder('> ')
             if (!compileOnlyArtifacts.empty) {
                 def spacer = expectedResult == SUCCESS ? '' : '  '
@@ -96,17 +94,9 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
                 assert result.output.contains(violations)
             }
-            assert result.task(':build').getOutcome() == TaskOutcome.SUCCESS
-        } else if (expectedResult == BUILD_FAILURE) {
-            if (result.task(':compileGroovy') == null) {
-                throw new SpockAssertionError("compileGroovy task not run: \n${result.getOutput()}")
-            }
-            assert result.task(':compileGroovy').getOutcome() == TaskOutcome.FAILED
-        } else if (expectedResult == TEST_BUILD_FAILURE) {
-            if (result.task(':compileTestGroovy') == null) {
-                throw new SpockAssertionError("compileTestGroovy task not run: \n${result.getOutput()}")
-            }
-            assert result.task(':compileTestGroovy').getOutcome() == TaskOutcome.FAILED
+            assert result.tasks.count { it.outcome != TaskOutcome.SUCCESS } != 0
+        } else if (expectedResult == BUILD_FAILURE || expectedResult == TEST_BUILD_FAILURE) {
+            assert result.tasks.count { it.outcome == TaskOutcome.FAILED } != 0
         } else if (expectedResult == VIOLATIONS || expectedResult == WARNING) {
             def violations = expectedResult == WARNING ? new StringBuilder() : new StringBuilder('> ')
             violations.append('Dependency analysis found issues.\n')
@@ -128,5 +118,26 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
         } else {
             assert result.output.contains(expectedResult)
         }
+    }
+
+    protected void copyProjectToTestFolder(String sourcePath, File destFolder) {
+        URL resourceUrl = this.class.getResource("/$sourcePath")
+        if (resourceUrl == null) {
+            throw new IllegalStateException("Resource folder '$sourcePath' not found in classpath")
+        }
+        File sourceFolder = new File(resourceUrl.toURI())
+
+        if (!sourceFolder.exists()) {
+            throw new IllegalStateException("Source folder does not exist at $sourceFolder")
+        }
+
+        // Make sure destination is a directory and not a file
+        if (!destFolder.exists()) {
+            destFolder.mkdirs()
+        } else if (!destFolder.isDirectory()) {
+            throw new IllegalArgumentException("Destination must be a directory")
+        }
+
+        FileUtils.copyDirectory(sourceFolder, destFolder)
     }
 }

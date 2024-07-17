@@ -24,7 +24,7 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
 
         where:
         warnCompileOnly | compileOnlyArtifacts
-        true            | ['org.projectlombok:lombok:1.18.22@jar']
+        true            | ['org.projectlombok:lombok:1.18.22']
         false           | []
     }
 
@@ -45,9 +45,9 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
         assertBuildResult(result, buildResult, usedUndeclaredArtifacts, [], compileOnlyArtifacts)
 
         where:
-        warnCompileOnly | buildResult | usedUndeclaredArtifacts                  | compileOnlyArtifacts
-        true            | VIOLATIONS  | ['org.projectlombok:lombok:1.18.22@jar'] | ['org.projectlombok:lombok:1.18.22@jar']
-        false           | SUCCESS     | []                                       | []
+        warnCompileOnly | buildResult | usedUndeclaredArtifacts              | compileOnlyArtifacts
+        true            | VIOLATIONS  | ['org.projectlombok:lombok:1.18.22'] | ['org.projectlombok:lombok:1.18.22']
+        false           | SUCCESS     | []                                   | []
     }
 
     @Unroll
@@ -67,9 +67,9 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
         assertBuildResult(result, buildResult, usedUndeclaredArtifacts, [], compileOnlyArtifacts)
 
         where:
-        warnCompileOnly | buildResult | usedUndeclaredArtifacts                  | compileOnlyArtifacts
-        true            | VIOLATIONS  | ['org.projectlombok:lombok:1.18.22@jar'] | ['org.projectlombok:lombok:1.18.22@jar']
-        false           | SUCCESS     | []                                       | []
+        warnCompileOnly | buildResult | usedUndeclaredArtifacts              | compileOnlyArtifacts
+        true            | VIOLATIONS  | ['org.projectlombok:lombok:1.18.22'] | ['org.projectlombok:lombok:1.18.22']
+        false           | SUCCESS     | []                                   | []
     }
 
     @Unroll
@@ -113,7 +113,7 @@ class AnalyzeDependenciesPluginCompileOnlySpec extends AnalyzeDependenciesPlugin
 
         where:
         warnCompileOnly | compileOnlyArtifacts
-        true            | ['org.projectlombok:lombok:1.18.22@jar']
+        true            | ['org.projectlombok:lombok:1.18.22']
         false           | []
     }
 }

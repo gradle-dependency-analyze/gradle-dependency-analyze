@@ -1,9 +1,9 @@
 package ca.cutterslade.gradle.analyze
 
-import ca.cutterslade.gradle.analyze.helper.DisplayVisitor
+
 import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
-import org.apache.commons.text.diff.StringsComparator
+import com.github.difflib.DiffUtils
 
 import static ca.cutterslade.gradle.analyze.AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME
 
@@ -35,10 +35,16 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         when:
         def result = buildGradleProject(VIOLATIONS)
+        def files = getFileContent('analyzeClassesDependencies.log', 'analyzeClassesDependencies.log')
 
         then:
-        assertBuildResult(result, VIOLATIONS, [], ['org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar'])
-        assertLogFile(projectDir, 'analyzeClassesDependencies.log', 'analyzeClassesDependencies.log')
+        assertBuildResult(result, VIOLATIONS, [], ['org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'])
+        if (files.v1 != files.v2) {
+            println "Files differ:\n" + generateDiff(files.v1, files.v2)
+        }
+
+        files.v1 == files.v2
+
     }
 
     def 'simple build with unused dependencies results in success when justWarn'() {
@@ -55,10 +61,15 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         when:
         def result = buildGradleProject(SUCCESS)
+        def files = getFileContent('analyzeClassesDependencies.log', 'analyzeClassesDependencies.log')
 
         then:
         assertBuildSuccess(result)
-        assertLogFile(projectDir, 'analyzeClassesDependencies.log', 'analyzeClassesDependencies.log')
+        if (files.v1 != files.v2) {
+            println "Files differ:\n" + generateDiff(files.v1, files.v2)
+        }
+
+        files.v1 == files.v2
     }
 
     def 'build with dependency declared in config and used in build'() {
@@ -80,28 +91,25 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
         when:
         def result = buildGradleProject(SUCCESS)
+        def files = getFileContent('complex_analyzeDependencies.log', 'analyzeClassesDependencies.log')
 
         then:
         assertBuildSuccess(result)
-        assertLogFile(projectDir, 'complex_analyzeDependencies.log', 'analyzeClassesDependencies.log')
-    }
-
-    private static void assertLogFile(final File projectDir,
-                                      final String fileWithExpectedContent,
-                                      final String fileName) {
-        def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/$fileName").text
-        def expected = getClass().getResource('/' + fileWithExpectedContent).text
-        StringsComparator comparator = new StringsComparator(actual, expected)
-
-        def script = comparator.getScript()
-
-        if (script.modifications != 0) {
-            def visitor = new DisplayVisitor()
-            script.visit(visitor)
-            System.err.println visitor.left
-            System.err.println visitor.right
+        if (files.v1 != files.v2) {
+            println "Files differ:\n" + generateDiff(files.v1, files.v2)
         }
 
-        assert script.modifications == 0
+        files.v1 == files.v2
+    }
+
+    Tuple2<String, String> getFileContent(String fileWithExpectedContent, String fileName) {
+        def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/$fileName").text
+        def expected = getClass().getResource('/' + fileWithExpectedContent).text
+        new Tuple2<>(actual, expected)
+    }
+
+    String generateDiff(String content1, String content2) {
+        def diff = DiffUtils.diff(content1.readLines(), content2.readLines())
+        return diff.getDeltas().join("\n")
     }
 }

@@ -1,17 +1,17 @@
 package ca.cutterslade.gradle.analyze.util;
 
+import ca.cutterslade.gradle.analyze.DependencyAnalysisException;
+import ca.cutterslade.gradle.analyze.ProjectDependencyAnalysisResult;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.logging.Logger;
+
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.logging.Logger;
-
-import ca.cutterslade.gradle.analyze.DependencyAnalysisException;
-import ca.cutterslade.gradle.analyze.ProjectDependencyAnalysisResult;
 
 public final class ProjectDependencyAnalysisResultHandler {
     private ProjectDependencyAnalysisResultHandler() {
@@ -23,9 +23,9 @@ public final class ProjectDependencyAnalysisResultHandler {
                                         final boolean warnCompileOnly,
                                         final Path logFilePath,
                                         final Logger logger) throws IOException {
-        final Set<ResolvedArtifact> usedUndeclaredArtifacts = result.getUsedUndeclaredArtifacts();
-        final Set<ResolvedArtifact> unusedDeclaredArtifacts = result.getUnusedDeclaredArtifacts();
-        final Set<ResolvedArtifact> possiblyUnusedCompileOnlyArtifacts = result.getPossiblyUnusedCompileOnlyArtifacts();
+        final Set<ComponentIdentifier> usedUndeclaredArtifacts = result.getUsedUndeclaredArtifacts();
+        final Set<ComponentIdentifier> unusedDeclaredArtifacts = result.getUnusedDeclaredArtifacts();
+        final Set<ComponentIdentifier> possiblyUnusedCompileOnlyArtifacts = result.getPossiblyUnusedCompileOnlyArtifacts();
 
         final String compileOnlyViolations = warnCompileOnly ? getArtifactSummary("compileOnlyDeclaredArtifacts", possiblyUnusedCompileOnlyArtifacts) : "";
         if (!warnCompileOnly) {
@@ -39,7 +39,9 @@ public final class ProjectDependencyAnalysisResultHandler {
         if (!combinedViolations.isEmpty()) {
             if (logFilePath != null) {
                 Files.createDirectories(logFilePath.getParent());
-                Files.newBufferedWriter(logFilePath).append(combinedViolations.concat(compileOnlyViolations)).close();
+                try (final Writer w = Files.newBufferedWriter(logFilePath)) {
+                    w.append(combinedViolations.concat(compileOnlyViolations));
+                }
             }
 
             if (!warnUsedUndeclared && !warnUnusedDeclared) {
@@ -69,14 +71,11 @@ public final class ProjectDependencyAnalysisResultHandler {
     }
 
     private static String getArtifactSummary(final String sectionName,
-                                             final Set<ResolvedArtifact> resolvedArtifacts) {
+                                             final Set<ComponentIdentifier> resolvedArtifacts) {
         if (!resolvedArtifacts.isEmpty()) {
             return resolvedArtifacts.stream()
-                    .sorted(Comparator.comparing(resolvedArtifact -> resolvedArtifact.getModuleVersion().getId().toString()))
-                    .map(resolvedArtifact -> " - "
-                            + resolvedArtifact.getModuleVersion().getId()
-                            + (resolvedArtifact.getClassifier() != null ? ":" + resolvedArtifact.getClassifier() : "") + "@"
-                            + resolvedArtifact.getExtension())
+                    .sorted(Comparator.comparing(ComponentIdentifier::getDisplayName))
+                    .map(resolvedArtifact -> " - " + resolvedArtifact.getDisplayName())
                     .collect(Collectors.joining("\n", sectionName + "\n", "")) + "\n";
         } else {
             return "";

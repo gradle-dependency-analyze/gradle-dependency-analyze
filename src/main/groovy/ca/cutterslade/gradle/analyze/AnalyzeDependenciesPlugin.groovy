@@ -1,13 +1,12 @@
 package ca.cutterslade.gradle.analyze
 
 import ca.cutterslade.gradle.analyze.util.GradleVersionUtil
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.GradleVersion
-
-import java.util.concurrent.ConcurrentHashMap
 
 import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.configureApiHelperConfiguration
 
@@ -15,13 +14,13 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
     @Override
     void apply(final Project project) {
         if (project.rootProject == project) {
-            project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new ConcurrentHashMap<>())
+            project.rootProject.extensions.add(ProjectDependencyResolver.CACHE_NAME, new HashSetValuedHashMap<>())
         }
 
         project.plugins.withId('java') {
             def commonTask = project.tasks.register('analyzeDependencies') {
-                group 'Verification'
-                description 'Analyze project for dependency issues.'
+                group = 'Verification'
+                description = 'Analyze project for dependency issues.'
             }
 
             project.tasks.named('check').configure {
@@ -30,32 +29,32 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
 
             project.sourceSets.all { SourceSet sourceSet ->
                 project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared')) {
-                    canBeConsumed = false
-                    canBeResolved = true
+                    it.canBeConsumed = false
+                    it.canBeResolved = true
                 }
                 project.configurations.create(sourceSet.getTaskName('permit', 'usedUndeclared')) {
-                    canBeConsumed = false
-                    canBeResolved = true
+                    it.canBeConsumed = false
+                    it.canBeResolved = true
                 }
                 project.configurations.create(sourceSet.getTaskName('permit', 'aggregatorUse')) {
-                    canBeConsumed = false
-                    canBeResolved = true
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
+                    it.canBeConsumed = false
+                    it.canBeResolved = true
+                    it.attributes {
+                        it.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
                     }
                 }
                 project.configurations.create(sourceSet.getTaskName('apiHelper', '')) {
-                    canBeConsumed = false
-                    canBeResolved = true
+                    it.canBeConsumed = false
+                    it.canBeResolved = true
                 }
                 project.configurations.create(sourceSet.getTaskName('compileOnlyHelper', '')) {
-                    canBeConsumed = false
-                    canBeResolved = true
+                    it.canBeConsumed = false
+                    it.canBeResolved = true
                 }
 
                 def analyzeTask = project.tasks.register(sourceSet.getTaskName('analyze', 'classesDependencies'), AnalyzeDependenciesTask) {
-                    group 'Verification'
-                    description "Analyze project for dependency issues related to ${sourceSet.name} source set."
+                    group = 'Verification'
+                    description = "Analyze project for dependency issues related to ${sourceSet.name} source set."
 
                     doFirst {
                         final def configuration = project.configurations.findByName("providedRuntime")

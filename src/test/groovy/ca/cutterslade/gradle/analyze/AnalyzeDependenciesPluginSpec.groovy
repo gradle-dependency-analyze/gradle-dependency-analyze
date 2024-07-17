@@ -62,9 +62,9 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult | usedUndeclaredArtifacts               | unusedDeclaredArtifacts
-        'implementation' | VIOLATIONS     | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
-        'runtimeOnly'    | BUILD_FAILURE  | []                                    | []
+        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        'implementation' | VIOLATIONS     | ['project :transient']  | ['project :dependent']
+        'runtimeOnly'    | BUILD_FAILURE  | []                      | []
     }
 
     @Unroll
@@ -85,7 +85,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        'implementation' | VIOLATIONS     | []                      | ['project:independent:unspecified@jar']
+        'implementation' | VIOLATIONS     | []                      | ['project :independent']
         'runtimeOnly'    | SUCCESS        | []                      | []
     }
 
@@ -131,7 +131,7 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
 
         where:
         configuration        | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        'testImplementation' | VIOLATIONS     | []                      | ['project:dependent:unspecified@jar']
+        'testImplementation' | VIOLATIONS     | []                      | ['project :dependent']
         'testRuntimeOnly'    | SUCCESS        | []                      | []
     }
 
@@ -157,8 +157,8 @@ class AnalyzeDependenciesPluginSpec extends AnalyzeDependenciesPluginBaseSpec {
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration        | expectedResult     | usedUndeclaredArtifacts               | unusedDeclaredArtifacts
-        'testImplementation' | VIOLATIONS         | ['project:transient:unspecified@jar'] | ['project:dependent:unspecified@jar']
-        'testRuntimeOnly'    | TEST_BUILD_FAILURE | []                                    | []
+        configuration        | expectedResult     | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        'testImplementation' | VIOLATIONS         | ['project :transient']  | ['project :dependent']
+        'testRuntimeOnly'    | TEST_BUILD_FAILURE | []                      | []
     }
 }

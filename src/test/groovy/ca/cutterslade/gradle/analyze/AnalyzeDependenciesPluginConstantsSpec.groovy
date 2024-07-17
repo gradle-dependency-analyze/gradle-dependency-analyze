@@ -34,6 +34,6 @@ class AnalyzeDependenciesPluginConstantsSpec extends AnalyzeDependenciesPluginBa
 
         where:
         expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        WARNING        | []                      | ["project:bar:unspecified@jar"]
+        WARNING        | []                      | ["project :bar"]
     }
 }
