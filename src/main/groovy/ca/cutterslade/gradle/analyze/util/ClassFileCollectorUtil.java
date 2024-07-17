@@ -75,8 +75,11 @@ public final class ClassFileCollectorUtil {
      * Map each of the files declared on all configurations of the project to a collection of the class names they
      * contain.
      *
+     * @param logger              logger
+     * @param cache               cache for file to containing classes that were found and have been analyzed
+     * @param dependencyArtifacts component identifiers for dependencies with their file locations
      * @return a Map of files to their classes
-     * @throws IOException
+     * @throws IOException file could not be analyzed for class files
      */
     public static MultiValuedMap<ComponentIdentifier, String> buildArtifactClassMap(final Logger logger,
                                                                                     final MultiValuedMap<ComponentIdentifier, String> cache,
