@@ -189,8 +189,4 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     public void setClassesDirs(final FileCollection classesDirs) {
         this.classesDirs = classesDirs;
     }
-
-    public void setClassesDir(final File classesDir) {
-        this.classesDirs = getProject().files(classesDir);
-    }
 }
