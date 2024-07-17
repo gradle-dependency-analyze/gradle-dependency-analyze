@@ -82,7 +82,7 @@ public final class ClassFileCollectorUtil {
      * @throws IOException file could not be analyzed for class files
      */
     public static MultiValuedMap<ComponentIdentifier, String> buildArtifactClassMap(final Logger logger,
-                                                                                    final MultiValuedMap<ComponentIdentifier, String> cache,
+                                                                                    final MultiValuedMap<File, String> cache,
                                                                                     final MultiValuedMap<ComponentIdentifier, File> dependencyArtifacts) throws IOException {
         final MultiValuedMap<ComponentIdentifier, String> artifactClassMap = new LinkedHashSetValuedLinkedHashMap<>();
 
@@ -93,16 +93,16 @@ public final class ClassFileCollectorUtil {
         while (iterator.hasNext()) {
             final ComponentIdentifier identifier = iterator.next();
             final File file = iterator.getValue();
-            if (cache.containsKey(identifier)) {
+            if (cache.containsKey(file)) {
                 logger.debug("Artifact class cache hit for {}", file);
                 hits++;
             } else {
                 logger.debug("Artifact class cache miss for {}", file);
                 misses++;
                 final Set<String> classes = collectFromFile(file);
-                cache.putAll(identifier, classes);
+                cache.putAll(file, classes);
             }
-            artifactClassMap.putAll(identifier, cache.get(identifier));
+            artifactClassMap.putAll(identifier, cache.get(file));
         }
         logger.info("Built artifact class map with {} hits and {} misses; cache size is {}", hits, misses, cache.size());
         return artifactClassMap;

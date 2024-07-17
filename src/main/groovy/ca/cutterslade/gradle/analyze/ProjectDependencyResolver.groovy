@@ -6,7 +6,6 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer
 import org.apache.maven.shared.dependency.analyzer.asm.ASMDependencyAnalyzer
 import org.gradle.api.Project
-import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -22,8 +21,7 @@ class ProjectDependencyResolver {
     static final String CACHE_NAME = 'ca.cutterslade.gradle.analyze.ProjectDependencyResolver.artifactClassCache'
 
     private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer()
-
-    private final HashSetValuedHashMap<ComponentIdentifier, String> artifactClassCache
+    private final HashSetValuedHashMap<File, String> artifactClassCache
     private final Logger logger
     private final List<Configuration> require
     private final List<Configuration> compileOnly
@@ -53,13 +51,8 @@ class ProjectDependencyResolver {
         this.allowedToDeclare = removeNulls(allowedToDeclare) as List
         this.classesDirs = classesDirs
         this.aggregatorsWithDependencies = getAggregatorsMapping(this.allowedAggregatorsToUse)
-        try {
-            this.artifactClassCache =
-                    project.rootProject.extensions.getByName(CACHE_NAME) as HashSetValuedHashMap<ComponentIdentifier, String>
-        }
-        catch (UnknownDomainObjectException e) {
-            throw new IllegalStateException('Dependency analysis plugin must also be applied to the root project', e)
-        }
+        this.artifactClassCache =
+                project.rootProject.extensions.getByName(CACHE_NAME) as HashSetValuedHashMap<File, String>
     }
 
     ProjectDependencyAnalysisResult analyzeDependencies() {
