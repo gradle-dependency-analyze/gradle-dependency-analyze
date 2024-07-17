@@ -1,0 +1,7 @@
+[versions]
+contrast = "3.4.0"
+gson = "2.9.0"
+
+[libraries]
+contrast = { module = "com.contrastsecurity:contrast-sdk-java", version.ref = "contrast" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
