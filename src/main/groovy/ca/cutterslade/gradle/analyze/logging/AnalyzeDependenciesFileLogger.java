@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger implements AutoCloseable {
     private final PrintWriter writer;
@@ -22,6 +21,10 @@ public class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger imp
         }
     }
 
+    private static String getString(Object f) {
+        return f instanceof File ? ((File) f).getName() : f.toString();
+    }
+
     @Override
     public void info(final String title) {
         writer.println(title.trim());
@@ -33,7 +36,7 @@ public class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger imp
         writer.println(title.trim());
         files.stream()
                 .filter(Objects::nonNull)
-                .map(f -> f instanceof File ? ((File) f).getName() : f.toString())
+                .map(AnalyzeDependenciesFileLogger::getString)
                 .map(s -> "- " + s)
                 .sorted()
                 .forEach(writer::println);
@@ -41,15 +44,15 @@ public class AnalyzeDependenciesFileLogger extends AnalyzeDependenciesLogger imp
     }
 
     @Override
-    public void info(final String title, final Map<File, Set<String>> fileMap) {
+    public void info(final String title, final Map<?, ? extends Collection<?>> fileMap) {
         writer.println(title.trim());
         fileMap.entrySet().stream()
-                .sorted(Comparator.comparing(e -> e.getKey().getName()))
+                .sorted(Comparator.comparing(e -> getString(e.getKey())))
                 .forEach(e -> {
-                    writer.println("- " + e.getKey().getName());
+                    writer.println("- " + getString(e.getKey()));
                     e.getValue().stream()
                             .sorted()
-                            .map(s -> "  - " + s)
+                            .map(s -> "  - " + getString(s))
                             .forEach(writer::println);
                 });
         writer.println();

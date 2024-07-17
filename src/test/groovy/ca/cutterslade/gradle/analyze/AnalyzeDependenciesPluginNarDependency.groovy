@@ -16,6 +16,6 @@ class AnalyzeDependenciesPluginNarDependency extends AnalyzeDependenciesPluginBa
         def result = buildGradleProject(VIOLATIONS)
 
         then:
-        assertBuildResult(result, VIOLATIONS, [], ['org.apache.bookkeeper:bookkeeper-common:4.14.4@jar'])
+        assertBuildResult(result, VIOLATIONS, [], ['org.apache.bookkeeper:bookkeeper-common:4.14.4'])
     }
 }

@@ -58,9 +58,9 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult | usedUndeclaredArtifacts                                                                                          | unusedDeclaredArtifacts
-        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
-        "runtimeOnly"    | BUILD_FAILURE  | []                                                                                                               | []
+        configuration    | expectedResult | usedUndeclaredArtifacts                                                                                  | unusedDeclaredArtifacts
+        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE", "org.springframework:spring-context:5.2.11.RELEASE"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"]
+        "runtimeOnly"    | BUILD_FAILURE  | []                                                                                                       | []
     }
 
     @Unroll
@@ -87,9 +87,9 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult | usedUndeclaredArtifacts                                 | unusedDeclaredArtifacts
-        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
-        "runtimeOnly"    | BUILD_FAILURE  | []                                                      | []
+        configuration    | expectedResult | usedUndeclaredArtifacts                             | unusedDeclaredArtifacts
+        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE"] | []
+        "runtimeOnly"    | BUILD_FAILURE  | []                                                  | []
     }
 
     @Unroll
@@ -118,7 +118,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        "implementation" | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
+        "implementation" | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE"]
         "runtimeOnly"    | BUILD_FAILURE  | []                      | []
     }
 
@@ -145,7 +145,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar"]
+        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"]
     }
 
     @Unroll
@@ -174,7 +174,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"]
     }
 
     @Unroll
@@ -207,7 +207,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"]
     }
 
     @Unroll
@@ -233,8 +233,8 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        expectedResult | usedUndeclaredArtifacts                                                 | unusedDeclaredArtifacts
-        VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        expectedResult | usedUndeclaredArtifacts                                             | unusedDeclaredArtifacts
+        VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"]
     }
 
     @Unroll
@@ -263,7 +263,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
 
         where:
         expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["project:dependent:unspecified@jar"]
+        VIOLATIONS     | []                      | ["project :dependent"]
     }
 
     def "aggregator from project with used jar dependency"() {

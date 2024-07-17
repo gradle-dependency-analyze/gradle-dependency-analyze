@@ -1,26 +1,17 @@
 package ca.cutterslade.gradle.analyze.util;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger;
+import ca.cutterslade.gradle.analyze.util.JavaUtil.LinkedHashSetValuedLinkedHashMap;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-import ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger;
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static ca.cutterslade.gradle.analyze.util.JavaUtil.toMultiValuedMap;
 
 public final class ProjectDependencyResolverUtils {
     private ProjectDependencyResolverUtils() {
@@ -33,14 +24,14 @@ public final class ProjectDependencyResolverUtils {
      * @param dependencyClasses all classes used directly by the project
      * @return a map of artifact files to used classes in the project
      */
-    public static Map<File, Set<String>> buildUsedArtifacts(final Map<File, Set<String>> artifactClassMap,
-                                                            final Collection<String> dependencyClasses) {
-        final Map<File, Set<String>> map = new LinkedHashMap<>();
+    public static MultiValuedMap<ComponentIdentifier, String> buildUsedArtifacts(final MultiValuedMap<ComponentIdentifier, String> artifactClassMap,
+                                                                                 final Collection<String> dependencyClasses) {
+        final MultiValuedMap<ComponentIdentifier, String> map = new LinkedHashSetValuedLinkedHashMap<>();
         dependencyClasses.forEach(className ->
-                artifactClassMap.entrySet().stream()
+                artifactClassMap.asMap().entrySet().stream()
                         .filter(e -> e.getValue().contains(className))
                         .findFirst()
-                        .ifPresent(e -> map.computeIfAbsent(e.getKey(), f -> new HashSet<>()).add(className))
+                        .ifPresent(e -> map.put(e.getKey(), className))
         );
         return map;
     }
@@ -64,41 +55,35 @@ public final class ProjectDependencyResolverUtils {
                 .collect(Collectors.toList());
     }
 
-    public static List<File> findModuleArtifactFiles(final Collection<ResolvedDependency> dependencies) {
+    public static MultiValuedMap<ComponentIdentifier, File> findModuleArtifactFiles(final Collection<ResolvedDependency> dependencies) {
         return dependencies.stream()
                 .map(ResolvedDependency::getModuleArtifacts)
                 .flatMap(Collection::stream)
-                .map(ResolvedArtifact::getFile)
-                .distinct()
-                .collect(Collectors.toList());
+                .collect(toMultiValuedMap(a -> a.getId().getComponentIdentifier(), ResolvedArtifact::getFile));
     }
 
-    public static List<File> findAllModuleArtifactFiles(final Collection<ResolvedDependency> dependencies) {
+    public static MultiValuedMap<ComponentIdentifier, File> findAllModuleArtifactFiles(final Collection<ResolvedDependency> dependencies) {
         return dependencies.stream()
                 .map(ResolvedDependency::getAllModuleArtifacts)
                 .flatMap(Collection::stream)
-                .map(ResolvedArtifact::getFile)
-                .distinct()
-                .collect(Collectors.toList());
+                .collect(toMultiValuedMap(a -> a.getId().getComponentIdentifier(), ResolvedArtifact::getFile));
     }
 
-    public static Map<ResolvedArtifact, Collection<ResolvedArtifact>> used(final List<ComponentIdentifier> allDependencyArtifacts,
-                                                                           final Set<File> usedArtifacts,
-                                                                           final Map<ResolvedArtifact, Set<ResolvedArtifact>> aggregatorsWithDependencies,
-                                                                           final AnalyzeDependenciesLogger logger) {
-        final Map<ResolvedArtifact, Collection<ResolvedArtifact>> usedAggregators = aggregatorsWithDependencies.entrySet().stream()
-                .filter(e -> allDependencyArtifacts.contains(e.getKey().getId().getComponentIdentifier()))
+    public static Map<ComponentIdentifier, Collection<ComponentIdentifier>> used(final Set<ComponentIdentifier> allDependencyArtifacts,
+                                                                                 final Set<ComponentIdentifier> usedArtifacts,
+                                                                                 final Map<ComponentIdentifier, Set<ComponentIdentifier>> aggregatorsWithDependencies,
+                                                                                 final AnalyzeDependenciesLogger logger) {
+        final Map<ComponentIdentifier, Collection<ComponentIdentifier>> usedAggregators = aggregatorsWithDependencies.entrySet().stream()
+                .filter(e -> allDependencyArtifacts.contains(e.getKey()))
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         e -> {
-                            final Set<File> filesForAggregator = e.getValue().stream()
-                                    .map(ResolvedArtifact::getFile)
-                                    .distinct()
+                            final Set<ComponentIdentifier> ComponentsForAggregator = e.getValue().stream()
                                     .filter(usedArtifacts::contains)
                                     .collect(Collectors.toSet());
 
                             return e.getValue().stream()
-                                    .filter(f -> filesForAggregator.contains(f.getFile()))
+                                    .filter(ComponentsForAggregator::contains)
                                     .collect(Collectors.toSet());
                         }
                 ));
@@ -107,15 +92,15 @@ public final class ProjectDependencyResolverUtils {
     }
 
 
-    private static Map<ResolvedArtifact, Collection<ResolvedArtifact>> removeDuplicates(final Map<ResolvedArtifact, Collection<ResolvedArtifact>> usedAggregators,
-                                                                                        final Map<ResolvedArtifact, Set<ResolvedArtifact>> aggregatorsWithDependencies,
-                                                                                        final AnalyzeDependenciesLogger logger) {
-        final Map<ResolvedArtifact, Collection<ResolvedArtifact>> aggregatorsSortedByDependencies = usedAggregators.entrySet().stream()
-                .sorted(Map.Entry.<ResolvedArtifact, Collection<ResolvedArtifact>>comparingByValue(Comparator.comparingInt(Collection::size))
-                        .thenComparing(Map.Entry.comparingByKey(Comparator.<ResolvedArtifact>comparingInt(k -> aggregatorsWithDependencies.get(k).size()).reversed())))
+    private static Map<ComponentIdentifier, Collection<ComponentIdentifier>> removeDuplicates(final Map<ComponentIdentifier, Collection<ComponentIdentifier>> usedAggregators,
+                                                                                              final Map<ComponentIdentifier, Set<ComponentIdentifier>> aggregatorsWithDependencies,
+                                                                                              final AnalyzeDependenciesLogger logger) {
+        final Map<ComponentIdentifier, Collection<ComponentIdentifier>> aggregatorsSortedByDependencies = usedAggregators.entrySet().stream()
+                .sorted(Map.Entry.<ComponentIdentifier, Collection<ComponentIdentifier>>comparingByValue(Comparator.comparingInt(Collection::size))
+                        .thenComparing(Map.Entry.comparingByKey(Comparator.<ComponentIdentifier>comparingInt(k -> aggregatorsWithDependencies.get(k).size()).reversed())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a1, a2) -> a2, LinkedHashMap::new));
 
-        final Set<ResolvedArtifact> aggregatorArtifactAlreadySeen = new HashSet<>();
+        final Set<ComponentIdentifier> aggregatorArtifactAlreadySeen = new HashSet<>();
 
         aggregatorsSortedByDependencies.entrySet().removeIf(e -> {
             aggregatorArtifactAlreadySeen.add(e.getKey());
@@ -127,16 +112,19 @@ public final class ProjectDependencyResolverUtils {
         return aggregatorsSortedByDependencies;
     }
 
-    public static Map<ResolvedArtifact, Set<ResolvedArtifact>> getAggregatorsMapping(final Collection<Configuration> allowedAggregatorsToUse) {
+    public static Map<ComponentIdentifier, Set<ComponentIdentifier>> getAggregatorsMapping(final Collection<Configuration> allowedAggregatorsToUse) {
         if (allowedAggregatorsToUse.isEmpty()) {
             return Collections.emptyMap();
         } else {
-            final Map<String, ResolvedArtifact> resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse).stream()
-                    .collect(Collectors.toMap(d -> d.getModuleVersion().toString(), Function.identity()));
+            final Map<ModuleVersionIdentifier, ComponentIdentifier> resolvedArtifacts = resolveArtifacts(allowedAggregatorsToUse).stream()
+                    .collect(Collectors.toMap(d-> d.getModuleVersion().getId(), d -> d.getId().getComponentIdentifier()));
+
             final List<ResolvedDependency> dependencies = getFirstLevelDependencies(allowedAggregatorsToUse);
             return dependencies.stream()
-                    .filter(d -> resolvedArtifacts.containsKey(d.getName()))
-                    .collect(Collectors.toMap(d -> resolvedArtifacts.get(d.getName()), ResolvedDependency::getAllModuleArtifacts));
+                    .filter(d -> resolvedArtifacts.containsKey(d.getModule().getId()))
+                    .collect(Collectors.toMap(d -> resolvedArtifacts.get(d.getModule().getId()), d -> d.getAllModuleArtifacts().stream()
+                            .map(a -> a.getId().getComponentIdentifier())
+                            .collect(Collectors.toSet())));
         }
     }
 

@@ -15,7 +15,7 @@ class AnalyzeDependenciesPluginConfigurationSpec extends AnalyzeDependenciesPlug
                 .withAdditionalTask("forceConfigurationResolution", """
                     // Minimal example from our internal plugins that force resolution early
                     import org.gradle.api.artifacts.Configuration
-                    
+
                     tasks.register("forceConfigurationResolution") {
                       doLast() {
                         tasks.forEach { Task task ->
@@ -28,7 +28,7 @@ class AnalyzeDependenciesPluginConfigurationSpec extends AnalyzeDependenciesPlug
                               project.logger.debug("Failed to resolve property \${prop.name} on \${task.name}", e)
                               return
                             }
-                    
+
                             // If this blows up, it should throw, not get swallowed up
                             if (value instanceof Configuration) {
                               // The return value is not important, just calling it will make some lazily initialized stuff happen
@@ -49,6 +49,6 @@ class AnalyzeDependenciesPluginConfigurationSpec extends AnalyzeDependenciesPlug
 
         where:
         expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["com.google.guava:guava:30.1-jre@jar"]
+        VIOLATIONS     | []                      | ["com.google.guava:guava:30.1-jre"]
     }
 }

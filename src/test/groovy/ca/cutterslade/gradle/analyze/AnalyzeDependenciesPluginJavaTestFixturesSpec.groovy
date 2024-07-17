@@ -73,7 +73,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
 
         where:
         expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ['project:dependent:unspecified@jar']
+        VIOLATIONS     | []                      | ['project :dependent']
     }
 
     def 'project with test, test fixture and main class and main class from different module is used results in success'() {

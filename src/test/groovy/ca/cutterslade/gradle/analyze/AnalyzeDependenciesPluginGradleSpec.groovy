@@ -99,7 +99,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
         pair << determineMinorVersions('6.9', '7.3')
         gradleVersion = pair.v1
         expectedResult = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? VIOLATIONS : SUCCESS
-        unusedDeclaredArtifacts = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE@jar'] : []
+        unusedDeclaredArtifacts = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE'] : []
     }
 
     @Unroll
