@@ -1,29 +1,20 @@
 package ca.cutterslade.gradle.analyze;
 
-import static ca.cutterslade.gradle.analyze.util.ProjectDependencyAnalysisResultHandler.warnAndLogOrFail;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gradle.api.DefaultTask;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
+import static ca.cutterslade.gradle.analyze.util.ProjectDependencyAnalysisResultHandler.warnAndLogOrFail;
 
 @CacheableTask
 public class AnalyzeDependenciesTask extends DefaultTask {
-    public static final String DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME = "reports/dependency-analyze";
-
     @Deprecated
     private Boolean justWarn = false;
     private Boolean warnUsedUndeclared = false;
@@ -60,17 +51,23 @@ public class AnalyzeDependenciesTask extends DefaultTask {
             warnUsedUndeclared = true;
         }
 
-
-        getLogger().info("Analyzing dependencies of " + getClassesDirs() +
-                " for [require: " + getRequire() +
-                ", allowedToUse: " + getAllowedToUse() +
-                ", allowedToDeclare: " + getAllowedToDeclare() + "]");
-
-        final ProjectDependencyAnalysisResult analysis = new ProjectDependencyResolver(
-                getProject(), require, compileOnly, apiHelperConfiguration, allowedToUse, allowedToDeclare, classesDirs,
-                allowedAggregatorsToUse, getLogFilePath()).analyzeDependencies();
+        getLogger().info("Analyzing dependencies of {} for [require: {}, allowedToUse: {}, allowedToDeclare: {}]",
+                getClassesDirs(), getRequire(), getAllowedToUse(), getAllowedToDeclare());
+        ProjectDependencyAnalysisResult analysis = getAnalysisResult();
 
         warnAndLogOrFail(analysis, warnUsedUndeclared, warnUnusedDeclared, warnCompileOnly, getLogFilePath(), getLogger());
+    }
+
+    private ProjectDependencyAnalysisResult getAnalysisResult() {
+        final ProjectDependencyResolver resolver;
+        try {
+            resolver = new ProjectDependencyResolver(
+                    getProject(), require, compileOnly, apiHelperConfiguration, allowedToUse, allowedToDeclare, classesDirs,
+                    allowedAggregatorsToUse, getLogFilePath());
+        } catch (UnknownDomainObjectException e) {
+            throw new IllegalStateException("Dependency analysis plugin must also be applied to the root project", e);
+        }
+        return resolver.analyzeDependencies();
     }
 
     @Input
