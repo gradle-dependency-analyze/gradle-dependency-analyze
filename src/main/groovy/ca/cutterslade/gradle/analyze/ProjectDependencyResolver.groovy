@@ -167,13 +167,13 @@ class ProjectDependencyResolver {
             usedDeclared.findAll {
                 compileOnlyDependencyModuleIdentifiers.contains(it)
             }.each { a -> usedUndeclared.add(a) }
-            compileOnlyDependencyArtifacts.each { a -> unusedDeclared.remove(a.key) }
+            compileOnlyDependencyModuleIdentifiers.each { a -> unusedDeclared.remove(a) }
 
             return new ProjectDependencyAnalysisResult(
                     usedDeclared,
                     usedUndeclared,
                     unusedDeclared,
-                    compileOnlyDependencyArtifacts.keySet())
+                    compileOnlyDependencyModuleIdentifiers)
         }
     }
 
