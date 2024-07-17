@@ -13,9 +13,10 @@ import java.util.Map;
 
 public abstract class AnalyzeDependenciesLogger {
     public static ProjectDependencyAnalysisResult create(final Logger gradleLogger,
+                                                         final boolean logDependencyInformationToFiles,
                                                          final Path logFilePath,
                                                          @ClosureParams(value = SimpleType.class, options = "ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger") final Closure<ProjectDependencyAnalysisResult> withLogger) {
-        if (logFilePath != null) {
+        if (logDependencyInformationToFiles) {
             try (final AnalyzeDependenciesFileLogger logger = new AnalyzeDependenciesFileLogger(logFilePath)) {
                 return withLogger.call(logger);
             }

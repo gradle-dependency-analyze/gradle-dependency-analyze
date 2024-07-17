@@ -32,6 +32,7 @@ class ProjectDependencyResolver {
     private final Map<ComponentIdentifier, Set<ComponentIdentifier>> aggregatorsWithDependencies
     private final List<Configuration> allowedAggregatorsToUse
     private final Path logFilePath
+    private final boolean logDependencyInformationToFiles
 
     ProjectDependencyResolver(final Project project,
                               final List<Configuration> require,
@@ -40,7 +41,10 @@ class ProjectDependencyResolver {
                               final List<Configuration> allowedToUse,
                               final List<Configuration> allowedToDeclare,
                               final Iterable<File> classesDirs,
-                              final List<Configuration> allowedAggregatorsToUse, final Path logFilePath) {
+                              final List<Configuration> allowedAggregatorsToUse,
+                              final Path logFilePath,
+                              final boolean logDependencyInformationToFiles) {
+        this.logDependencyInformationToFiles = logDependencyInformationToFiles
         this.logFilePath = logFilePath
         this.logger = project.logger
         this.require = removeNulls(require) as List
@@ -56,7 +60,7 @@ class ProjectDependencyResolver {
     }
 
     ProjectDependencyAnalysisResult analyzeDependencies() {
-        AnalyzeDependenciesLogger.create(logger, logFilePath) { logger ->
+        AnalyzeDependenciesLogger.create(logger, logDependencyInformationToFiles, logFilePath) { logger ->
             def allowedToUseDeps = allowedToUseDependencies
             def allowedToDeclareDeps = allowedToDeclareDependencies
             def requiredDeps = requiredDependencies

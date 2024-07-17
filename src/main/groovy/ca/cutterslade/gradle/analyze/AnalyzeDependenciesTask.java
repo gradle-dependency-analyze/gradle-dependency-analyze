@@ -15,6 +15,10 @@ import static ca.cutterslade.gradle.analyze.util.ProjectDependencyAnalysisResult
 
 @CacheableTask
 public class AnalyzeDependenciesTask extends DefaultTask {
+    private final Path logFilePath = getProject().getLayout().getBuildDirectory()
+            .dir("reports").get().getAsFile().toPath()
+            .resolve("dependency-analyze")
+            .resolve(getName() + ".log");
     @Deprecated
     private Boolean justWarn = false;
     private Boolean warnUsedUndeclared = false;
@@ -29,20 +33,6 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     private List<Configuration> allowedAggregatorsToUse = new ArrayList<>();
     private FileCollection classesDirs = getProject().files();
 
-    @Optional
-    @OutputFile
-    public Path getLogFilePath() {
-        if (logDependencyInformationToFiles) {
-            final Path path = getProject().getLayout().getBuildDirectory()
-                    .dir("reports").get().getAsFile().toPath()
-                    .resolve("dependency-analyze")
-                    .resolve(getName() + ".log");
-            getLogger().info("Writing dependency-analyze log to {}", path);
-            return path;
-        }
-        return null;
-    }
-
     @TaskAction
     public void action() throws IOException {
         if (justWarn) {
@@ -51,11 +41,15 @@ public class AnalyzeDependenciesTask extends DefaultTask {
             warnUsedUndeclared = true;
         }
 
+        if (logDependencyInformationToFiles) {
+            getLogger().info("Writing dependency information to {}", logFilePath);
+        }
+
         getLogger().info("Analyzing dependencies of {} for [require: {}, allowedToUse: {}, allowedToDeclare: {}]",
                 getClassesDirs(), getRequire(), getAllowedToUse(), getAllowedToDeclare());
         ProjectDependencyAnalysisResult analysis = getAnalysisResult();
 
-        warnAndLogOrFail(analysis, warnUsedUndeclared, warnUnusedDeclared, warnCompileOnly, getLogFilePath(), getLogger());
+        warnAndLogOrFail(analysis, warnUsedUndeclared, warnUnusedDeclared, warnCompileOnly, logFilePath, getLogger());
     }
 
     private ProjectDependencyAnalysisResult getAnalysisResult() {
@@ -63,7 +57,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
         try {
             resolver = new ProjectDependencyResolver(
                     getProject(), require, compileOnly, apiHelperConfiguration, allowedToUse, allowedToDeclare, classesDirs,
-                    allowedAggregatorsToUse, getLogFilePath());
+                    allowedAggregatorsToUse, logFilePath, logDependencyInformationToFiles);
         } catch (UnknownDomainObjectException e) {
             throw new IllegalStateException("Dependency analysis plugin must also be applied to the root project", e);
         }
@@ -185,5 +179,10 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
     public void setClassesDirs(final FileCollection classesDirs) {
         this.classesDirs = classesDirs;
+    }
+
+    @OutputFile
+    public Path getLogFilePath() {
+        return logFilePath;
     }
 }
