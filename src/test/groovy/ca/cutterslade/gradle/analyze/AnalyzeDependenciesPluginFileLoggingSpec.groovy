@@ -5,8 +5,6 @@ import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
 import com.github.difflib.DiffUtils
 
-import static ca.cutterslade.gradle.analyze.AnalyzeDependenciesTask.DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME
-
 class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPluginBaseSpec {
     def 'simple build without dependencies results in success'() {
         setup:
@@ -40,7 +38,7 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
         then:
         assertBuildResult(result, VIOLATIONS, [], ['org.springframework.boot:spring-boot-starter:2.3.6.RELEASE'])
         if (files.v1 != files.v2) {
-            println "Files differ:\n" + generateDiff(files.v1, files.v2)
+            println "Files differ:" + System.lineSeparator() + generateDiff(files.v1, files.v2)
         }
 
         files.v1 == files.v2
@@ -66,7 +64,7 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
         then:
         assertBuildSuccess(result)
         if (files.v1 != files.v2) {
-            println "Files differ:\n" + generateDiff(files.v1, files.v2)
+            println "Files differ:" + System.lineSeparator() + generateDiff(files.v1, files.v2)
         }
 
         files.v1 == files.v2
@@ -96,20 +94,20 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
         then:
         assertBuildSuccess(result)
         if (files.v1 != files.v2) {
-            println "Files differ:\n" + generateDiff(files.v1, files.v2)
+            println "Files differ:" + System.lineSeparator() + generateDiff(files.v1, files.v2)
         }
 
         files.v1 == files.v2
     }
 
     Tuple2<String, String> getFileContent(String fileWithExpectedContent, String fileName) {
-        def actual = new File(projectDir, "build/$DEPENDENCY_ANALYZE_DEPENDENCY_DIRECTORY_NAME/$fileName").text
-        def expected = getClass().getResource('/' + fileWithExpectedContent).text
+        def actual = new File(projectDir, "build/reports/dependency-analyze/$fileName").text.replaceAll("\\r\\n", System.lineSeparator())
+        def expected = getClass().getResource('/' + fileWithExpectedContent).text.replaceAll("\\r\\n", System.lineSeparator())
         new Tuple2<>(actual, expected)
     }
 
     String generateDiff(String content1, String content2) {
         def diff = DiffUtils.diff(content1.readLines(), content2.readLines())
-        return diff.getDeltas().join("\n")
+        return diff.getDeltas().join(System.lineSeparator())
     }
 }

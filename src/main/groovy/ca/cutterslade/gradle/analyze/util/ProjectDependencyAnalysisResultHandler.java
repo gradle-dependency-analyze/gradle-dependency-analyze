@@ -76,13 +76,13 @@ public final class ProjectDependencyAnalysisResultHandler {
             return resolvedArtifacts.stream()
                     .sorted(Comparator.comparing(ComponentIdentifier::getDisplayName))
                     .map(resolvedArtifact -> " - " + resolvedArtifact.getDisplayName())
-                    .collect(Collectors.joining("\n", sectionName + "\n", "")) + "\n";
+                    .collect(Collectors.joining(System.lineSeparator(), sectionName + System.lineSeparator(), "")) + System.lineSeparator();
         } else {
             return "";
         }
     }
 
     private static String foundIssues(final String issues) {
-        return "Dependency analysis found issues.\n" + issues;
+        return "Dependency analysis found issues." + System.lineSeparator() + issues;
     }
 }

@@ -63,7 +63,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
 
     protected static void assertBuildSuccess(BuildResult result) {
         if (result.task(':build') == null) {
-            throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
+            throw new SpockAssertionError("Build task not run: " + System.lineSeparator() + "${result.getOutput()}")
         }
         assert result.task(':build').getOutcome() == TaskOutcome.SUCCESS
     }
@@ -90,8 +90,8 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             def violations = expectedResult == SUCCESS ? new StringBuilder() : new StringBuilder('> ')
             if (!compileOnlyArtifacts.empty) {
                 def spacer = expectedResult == SUCCESS ? '' : '  '
-                violations.append(spacer).append('compileOnlyDeclaredArtifacts\n')
-                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('compileOnlyDeclaredArtifacts').append(System.lineSeparator())
+                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
                 assert result.output.contains(violations)
             }
             assert result.tasks.count { it.outcome != TaskOutcome.SUCCESS } != 0
@@ -99,21 +99,21 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             assert result.tasks.count { it.outcome == TaskOutcome.FAILED } != 0
         } else if (expectedResult == VIOLATIONS || expectedResult == WARNING) {
             def violations = expectedResult == WARNING ? new StringBuilder() : new StringBuilder('> ')
-            violations.append('Dependency analysis found issues.\n')
+            violations.append('Dependency analysis found issues.').append(System.lineSeparator())
             def spacer = expectedResult == WARNING ? '' : '  '
             if (!usedUndeclaredArtifacts.empty) {
-                violations.append(spacer).append('usedUndeclaredArtifacts\n')
-                usedUndeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('usedUndeclaredArtifacts').append(System.lineSeparator())
+                usedUndeclaredArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
             }
             if (!unusedDeclaredArtifacts.empty) {
-                violations.append(spacer).append('unusedDeclaredArtifacts\n')
-                unusedDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('unusedDeclaredArtifacts').append(System.lineSeparator())
+                unusedDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
             }
             if (!compileOnlyArtifacts.empty) {
-                violations.append(spacer).append('compileOnlyDeclaredArtifacts\n')
-                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('compileOnlyDeclaredArtifacts').append(System.lineSeparator())
+                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
             }
-            violations.append('\n')
+            violations.append(System.lineSeparator())
             assert result.output.contains(violations)
         } else {
             assert result.output.contains(expectedResult)
