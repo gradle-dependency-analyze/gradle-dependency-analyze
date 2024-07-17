@@ -132,30 +132,30 @@ class ProjectDependencyResolver {
                 def usedIdentifiers = requiredDeps.collectMany { it.allModuleArtifacts }.collect { it.id.componentIdentifier }.toSet()
                 def aggregatorUsage = used(usedIdentifiers, usedArtifacts, aggregatorsWithDependencies, logger).groupBy { it.value.isEmpty() }
                 if (aggregatorUsage.containsKey(true)) {
-                    def unusedAggregatorArtifacts = aggregatorUsage.get(true).keySet()
-                    def intersect = unusedAggregatorArtifacts.intersect(usedIdentifiers)
-                    intersect.each { a -> unusedDeclared.add(a) }
+                    def aggregators = aggregatorUsage.get(true).keySet()
+                    def unusedAggregators = aggregators.intersect(usedIdentifiers)
+                    unusedAggregators.each { a -> unusedDeclared.add(a) }
                 }
                 if (aggregatorUsage.containsKey(false)) {
-                    def usedAggregatorDependencies = aggregatorUsage.get(false).keySet()
-                    def intersect = usedAggregatorDependencies.intersect(unusedDeclared)
-                    intersect.each { a -> usedDeclared.add(a) }
+                    def aggregators = aggregatorUsage.get(false).keySet()
+                    def usedAggregators = aggregators.intersect(unusedDeclared)
+                    usedAggregators.each { a -> usedDeclared.add(a) }
 
-                    def flatten = aggregatorUsage.get(false).values().collectMany { it }.toSet()
-                    def intersect2 = usedDeclared.intersect(flatten)
-                    intersect2.each { a -> unusedDeclared.add(a) }
+                    def aggregatorDependencies = aggregatorUsage.get(false).values().collectMany { it }.toSet()
+                    def usedAggregatorDependencies = usedDeclared.intersect(aggregatorDependencies)
+                    usedAggregatorDependencies.each { a -> unusedDeclared.add(a) }
 
-                    unusedDeclared.removeAll { usedAggregatorDependencies.contains(it) }
-                    usedAggregatorDependencies.collectMany { aggregatorsWithDependencies.get(it) }.toSet()
+                    unusedDeclared.removeAll { aggregators.contains(it) }
+                    aggregators.collectMany { aggregatorsWithDependencies.get(it) }.toSet()
                             .forEach { usedUndeclared.remove(it) }
 
-                    def apiComponentIdentifiers = getFirstLevelDependencies(api).collectMany { it.allModuleArtifacts }
+                    def apiDependencies = getFirstLevelDependencies(api).collectMany { it.allModuleArtifacts }
                             .collect { it.id.componentIdentifier }.toSet()
-                    unusedDeclared.removeAll { apiComponentIdentifiers.contains(it) }
+                    unusedDeclared.removeAll { apiDependencies.contains(it) }
 
 
-                    def all = usedAggregatorDependencies.findAll { !usedDeclared.contains(it) }
-                    all.each { a -> usedUndeclared.add(a) }
+                    def undeclaredAggregators = aggregators.findAll { !usedDeclared.contains(it) }
+                    undeclaredAggregators.each { a -> usedUndeclared.add(a) }
                     usedUndeclared.removeAll { allowedToUseComponentIdentifiers.contains(it) && aggregatorsWithDependencies.keySet().contains(it) }
                 }
             }
