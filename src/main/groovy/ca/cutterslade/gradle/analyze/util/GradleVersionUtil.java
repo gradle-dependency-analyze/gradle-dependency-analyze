@@ -20,9 +20,11 @@ public final class GradleVersionUtil {
       final GradleVersion gradleVersion, final Logger logger) {
     if (logger != null && isWarPluginBrokenWhenUsingProvidedRuntime(gradleVersion)) {
       logger.warn(
-          "The used Gradle version has a known bug when using the war plugin with a 'providedRuntime' "
+          "The used Gradle version has a known bug when using the war plugin with a"
+              + " 'providedRuntime' "
               + lineSeparator()
-              + "dependency where the gradle-dependency-analyze plugin will show a unusedDeclaredDependency warning. "
+              + "dependency where the gradle-dependency-analyze plugin will show a"
+              + " unusedDeclaredDependency warning. "
               + lineSeparator()
               + "Details see https://github.com/gradle/gradle/issues/17415 "
               + lineSeparator()

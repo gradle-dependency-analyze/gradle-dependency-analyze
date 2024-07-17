@@ -17,6 +17,7 @@ import org.gradle.api.logging.Logger
 
 @CompileStatic
 class ProjectDependencyResolver {
+
     static final String CACHE_NAME = 'ca.cutterslade.gradle.analyze.ProjectDependencyResolver.artifactClassCache'
 
     private final DependencyAnalyzer dependencyAnalyzer = new ASMDependencyAnalyzer()
@@ -130,7 +131,6 @@ class ProjectDependencyResolver {
                 logger.info 'unusedDeclared without allowedToDeclareArtifacts', unusedDeclared
             }
 
-
             if (!aggregatorsWithDependencies.isEmpty()) {
                 def usedIdentifiers = requiredDeps.collectMany { it.allModuleArtifacts }.collect { it.id.componentIdentifier }.toSet()
                 def aggregatorUsage = used(usedIdentifiers, usedArtifacts, aggregatorsWithDependencies, logger).groupBy { it.value.isEmpty() }
@@ -156,7 +156,6 @@ class ProjectDependencyResolver {
                             .collect { it.id.componentIdentifier }.toSet()
                     unusedDeclared.removeAll { apiDependencies.contains(it) }
 
-
                     def undeclaredAggregators = aggregators.findAll { !usedDeclared.contains(it) }
                     undeclaredAggregators.each { a -> usedUndeclared.add(a) }
                     usedUndeclared.removeAll { allowedToUseComponentIdentifiers.contains(it) && aggregatorsWithDependencies.keySet().contains(it) }
@@ -181,23 +180,23 @@ class ProjectDependencyResolver {
     }
 
     private List<ResolvedDependency> getRequiredDependencies() {
-        getFirstLevelDependencies(require)
+        return getFirstLevelDependencies(require)
     }
 
     private List<ResolvedDependency> getAllowedToUseDependencies() {
-        getFirstLevelDependencies(allowedToUse)
+        return getFirstLevelDependencies(allowedToUse)
     }
 
     private List<ResolvedDependency> getAllowedToDeclareDependencies() {
-        getFirstLevelDependencies(allowedToDeclare)
+        return getFirstLevelDependencies(allowedToDeclare)
     }
 
     /**
      * Find and analyze all class files to determine which external classes are used.
-     * @param project
      * @return a Set of class names
      */
     private Set<String> analyzeClassDependencies() {
-        classesDirs.collectMany { dependencyAnalyzer.analyze(it.toURI().toURL()) }.toSet()
+        return classesDirs.collectMany { dependencyAnalyzer.analyze(it.toURI().toURL()) }.toSet()
     }
+
 }

@@ -29,9 +29,7 @@ jobs:
           fetch-depth: 0
       - uses: github/super-linter@4e51915f4a812abf59fed160bb14595c0a38a9e7 # v6
         env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: master
+          DEFAULT_BRANCH: origin/master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_JSCPD: false
-          MARKDOWN_CONFIG_FILE: .github/linters/.markdown-lint.yml
-          FILTER_REGEX_EXCLUDE: .*test/resources/.*
+          FILTER_REGEX_EXCLUDE: .*(test/resources/|gradlew|gradlew\.bat).*
