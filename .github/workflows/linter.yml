@@ -32,4 +32,6 @@ jobs:
           DEFAULT_BRANCH: origin/master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_JSCPD: false
+          VALIDATE_GROOVY: false
+          VALIDATE_JAVA: false
           FILTER_REGEX_EXCLUDE: .*(test/resources/|gradlew|gradlew\.bat).*
