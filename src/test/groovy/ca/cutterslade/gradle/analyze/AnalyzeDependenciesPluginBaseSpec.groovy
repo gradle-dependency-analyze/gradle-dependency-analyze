@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze
 
 
 import ca.cutterslade.gradle.analyze.helper.GradleProject
+import java.lang.management.ManagementFactory
 import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -10,8 +11,6 @@ import org.gradle.util.GradleVersion
 import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
 import spock.lang.TempDir
-
-import java.lang.management.ManagementFactory
 
 abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     protected static final def SUCCESS = 'success'

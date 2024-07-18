@@ -1,7 +1,11 @@
 package ca.cutterslade.gradle.analyze
 
+import static ca.cutterslade.gradle.analyze.util.ClassFileCollectorUtil.buildArtifactClassMap
+import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.*
+
 import ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger
 import groovy.transform.CompileStatic
+import java.nio.file.Path
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer
 import org.apache.maven.shared.dependency.analyzer.asm.ASMDependencyAnalyzer
@@ -10,11 +14,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.logging.Logger
-
-import java.nio.file.Path
-
-import static ca.cutterslade.gradle.analyze.util.ClassFileCollectorUtil.buildArtifactClassMap
-import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.*
 
 @CompileStatic
 class ProjectDependencyResolver {

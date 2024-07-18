@@ -1,5 +1,7 @@
 package ca.cutterslade.gradle.analyze
 
+import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.configureApiHelperConfiguration
+
 import ca.cutterslade.gradle.analyze.util.GradleVersionUtil
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap
 import org.gradle.api.Plugin
@@ -7,8 +9,6 @@ import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.GradleVersion
-
-import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.configureApiHelperConfiguration
 
 class AnalyzeDependenciesPlugin implements Plugin<Project> {
     @Override

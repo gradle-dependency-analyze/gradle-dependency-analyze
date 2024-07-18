@@ -8,6 +8,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.2.1"
     id("jacoco")
     id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "ca.cutterslade.gradle"
@@ -42,8 +43,9 @@ gradlePlugin {
         create("dependencyAnalyze") {
             id = "ca.cutterslade.analyze"
             displayName = "Gradle Dependency Analyze"
-            description =
-                "Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality of the maven dependency plugin's analyze goals which fail the build if dependencies are declared but not used or used but not declared."
+            description = "Dependency analysis plugin for gradle. This plugin attempts to replicate the functionality" +
+                " of the maven dependency plugin's analyze goals which fail the build if dependencies are declared" +
+                " but not used or used but not declared."
             tags = listOf("dependency", "verification", "analyze")
             implementationClass = "ca.cutterslade.gradle.analyze.AnalyzeDependenciesPlugin"
         }
@@ -76,4 +78,18 @@ tasks.named<JacocoReport>("jacocoTestReport") {
 
 jacoco {
     toolVersion = "0.8.12"
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+    }
+    groovy {
+        importOrder()
+        removeSemicolons()
+        excludeJava()
+    }
+    kotlinGradle {
+        ktlint()
+    }
 }

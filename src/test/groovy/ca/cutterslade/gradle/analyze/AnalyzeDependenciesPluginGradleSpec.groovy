@@ -1,17 +1,16 @@
 package ca.cutterslade.gradle.analyze
 
+import static ca.cutterslade.gradle.analyze.util.GradleVersionUtil.isWarPluginBrokenWhenUsingProvidedRuntime
+
 import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import java.util.stream.Collectors
+import java.util.stream.StreamSupport
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
-
-import java.util.stream.Collectors
-import java.util.stream.StreamSupport
-
-import static ca.cutterslade.gradle.analyze.util.GradleVersionUtil.isWarPluginBrokenWhenUsingProvidedRuntime
 
 class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseSpec {
     @Unroll

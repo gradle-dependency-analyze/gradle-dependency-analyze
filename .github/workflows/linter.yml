@@ -32,5 +32,6 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_INCLUDE: .*\.md|.*/.github/.*
           VALIDATE_JSCPD: false
+          MARKDOWN_CONFIG_FILE: .github/linters/.markdown-lint.yml
+          FILTER_REGEX_EXCLUDE: .*test/resources/.*
