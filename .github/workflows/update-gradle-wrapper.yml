@@ -24,4 +24,4 @@ jobs:
         with:
           labels: gradle, dependencies, patch
           reviewers: bigmichi1
-          repo-token: ${{ secrets.GRADLE_UPDATE_PAT }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
