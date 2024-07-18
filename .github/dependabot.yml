@@ -8,7 +8,6 @@ updates:
       - "bigmichi1"
     labels:
       - "dependencies"
-      - "automerge"
       - "github_actions"
   - package-ecosystem: gradle
     directory: /
@@ -18,5 +17,4 @@ updates:
       - "bigmichi1"
     labels:
       - "dependencies"
-      - "automerge"
       - "gradle"
