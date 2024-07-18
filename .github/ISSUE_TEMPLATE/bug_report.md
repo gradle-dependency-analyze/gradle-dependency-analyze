@@ -26,7 +26,7 @@ analyzeClassesDependencies {
 3. See error
 
 **Repository containing a sample project**
-URL: https://github.com/...
+URL: [GitHub](https://github.com/...)
 
 **Versions**
 Java: 1.8 / 11 / 15 / ...

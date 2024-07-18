@@ -3,6 +3,7 @@ package ca.cutterslade.gradle.analyze
 import static ca.cutterslade.gradle.analyze.util.ProjectDependencyResolverUtils.configureApiHelperConfiguration
 
 import ca.cutterslade.gradle.analyze.util.GradleVersionUtil
+import groovy.transform.CompileDynamic
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -10,7 +11,9 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.GradleVersion
 
+@CompileDynamic
 class AnalyzeDependenciesPlugin implements Plugin<Project> {
+
     @Override
     void apply(final Project project) {
         if (project.rootProject == project) {
@@ -24,7 +27,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
             }
 
             project.tasks.named('check').configure {
-                dependsOn commonTask
+                it.dependsOn commonTask
             }
 
             project.sourceSets.all { SourceSet sourceSet ->
@@ -57,7 +60,7 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                     description = "Analyze project for dependency issues related to ${sourceSet.name} source set."
 
                     doFirst {
-                        final def configuration = project.configurations.findByName("providedRuntime")
+                        final def configuration = project.configurations.findByName('providedRuntime')
                         if (configuration != null && !configuration.resolvedConfiguration.firstLevelModuleDependencies.empty) {
                             GradleVersionUtil.warnAboutWarPluginBrokenWhenUsingProvidedRuntime(GradleVersion.current(), project.logger)
                         }
@@ -109,4 +112,5 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
             }
         }
     }
+
 }

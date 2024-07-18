@@ -42,8 +42,9 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     if (justWarn) {
       getLogger()
           .warn(
-              "justWarn is deprecated in favor of warnUsedUndeclared and warnUnusedDeclared. Forcefully setting "
-                  + "warnUsedUndeclared=true and warnUnusedDeclared=true options");
+              "justWarn is deprecated in favor of warnUsedUndeclared and warnUnusedDeclared."
+                  + " Forcefully setting warnUsedUndeclared=true and warnUnusedDeclared=true"
+                  + " options");
       warnUnusedDeclared = true;
       warnUsedUndeclared = true;
     }
@@ -54,7 +55,8 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
     getLogger()
         .info(
-            "Analyzing dependencies of {} for [require: {}, allowedToUse: {}, allowedToDeclare: {}]",
+            "Analyzing dependencies of {} for [require: {}, allowedToUse: {}, allowedToDeclare:"
+                + " {}]",
             getClassesDirs(),
             getRequire(),
             getAllowedToUse(),
@@ -67,6 +69,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
         warnUnusedDeclared,
         warnCompileOnly,
         logFilePath,
+        logDependencyInformationToFiles,
         getLogger());
   }
 
