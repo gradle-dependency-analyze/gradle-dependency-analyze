@@ -1,12 +1,10 @@
 package ca.cutterslade.gradle.analyze.logging;
 
 import ca.cutterslade.gradle.analyze.ProjectDependencyAnalysisResult;
-import groovy.lang.Closure;
-import groovy.transform.stc.ClosureParams;
-import groovy.transform.stc.SimpleType;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.gradle.api.logging.Logger;
 
@@ -15,19 +13,16 @@ public abstract class AnalyzeDependenciesLogger {
       final Logger gradleLogger,
       final boolean logDependencyInformationToFiles,
       final Path logFilePath,
-      @ClosureParams(
-              value = SimpleType.class,
-              options = "ca.cutterslade.gradle.analyze.logging.AnalyzeDependenciesLogger")
-          final Closure<ProjectDependencyAnalysisResult> withLogger) {
+      final Function<AnalyzeDependenciesLogger, ProjectDependencyAnalysisResult> withLogger) {
     if (logDependencyInformationToFiles) {
       try (final AnalyzeDependenciesFileLogger logger =
           new AnalyzeDependenciesFileLogger(logFilePath)) {
-        return withLogger.call(logger);
+        return withLogger.apply(logger);
       }
     } else {
       final AnalyzeDependenciesStandardLogger logger =
           new AnalyzeDependenciesStandardLogger(gradleLogger);
-      return withLogger.call(logger);
+      return withLogger.apply(logger);
     }
   }
 
