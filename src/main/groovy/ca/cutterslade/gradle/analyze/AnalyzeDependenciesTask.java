@@ -84,7 +84,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
               apiHelperConfiguration,
               allowedToUse,
               allowedToDeclare,
-              classesDirs,
+              classesDirs.getFiles(),
               allowedAggregatorsToUse,
               logFilePath,
               logDependencyInformationToFiles);

@@ -23,7 +23,7 @@ public final class ClassFileCollectorUtil {
 
   private ClassFileCollectorUtil() {}
 
-  public static Set<String> collectFromFile(final File file) throws IOException {
+  public static Set<String> collectFromFile(final File file) {
     final Set<String> classFiles = new HashSet<>();
     if (file.getPath().endsWith(".jar") || file.getPath().endsWith(".nar")) {
       collectFormJar(file, classFiles);
@@ -38,14 +38,15 @@ public final class ClassFileCollectorUtil {
     return classFiles;
   }
 
-  private static void collectFormJar(final File jarFile, final Set<String> classFiles)
-      throws IOException {
+  private static void collectFormJar(final File jarFile, final Set<String> classFiles) {
     try (final FileInputStream fis = new FileInputStream(jarFile);
         final JarInputStream jis = new JarInputStream(fis)) {
       JarEntry entry;
       while ((entry = jis.getNextJarEntry()) != null) {
         addToClassFilesIfMatches(entry.getName(), classFiles);
       }
+    } catch (IOException e) {
+      throw new IllegalArgumentException("unable to collect classes from file", e);
     }
   }
 
@@ -85,13 +86,11 @@ public final class ClassFileCollectorUtil {
    * @param cache cache for file to containing classes that were found and have been analyzed
    * @param dependencyArtifacts component identifiers for dependencies with their file locations
    * @return a Map of files to their classes
-   * @throws IOException file could not be analyzed for class files
    */
   public static MultiValuedMap<ComponentIdentifier, String> buildArtifactClassMap(
       final Logger logger,
       final MultiValuedMap<File, String> cache,
-      final MultiValuedMap<ComponentIdentifier, File> dependencyArtifacts)
-      throws IOException {
+      final MultiValuedMap<ComponentIdentifier, File> dependencyArtifacts) {
     final MultiValuedMap<ComponentIdentifier, String> artifactClassMap =
         new LinkedHashSetValuedLinkedHashMap<>();
 

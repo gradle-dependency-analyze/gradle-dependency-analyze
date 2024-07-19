@@ -180,7 +180,7 @@ public final class ProjectDependencyResolverUtils {
     }
   }
 
-  public static <T> Collection<T> removeNulls(final Collection<T> collection) {
+  public static <T> List<T> removeNulls(final List<T> collection) {
     if (collection == null) {
       return Collections.emptyList();
     } else {
