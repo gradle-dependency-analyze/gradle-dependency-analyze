@@ -17,10 +17,6 @@ Steps to reproduce the behavior:
 plugins {
   id "ca.cutterslade.analyze" version "1.7.0"
 }
-
-analyzeClassesDependencies {
-    justWarn = true
-}
 ```
 2. execute command `gradlew build`
 3. See error

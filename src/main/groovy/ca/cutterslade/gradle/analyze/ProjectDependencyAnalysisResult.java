@@ -8,16 +8,19 @@ public class ProjectDependencyAnalysisResult {
   private final Set<ComponentIdentifier> usedUndeclaredArtifacts;
   private final Set<ComponentIdentifier> unusedDeclaredArtifacts;
   private final Set<ComponentIdentifier> possiblyUnusedCompileOnlyArtifacts;
+  private final Set<ComponentIdentifier> superfluousDeclaredArtifacts;
 
   public ProjectDependencyAnalysisResult(
       final Set<ComponentIdentifier> usedDeclaredArtifacts,
       final Set<ComponentIdentifier> usedUndeclaredArtifacts,
       final Set<ComponentIdentifier> unusedDeclaredArtifacts,
-      final Set<ComponentIdentifier> possiblyUnusedCompileOnlyArtifacts) {
+      final Set<ComponentIdentifier> possiblyUnusedCompileOnlyArtifacts,
+      final Set<ComponentIdentifier> superfluousDeclaredArtifacts) {
     this.usedDeclaredArtifacts = usedDeclaredArtifacts;
     this.usedUndeclaredArtifacts = usedUndeclaredArtifacts;
     this.unusedDeclaredArtifacts = unusedDeclaredArtifacts;
     this.possiblyUnusedCompileOnlyArtifacts = possiblyUnusedCompileOnlyArtifacts;
+    this.superfluousDeclaredArtifacts = superfluousDeclaredArtifacts;
   }
 
   public Set<ComponentIdentifier> getUsedDeclaredArtifacts() {
@@ -34,5 +37,9 @@ public class ProjectDependencyAnalysisResult {
 
   public Set<ComponentIdentifier> getPossiblyUnusedCompileOnlyArtifacts() {
     return possiblyUnusedCompileOnlyArtifacts;
+  }
+
+  public Set<ComponentIdentifier> getSuperfluousDeclaredArtifacts() {
+    return superfluousDeclaredArtifacts;
   }
 }

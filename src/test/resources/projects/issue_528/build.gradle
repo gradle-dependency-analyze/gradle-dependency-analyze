@@ -1,0 +1,57 @@
+plugins {
+    id 'java-library'
+    id 'ca.cutterslade.analyze'
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+ext {
+    subprojectsWithoutPlatform = subprojects.findAll {
+        it.name != 'platform' && new File(it.projectDir, "build.gradle").exists()
+    }
+    allProjectsWithoutPlatform = allprojects.findAll {
+        it.name != 'platform' && new File(it.projectDir, "build.gradle").exists()
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configure(allProjectsWithoutPlatform) {
+    configurations {
+        customPlatform {
+            canBeResolved = false
+            canBeConsumed = false
+        }
+    }
+
+    configurations.all {
+        if (it !== configurations.customPlatform) {
+            extendsFrom(configurations.customPlatform)
+        }
+    }
+
+    dependencies {
+        customPlatform platform(project(':platform'))
+    }
+}
+
+configure(subprojectsWithoutPlatform) { projectIt ->
+    println projectIt
+    apply plugin: 'ca.cutterslade.analyze'
+    apply plugin: 'java'
+    dependencies {
+        permitAggregatorUse libs.spring.boot.dependencies
+        permitAggregatorUse libs.spring.boot.starter.data.jpa
+        permitAggregatorUse libs.spring.boot.starter.web
+    }
+}
+
+defaultTasks = ['build']

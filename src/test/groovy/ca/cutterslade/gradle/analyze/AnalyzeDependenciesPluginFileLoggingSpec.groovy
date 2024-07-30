@@ -45,7 +45,7 @@ class AnalyzeDependenciesPluginFileLoggingSpec extends AnalyzeDependenciesPlugin
 
     }
 
-    def 'simple build with unused dependencies results in success when justWarn'() {
+    def 'simple build with unused dependencies results in success when warn* is true'() {
         setup:
         rootProject()
                 .logDependencyInformationToFiles()

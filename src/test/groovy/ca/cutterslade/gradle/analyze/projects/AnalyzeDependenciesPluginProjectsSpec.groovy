@@ -34,4 +34,14 @@ class AnalyzeDependenciesPluginProjectsSpec extends AnalyzeDependenciesPluginBas
         then:
         assertBuildResult(result, SUCCESS)
     }
+
+    def 'issue_528'() {
+        setup:
+        copyProjectToTestFolder('projects/issue_528', projectDir)
+        when:
+        def result = buildGradleProject(VIOLATIONS)
+
+        then:
+        assertBuildResult(result, VIOLATIONS, [], [], [], ['jakarta.annotation:jakarta.annotation-api:2.1.1'])
+    }
 }

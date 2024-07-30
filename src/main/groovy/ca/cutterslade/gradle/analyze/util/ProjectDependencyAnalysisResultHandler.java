@@ -21,12 +21,15 @@ public final class ProjectDependencyAnalysisResultHandler {
       final boolean warnUsedUndeclared,
       final boolean warnUnusedDeclared,
       final boolean warnCompileOnly,
+      final boolean warnSuperfluous,
       final Path logFilePath,
       boolean logDependencyInformationToFiles,
       final Logger logger)
       throws IOException {
     final Set<ComponentIdentifier> usedUndeclared = result.getUsedUndeclaredArtifacts();
     final Set<ComponentIdentifier> unusedDeclared = result.getUnusedDeclaredArtifacts();
+    final Set<ComponentIdentifier> superfluousDeclaredArtifacts =
+        result.getSuperfluousDeclaredArtifacts();
     final Set<ComponentIdentifier> possiblyUnusedCompileOnly =
         result.getPossiblyUnusedCompileOnlyArtifacts();
 
@@ -39,8 +42,13 @@ public final class ProjectDependencyAnalysisResultHandler {
     }
     final String usedUndeclaredViolations = getSummary("usedUndeclaredArtifacts", usedUndeclared);
     final String unusedDeclaredViolations = getSummary("unusedDeclaredArtifacts", unusedDeclared);
+    final String superfluousDeclaredViolations =
+        getSummary("superfluousDeclaredArtifacts", superfluousDeclaredArtifacts);
 
-    final String combinedViolations = join(usedUndeclaredViolations, unusedDeclaredViolations);
+    final String combinedViolations =
+        join(
+            join(usedUndeclaredViolations, unusedDeclaredViolations),
+            superfluousDeclaredViolations);
 
     if (!combinedViolations.isEmpty()) {
       if (logDependencyInformationToFiles) {
@@ -65,6 +73,14 @@ public final class ProjectDependencyAnalysisResultHandler {
           logger.warn(foundIssues(unusedDeclaredViolations));
         } else {
           throw new DependencyAnalysisException(foundIssues(unusedDeclaredViolations));
+        }
+      }
+
+      if (!superfluousDeclaredArtifacts.isEmpty()) {
+        if (warnSuperfluous) {
+          logger.warn(foundIssues(superfluousDeclaredViolations));
+        } else {
+          throw new DependencyAnalysisException(foundIssues(superfluousDeclaredViolations));
         }
       }
     }
