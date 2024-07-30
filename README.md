@@ -175,28 +175,27 @@ Informational messages are logged to `$builddir/reports/dependency-analyze/`.
 tasks.named('analyzeClassesDependencies').configure {
   warnUsedUndeclared = true
   warnUnusedDeclared = true
+  warnSuperfluous = true
   logDependencyInformationToFiles = true
 }
 
 tasks.named('analyzeTestClassesDependencies').configure {
   warnUsedUndeclared = true
   warnUnusedDeclared = true
+  warnSuperfluous = true
   logDependencyInformationToFiles = true
 }
 ```
 
 * `warnUsedUndeclared` - only warn if used undeclared dependencies are found, default: `false`
 * `warnUnusedDeclared` - only warn if unused declared dependencies are found, default: `false`
+* `warnSuperfluous` - only warn if superfluous declared dependencies are found, default: `false`
+* `warnCompileOnly` - warn for compileOnly dependencies, default: `false`
 * `logDependencyInformationToFiles` - logs dependency violations to log file, default: `false`
-
-Note: Starting with version **1.8.0** `justWarn` is deprecated in favor of much more fine-grained `warnUsedUndeclared`
-and
-`warnUnusedDeclared` options. Setting `justWarn=true` is equivalent to setting both `warnUsedUndeclared=true` and
-`warnUnusedDeclared=true`. This option will be removed in the future
 
 ### Disabling/enabling the plugin
 
-In addition to using the `justWarn`-property, many cases want the build to fail only under given conditions (i.e. nightly
+In addition to using the `warn`-property, many cases want the build to fail only under given conditions (i.e. nightly
 builds or integration builds). This can be achieved by disabling and enabling dependency analyzing in the following
 manner.
 
@@ -232,7 +231,7 @@ tasks.named('analyzeClassesDependencies').configure {
 }
 ```
 
-### (Experimental) Aggregator projects
+### Aggregator projects
 
 With version 1.6.0 a new feature has been added that allows the use of aggregator projects without the need to add
 many `permit*` dependencies. This makes the life easier when for example a project heavily uses `spring-boot-starters`.
@@ -254,6 +253,11 @@ dependencies {
 With that configuration the plugin will not "complain" about unused declared dependencies for `spring-boot-starter` and
 also not about used undeclared dependencies for example when the code uses a class from `spring-core` which is a
 dependency of the starter.
+
+When a `permitAggregatorUse` and additionally a dependency from the aggregator is specified the dependency is marked as
+a `superfluousDeclaredArtifacts`. This one does not need to be added as it is already allowed by the
+`permitAggregatorUse`. If you still want to have these extra dependencies listed and do not want to fail the build, set
+the option `warnSuperfluous = true` for the task.
 
 *Example for the optimization when a smaller aggregator is a better fit:*
 
@@ -326,9 +330,6 @@ Example:
 tasks.register('analyzeCustomClassesDependencies', AnalyzeDependenciesTask) {
   dependsOn customClasses
 
-  // Set to true to print a warning rather than fail the build if the dependency analysis fails
-  justWarn = false
-
   // List of configurations which the analyzed output is required to use
   require = [ configurations.customCompile, configuration.customCompileOnly ]
 
@@ -354,6 +355,13 @@ as practical.
 
 ## Changelog
 
+### Version 2.0.0
+
+The `justWarn` flag is now removed, use the dedicated options `warnUsedUndeclared`, `warnUnusedDeclared`,
+`warnSuperfluous` and `warnCompileOnly`.
+A new option `warnSuperfluous` has been introduced to just warn instead of failing in case when a dependency is declared
+additionally to an aggregator dependency (which includes also this dependency).
+
 ### Version 1.10.0
 
 Switch from Plexus DirectoryScanner to our own implementation for finding class files
@@ -377,7 +385,7 @@ in `build/reports/dependency-analyze`.
 ### Version 1.6.0
 
 Version 1.6.0 of this plugin adds support for aggregator projects. This feature is an experimental feature that needs to
-be tested by more users to see if it works as expected. see [aggregator usage](#experimental-aggregator-projects)
+be tested by more users to see if it works as expected. see [aggregator usage](#aggregator-projects)
 
 ### Version 1.5.0
 

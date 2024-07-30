@@ -2,7 +2,6 @@ package ca.cutterslade.gradle.analyze
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
-import spock.lang.Unroll
 
 class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesPluginBaseSpec {
     def 'project only with test fixture classes results in success'() {
@@ -54,7 +53,6 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
         assertBuildSuccess(result)
     }
 
-    @Unroll
     def 'project with test fixture class and main class from different module is not used results in failure'() {
         setup:
         rootProject()
@@ -69,11 +67,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesSpec extends AnalyzeDependenciesP
         def result = buildGradleProject(BUILD_FAILURE)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-
-        where:
-        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ['project :dependent']
+        assertBuildResult(result, VIOLATIONS, [], ['project :dependent'])
     }
 
     def 'project with test, test fixture and main class and main class from different module is used results in success'() {

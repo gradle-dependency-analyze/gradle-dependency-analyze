@@ -5,7 +5,6 @@ class GradleProject {
     final String name
     final boolean rootProject
 
-    boolean justWarn = false
     boolean warnCompileOnly = false
     boolean warnUsedUndeclared = false
     boolean warnUnusedDeclared = false
@@ -53,11 +52,6 @@ class GradleProject {
 
     def withAllProjectsPlugin(String plugin) {
         allProjectPlugins.add(plugin)
-        this
-    }
-
-    def justWarn() {
-        justWarn = true
         this
     }
 
@@ -210,9 +204,8 @@ class GradleProject {
             buildGradle += "}\n"
         }
 
-        if (justWarn || warnUsedUndeclared || warnUnusedDeclared || logDependencyInformationToFiles || warnCompileOnly) {
+        if (warnUsedUndeclared || warnUnusedDeclared || logDependencyInformationToFiles || warnCompileOnly) {
             buildGradle += "tasks.named('analyzeClassesDependencies').configure {\n" +
-                    (justWarn ? "  justWarn = ${justWarn}\n" : "") +
                     (warnCompileOnly ? "  warnCompileOnly = ${warnCompileOnly}\n" : "") +
                     (warnUsedUndeclared ? "  warnUsedUndeclared = ${warnUsedUndeclared}\n" : "") +
                     (warnUnusedDeclared ? "  warnUnusedDeclared = ${warnUnusedDeclared}\n" : "") +

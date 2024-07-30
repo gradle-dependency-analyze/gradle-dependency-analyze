@@ -52,7 +52,6 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .forwardOutput()
-                .withArguments("--stacktrace")
 
         if (runtimeMXBean.inputArguments.any { it.startsWith('-agentlib:jdwp=') }) {
             runner.withDebug(true)
@@ -84,7 +83,8 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                                             String expectedResult,
                                             List<String> usedUndeclaredArtifacts = [],
                                             List<String> unusedDeclaredArtifacts = [],
-                                            List<String> compileOnlyArtifacts = []) {
+                                            List<String> compileOnlyArtifacts = [],
+                                            List<String> superfluousDeclaredArtifacts = []) {
         if (expectedResult == SUCCESS) {
             def violations = expectedResult == SUCCESS ? new StringBuilder() : new StringBuilder('> ')
             if (!compileOnlyArtifacts.empty) {
@@ -111,6 +111,10 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
             if (!compileOnlyArtifacts.empty) {
                 violations.append(spacer).append('compileOnlyDeclaredArtifacts').append(System.lineSeparator())
                 compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
+            }
+            if (!superfluousDeclaredArtifacts.empty) {
+                violations.append(spacer).append('superfluousDeclaredArtifacts').append(System.lineSeparator())
+                superfluousDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
             }
             violations.append(System.lineSeparator())
             assert result.output.contains(violations)

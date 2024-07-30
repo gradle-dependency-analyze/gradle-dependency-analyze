@@ -2,16 +2,14 @@ package ca.cutterslade.gradle.analyze
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
-import spock.lang.Unroll
 
 class AnalyzeDependenciesPluginConstantsSpec extends AnalyzeDependenciesPluginBaseSpec {
-    @Unroll
-    def 'build with constants usage from dependency results in #expectedResult'() {
+    def 'build with constants usage from dependency'() {
         setup:
         rootProject()
                 .withAllProjectsPlugin('ca.cutterslade.analyze')
                 .withSubProject(subProject("foo")
-                        .justWarn()
+                        .withWarnUnusedDeclared(true)
                         .withMainClass(new GroovyClass("FooClass")
                                 .withClassAnnotation("FooAnnotation", "BarConstants.BAR_VALUE"))
                         .withMainClass(new GroovyClass("FooAnnotation", true))
@@ -30,10 +28,6 @@ class AnalyzeDependenciesPluginConstantsSpec extends AnalyzeDependenciesPluginBa
         def result = buildGradleProject(SUCCESS)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-
-        where:
-        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        WARNING        | []                      | ["project :bar"]
+        assertBuildResult(result, WARNING, [], ["project :bar"])
     }
 }

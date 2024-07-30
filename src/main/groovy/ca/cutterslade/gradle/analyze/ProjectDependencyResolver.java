@@ -61,6 +61,7 @@ class ProjectDependencyResolver {
     this.allowedToDeclare = removeNulls(allowedToDeclare);
     this.classesDirs = classesDirs;
     this.aggregatorsWithDependencies = getAggregatorsMapping(removeNulls(allowedAggregatorsToUse));
+    //noinspection unchecked
     this.artifactClassCache =
         (HashSetValuedHashMap<File, String>)
             project.getRootProject().getExtensions().getByName(CACHE_NAME);
@@ -158,6 +159,7 @@ class ProjectDependencyResolver {
             logger.info("unusedDeclared without allowedToDeclareArtifacts", unusedDeclared);
           }
 
+          Set<ComponentIdentifier> superfluous = new LinkedHashSet<>();
           if (!aggregatorsWithDependencies.isEmpty()) {
             Set<ComponentIdentifier> usedIdentifiers =
                 collect(
@@ -175,7 +177,7 @@ class ProjectDependencyResolver {
                                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             if (aggregatorUsage.containsKey(true)) {
               Set<ComponentIdentifier> aggregators = aggregatorUsage.get(true).keySet();
-              unusedDeclared.addAll(SetUtils.intersection(aggregators, usedIdentifiers));
+              superfluous.addAll(SetUtils.intersection(aggregators, usedIdentifiers));
             }
             if (aggregatorUsage.containsKey(false)) {
               Set<ComponentIdentifier> aggregators = aggregatorUsage.get(false).keySet();
@@ -183,8 +185,9 @@ class ProjectDependencyResolver {
 
               Set<ComponentIdentifier> aggregatorDependencies =
                   collectMany(aggregatorUsage.get(false).values(), c -> c);
-              unusedDeclared.addAll(SetUtils.intersection(usedDeclared, aggregatorDependencies));
+              superfluous.addAll(SetUtils.intersection(usedDeclared, aggregatorDependencies));
 
+              superfluous.removeIf(aggregators::contains);
               unusedDeclared.removeIf(aggregators::contains);
               collectMany(aggregators, aggregatorsWithDependencies::get)
                   .forEach(usedUndeclared::remove);
@@ -196,6 +199,7 @@ class ProjectDependencyResolver {
                           ResolvedDependency::getAllModuleArtifacts),
                       resolvedArtifactToComponentIdentifier);
               unusedDeclared.removeIf(apiDependencies::contains);
+              superfluous.removeIf(apiDependencies::contains);
 
               Set<ComponentIdentifier> undeclaredAggregators =
                   findAll(
@@ -221,7 +225,11 @@ class ProjectDependencyResolver {
           compileOnlyDependencyModuleIdentifiers.forEach(unusedDeclared::remove);
 
           return new ProjectDependencyAnalysisResult(
-              usedDeclared, usedUndeclared, unusedDeclared, compileOnlyDependencyModuleIdentifiers);
+              usedDeclared,
+              usedUndeclared,
+              unusedDeclared,
+              compileOnlyDependencyModuleIdentifiers,
+              superfluous);
         });
   }
 

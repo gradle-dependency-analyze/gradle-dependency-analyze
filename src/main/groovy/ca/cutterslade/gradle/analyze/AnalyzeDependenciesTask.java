@@ -24,9 +24,9 @@ public class AnalyzeDependenciesTask extends DefaultTask {
           .toPath()
           .resolve("dependency-analyze")
           .resolve(getName() + ".log");
-  @Deprecated private Boolean justWarn = false;
   private Boolean warnUsedUndeclared = false;
   private Boolean warnUnusedDeclared = false;
+  private Boolean warnSuperfluous = false;
   private Boolean warnCompileOnly = false;
   private Boolean logDependencyInformationToFiles = false;
   private List<Configuration> require = new ArrayList<>();
@@ -39,16 +39,6 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
   @TaskAction
   public void action() throws IOException {
-    if (justWarn) {
-      getLogger()
-          .warn(
-              "justWarn is deprecated in favor of warnUsedUndeclared and warnUnusedDeclared."
-                  + " Forcefully setting warnUsedUndeclared=true and warnUnusedDeclared=true"
-                  + " options");
-      warnUnusedDeclared = true;
-      warnUsedUndeclared = true;
-    }
-
     if (logDependencyInformationToFiles) {
       getLogger().info("Writing dependency information to {}", logFilePath);
     }
@@ -68,6 +58,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
         warnUsedUndeclared,
         warnUnusedDeclared,
         warnCompileOnly,
+        warnSuperfluous,
         logFilePath,
         logDependencyInformationToFiles,
         getLogger());
@@ -96,17 +87,6 @@ public class AnalyzeDependenciesTask extends DefaultTask {
   }
 
   @Input
-  @Deprecated
-  public Boolean getJustWarn() {
-    return justWarn;
-  }
-
-  @Deprecated
-  public void setJustWarn(final boolean justWarn) {
-    this.justWarn = justWarn;
-  }
-
-  @Input
   public Boolean getWarnUsedUndeclared() {
     return warnUsedUndeclared;
   }
@@ -122,6 +102,15 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
   public void setWarnUnusedDeclared(final boolean warnUnusedDeclared) {
     this.warnUnusedDeclared = warnUnusedDeclared;
+  }
+
+  @Input
+  public Boolean getWarnSuperfluous() {
+    return warnSuperfluous;
+  }
+
+  public void setWarnSuperfluous(final boolean warnSuperfluous) {
+    this.warnSuperfluous = warnSuperfluous;
   }
 
   @Input
