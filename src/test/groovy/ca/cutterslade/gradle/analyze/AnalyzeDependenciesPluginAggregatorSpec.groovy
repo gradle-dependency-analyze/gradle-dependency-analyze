@@ -137,7 +137,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
         assertBuildResult(result, VIOLATIONS, [], ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"])
@@ -161,7 +161,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
         assertBuildResult(result, VIOLATIONS, [], ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"])
@@ -189,7 +189,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
         assertBuildResult(result, VIOLATIONS, [], ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"])
@@ -211,7 +211,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
         assertBuildResult(result, VIOLATIONS, ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE"], ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"])
@@ -235,7 +235,7 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
         assertBuildResult(result, VIOLATIONS, [], [], [], ["project :dependent"])

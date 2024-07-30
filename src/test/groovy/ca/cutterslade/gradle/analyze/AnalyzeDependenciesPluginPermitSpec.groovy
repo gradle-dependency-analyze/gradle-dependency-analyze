@@ -21,7 +21,7 @@ class AnalyzeDependenciesPluginPermitSpec extends AnalyzeDependenciesPluginBaseS
         def result = buildGradleProject(SUCCESS)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildSuccess(result)
     }
 
     def 'project with used dependency but permitted'() {
@@ -42,6 +42,6 @@ class AnalyzeDependenciesPluginPermitSpec extends AnalyzeDependenciesPluginBaseS
         def result = buildGradleProject(SUCCESS)
 
         then:
-        assertBuildResult(result, expectedResult)
+        assertBuildSuccess(result)
     }
 }
