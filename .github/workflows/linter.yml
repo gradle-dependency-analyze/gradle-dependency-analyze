@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
-      - uses: github/super-linter@4e51915f4a812abf59fed160bb14595c0a38a9e7 # v6
+      - uses: github/super-linter@b807e99ddd37e444d189cfd2c2ca1274d8ae8ef1 # v7
         env:
           DEFAULT_BRANCH: origin/master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
