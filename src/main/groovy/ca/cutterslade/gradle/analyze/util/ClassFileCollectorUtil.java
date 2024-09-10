@@ -23,7 +23,7 @@ public final class ClassFileCollectorUtil {
         final Set<String> classFiles = new HashSet<>();
         if (file.getPath().endsWith(".jar") || file.getPath().endsWith(".nar")) {
             collectFormJar(file, classFiles);
-        } else {
+        } else if (!file.getPath().endsWith(".pom")) {
             if (file.isDirectory()) {
                 collectFromDirectory(file, classFiles);
             } else if (file.exists()) {
