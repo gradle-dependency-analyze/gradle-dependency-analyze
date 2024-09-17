@@ -17,16 +17,12 @@ Steps to reproduce the behavior:
 plugins {
   id "ca.cutterslade.analyze" version "1.7.0"
 }
-
-analyzeClassesDependencies {
-    justWarn = true
-}
 ```
 2. execute command `gradlew build`
 3. See error
 
 **Repository containing a sample project**
-URL: https://github.com/...
+URL: [GitHub](https://github.com/...)
 
 **Versions**
 Java: 1.8 / 11 / 15 / ...

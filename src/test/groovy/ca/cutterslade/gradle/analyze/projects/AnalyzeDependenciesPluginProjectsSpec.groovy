@@ -1,12 +1,12 @@
 package ca.cutterslade.gradle.analyze.projects
 
 import ca.cutterslade.gradle.analyze.AnalyzeDependenciesPluginBaseSpec
-import org.apache.commons.io.FileUtils
 
 class AnalyzeDependenciesPluginProjectsSpec extends AnalyzeDependenciesPluginBaseSpec {
     def 'issue_527'() {
         setup:
         copyProjectToTestFolder('projects/issue_527', projectDir)
+
         when:
         def result = buildGradleProject(SUCCESS)
 
@@ -14,24 +14,34 @@ class AnalyzeDependenciesPluginProjectsSpec extends AnalyzeDependenciesPluginBas
         assertBuildResult(result, SUCCESS)
     }
 
-    void copyProjectToTestFolder(String sourcePath, File destFolder) {
-        URL resourceUrl = this.class.getResource("/$sourcePath")
-        if (resourceUrl == null) {
-            throw new IllegalStateException("Resource folder '$sourcePath' not found in classpath")
-        }
-        File sourceFolder = new File(resourceUrl.toURI())
+    def 'issue_400'() {
+        setup:
+        copyProjectToTestFolder('projects/issue_400', projectDir)
 
-        if (!sourceFolder.exists()) {
-            throw new IllegalStateException("Source folder does not exist at $sourceFolder")
-        }
+        when:
+        def result = buildGradleProject(SUCCESS)
 
-        // Make sure destination is a directory and not a file
-        if (!destFolder.exists()) {
-            destFolder.mkdirs()
-        } else if (!destFolder.isDirectory()) {
-            throw new IllegalArgumentException("Destination must be a directory")
-        }
+        then:
+        assertBuildResult(result, SUCCESS)
+    }
 
-        FileUtils.copyDirectory(sourceFolder, destFolder)
+    def 'issue_288'() {
+        setup:
+        copyProjectToTestFolder('projects/issue_288', projectDir)
+        when:
+        def result = buildGradleProject(SUCCESS)
+
+        then:
+        assertBuildResult(result, SUCCESS)
+    }
+
+    def 'issue_528'() {
+        setup:
+        copyProjectToTestFolder('projects/issue_528', projectDir)
+        when:
+        def result = buildGradleProject(VIOLATIONS)
+
+        then:
+        assertBuildResult(result, VIOLATIONS, [], [], [], ['jakarta.annotation:jakarta.annotation-api:2.1.1'])
     }
 }

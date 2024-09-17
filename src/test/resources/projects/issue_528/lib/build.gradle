@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(platform(project(":platform")))
+    implementation libs.commons.math3
+    implementation libs.jakarta.annotation.api
+    implementation libs.spring.boot.starter.data.jpa
+    // No unusedDeclaredArtifacts - jakarta.annotation:jakarta.annotation-api:2.1.1 issue when
+    // we replace libs.spring.boot.starter.data.jpa dependency with libs.jakarta.persistence.api
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}

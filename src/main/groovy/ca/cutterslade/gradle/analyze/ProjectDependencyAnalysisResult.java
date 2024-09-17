@@ -1,38 +1,45 @@
 package ca.cutterslade.gradle.analyze;
 
 import java.util.Set;
-
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 public class ProjectDependencyAnalysisResult {
-    private final Set<ResolvedArtifact> usedDeclaredArtifacts;
-    private final Set<ResolvedArtifact> usedUndeclaredArtifacts;
-    private final Set<ResolvedArtifact> unusedDeclaredArtifacts;
-    private final Set<ResolvedArtifact> possiblyUnusedCompileOnlyArtifacts;
+  private final Set<ComponentIdentifier> usedDeclaredArtifacts;
+  private final Set<ComponentIdentifier> usedUndeclaredArtifacts;
+  private final Set<ComponentIdentifier> unusedDeclaredArtifacts;
+  private final Set<ComponentIdentifier> possiblyUnusedCompileOnlyArtifacts;
+  private final Set<ComponentIdentifier> superfluousDeclaredArtifacts;
 
-    public ProjectDependencyAnalysisResult(final Set<ResolvedArtifact> usedDeclaredArtifacts,
-                                           final Set<ResolvedArtifact> usedUndeclaredArtifacts,
-                                           final Set<ResolvedArtifact> unusedDeclaredArtifacts,
-                                           final Set<ResolvedArtifact> possiblyUnusedCompileOnlyArtifacts) {
-        this.usedDeclaredArtifacts = usedDeclaredArtifacts;
-        this.usedUndeclaredArtifacts = usedUndeclaredArtifacts;
-        this.unusedDeclaredArtifacts = unusedDeclaredArtifacts;
-        this.possiblyUnusedCompileOnlyArtifacts = possiblyUnusedCompileOnlyArtifacts;
-    }
+  public ProjectDependencyAnalysisResult(
+      final Set<ComponentIdentifier> usedDeclaredArtifacts,
+      final Set<ComponentIdentifier> usedUndeclaredArtifacts,
+      final Set<ComponentIdentifier> unusedDeclaredArtifacts,
+      final Set<ComponentIdentifier> possiblyUnusedCompileOnlyArtifacts,
+      final Set<ComponentIdentifier> superfluousDeclaredArtifacts) {
+    this.usedDeclaredArtifacts = usedDeclaredArtifacts;
+    this.usedUndeclaredArtifacts = usedUndeclaredArtifacts;
+    this.unusedDeclaredArtifacts = unusedDeclaredArtifacts;
+    this.possiblyUnusedCompileOnlyArtifacts = possiblyUnusedCompileOnlyArtifacts;
+    this.superfluousDeclaredArtifacts = superfluousDeclaredArtifacts;
+  }
 
-    public Set<ResolvedArtifact> getUsedDeclaredArtifacts() {
-        return usedDeclaredArtifacts;
-    }
+  public Set<ComponentIdentifier> getUsedDeclaredArtifacts() {
+    return usedDeclaredArtifacts;
+  }
 
-    public Set<ResolvedArtifact> getUsedUndeclaredArtifacts() {
-        return usedUndeclaredArtifacts;
-    }
+  public Set<ComponentIdentifier> getUsedUndeclaredArtifacts() {
+    return usedUndeclaredArtifacts;
+  }
 
-    public Set<ResolvedArtifact> getUnusedDeclaredArtifacts() {
-        return unusedDeclaredArtifacts;
-    }
+  public Set<ComponentIdentifier> getUnusedDeclaredArtifacts() {
+    return unusedDeclaredArtifacts;
+  }
 
-    public Set<ResolvedArtifact> getPossiblyUnusedCompileOnlyArtifacts() {
-        return possiblyUnusedCompileOnlyArtifacts;
-    }
+  public Set<ComponentIdentifier> getPossiblyUnusedCompileOnlyArtifacts() {
+    return possiblyUnusedCompileOnlyArtifacts;
+  }
+
+  public Set<ComponentIdentifier> getSuperfluousDeclaredArtifacts() {
+    return superfluousDeclaredArtifacts;
+  }
 }

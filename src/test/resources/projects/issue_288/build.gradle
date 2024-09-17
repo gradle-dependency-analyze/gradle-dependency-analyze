@@ -1,0 +1,29 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+}
+
+plugins {
+  id "ca.cutterslade.analyze"
+  id 'org.jetbrains.kotlin.jvm' version '1.6.10' apply false
+}
+
+subprojects { subproject ->
+  apply plugin: 'java-library'
+  apply plugin: 'ca.cutterslade.analyze'
+
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    permitUsedUndeclared "org.jetbrains.kotlin:kotlin-stdlib:1.6.10"
+    permitUnusedDeclared "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10"
+  }
+}
+
+defaultTasks = ['build']

@@ -28,10 +28,10 @@ class AnalyzeDependenciesPluginTaskConfigurationSpec extends AnalyzeDependencies
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        warnUsedUndeclared | warnUnusedDeclared | expectedResult | usedUndeclaredArtifacts                | unusedDeclaredArtifacts
-        false              | false              | VIOLATIONS     | ['project:dependent2:unspecified@jar'] | ['project:dependent1:unspecified@jar']
-        false              | true               | VIOLATIONS     | ['project:dependent2:unspecified@jar'] | []
-        true               | false              | VIOLATIONS     | []                                     | ['project:dependent1:unspecified@jar']
-        true               | true               | SUCCESS        | ['project:dependent2:unspecified@jar'] | ['project:dependent1:unspecified@jar']
+        warnUsedUndeclared | warnUnusedDeclared | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
+        false              | false              | VIOLATIONS     | ['project :dependent2'] | ['project :dependent1']
+        false              | true               | VIOLATIONS     | ['project :dependent2'] | []
+        true               | false              | VIOLATIONS     | []                      | ['project :dependent1']
+        true               | true               | SUCCESS        | ['project :dependent2'] | ['project :dependent1']
     }
 }

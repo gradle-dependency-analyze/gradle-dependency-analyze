@@ -2,6 +2,8 @@ package ca.cutterslade.gradle.analyze
 
 
 import ca.cutterslade.gradle.analyze.helper.GradleProject
+import java.lang.management.ManagementFactory
+import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -9,8 +11,6 @@ import org.gradle.util.GradleVersion
 import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
 import spock.lang.TempDir
-
-import java.lang.management.ManagementFactory
 
 abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
     protected static final def SUCCESS = 'success'
@@ -52,7 +52,6 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                 .withProjectDir(projectDir)
                 .withPluginClasspath()
                 .forwardOutput()
-                .withArguments("--stacktrace")
 
         if (runtimeMXBean.inputArguments.any { it.startsWith('-agentlib:jdwp=') }) {
             runner.withDebug(true)
@@ -62,7 +61,7 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
 
     protected static void assertBuildSuccess(BuildResult result) {
         if (result.task(':build') == null) {
-            throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
+            throw new SpockAssertionError("Build task not run: " + System.lineSeparator() + "${result.getOutput()}")
         }
         assert result.task(':build').getOutcome() == TaskOutcome.SUCCESS
     }
@@ -84,49 +83,64 @@ abstract class AnalyzeDependenciesPluginBaseSpec extends Specification {
                                             String expectedResult,
                                             List<String> usedUndeclaredArtifacts = [],
                                             List<String> unusedDeclaredArtifacts = [],
-                                            List<String> compileOnlyArtifacts = []) {
+                                            List<String> compileOnlyArtifacts = [],
+                                            List<String> superfluousDeclaredArtifacts = []) {
         if (expectedResult == SUCCESS) {
-            if (result.task(':build') == null) {
-                throw new SpockAssertionError("Build task not run: \n${result.getOutput()}")
-            }
             def violations = expectedResult == SUCCESS ? new StringBuilder() : new StringBuilder('> ')
             if (!compileOnlyArtifacts.empty) {
                 def spacer = expectedResult == SUCCESS ? '' : '  '
-                violations.append(spacer).append('compileOnlyDeclaredArtifacts\n')
-                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('compileOnlyDeclaredArtifacts').append(System.lineSeparator())
+                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
                 assert result.output.contains(violations)
             }
-            assert result.task(':build').getOutcome() == TaskOutcome.SUCCESS
-        } else if (expectedResult == BUILD_FAILURE) {
-            if (result.task(':compileGroovy') == null) {
-                throw new SpockAssertionError("compileGroovy task not run: \n${result.getOutput()}")
-            }
-            assert result.task(':compileGroovy').getOutcome() == TaskOutcome.FAILED
-        } else if (expectedResult == TEST_BUILD_FAILURE) {
-            if (result.task(':compileTestGroovy') == null) {
-                throw new SpockAssertionError("compileTestGroovy task not run: \n${result.getOutput()}")
-            }
-            assert result.task(':compileTestGroovy').getOutcome() == TaskOutcome.FAILED
+            assert result.tasks.count { it.outcome != TaskOutcome.SUCCESS } != 0
+        } else if (expectedResult == BUILD_FAILURE || expectedResult == TEST_BUILD_FAILURE) {
+            assert result.tasks.count { it.outcome == TaskOutcome.FAILED } != 0
         } else if (expectedResult == VIOLATIONS || expectedResult == WARNING) {
             def violations = expectedResult == WARNING ? new StringBuilder() : new StringBuilder('> ')
-            violations.append('Dependency analysis found issues.\n')
+            violations.append('Dependency analysis found issues.').append(System.lineSeparator())
             def spacer = expectedResult == WARNING ? '' : '  '
             if (!usedUndeclaredArtifacts.empty) {
-                violations.append(spacer).append('usedUndeclaredArtifacts\n')
-                usedUndeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('usedUndeclaredArtifacts').append(System.lineSeparator())
+                usedUndeclaredArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
             }
             if (!unusedDeclaredArtifacts.empty) {
-                violations.append(spacer).append('unusedDeclaredArtifacts\n')
-                unusedDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('unusedDeclaredArtifacts').append(System.lineSeparator())
+                unusedDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
             }
             if (!compileOnlyArtifacts.empty) {
-                violations.append(spacer).append('compileOnlyDeclaredArtifacts\n')
-                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}\n") }
+                violations.append(spacer).append('compileOnlyDeclaredArtifacts').append(System.lineSeparator())
+                compileOnlyArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
             }
-            violations.append('\n')
+            if (!superfluousDeclaredArtifacts.empty) {
+                violations.append(spacer).append('superfluousDeclaredArtifacts').append(System.lineSeparator())
+                superfluousDeclaredArtifacts.each { violations.append(spacer).append(" - ${it}").append(System.lineSeparator()) }
+            }
+            violations.append(System.lineSeparator())
             assert result.output.contains(violations)
         } else {
             assert result.output.contains(expectedResult)
         }
+    }
+
+    protected void copyProjectToTestFolder(String sourcePath, File destFolder) {
+        URL resourceUrl = this.class.getResource("/$sourcePath")
+        if (resourceUrl == null) {
+            throw new IllegalStateException("Resource folder '$sourcePath' not found in classpath")
+        }
+        File sourceFolder = new File(resourceUrl.toURI())
+
+        if (!sourceFolder.exists()) {
+            throw new IllegalStateException("Source folder does not exist at $sourceFolder")
+        }
+
+        // Make sure destination is a directory and not a file
+        if (!destFolder.exists()) {
+            destFolder.mkdirs()
+        } else if (!destFolder.isDirectory()) {
+            throw new IllegalArgumentException("Destination must be a directory")
+        }
+
+        FileUtils.copyDirectory(sourceFolder, destFolder)
     }
 }

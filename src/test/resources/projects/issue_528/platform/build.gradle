@@ -1,0 +1,16 @@
+plugins {
+    id 'java-platform'
+}
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    api enforcedPlatform(libs.spring.boot.dependencies)
+    api platform(libs.aws.sdk.dependencies)
+    api platform(libs.spring.cloud.dependencies)
+    api platform(libs.spring.shell.dependencies)
+    api platform(libs.drools.dependencies)
+    api platform(libs.twelvemonkeys.dependencies)
+}

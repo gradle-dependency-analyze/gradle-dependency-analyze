@@ -1,17 +1,16 @@
 package ca.cutterslade.gradle.analyze
 
+import static ca.cutterslade.gradle.analyze.util.GradleVersionUtil.isWarPluginBrokenWhenUsingProvidedRuntime
+
 import ca.cutterslade.gradle.analyze.helper.GradleDependency
 import ca.cutterslade.gradle.analyze.helper.GroovyClass
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import java.util.stream.Collectors
+import java.util.stream.StreamSupport
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
-
-import java.util.stream.Collectors
-import java.util.stream.StreamSupport
-
-import static ca.cutterslade.gradle.analyze.util.GradleVersionUtil.isWarPluginBrokenWhenUsingProvidedRuntime
 
 class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseSpec {
     @Unroll
@@ -99,7 +98,7 @@ class AnalyzeDependenciesPluginGradleSpec extends AnalyzeDependenciesPluginBaseS
         pair << determineMinorVersions('6.9', '7.3')
         gradleVersion = pair.v1
         expectedResult = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? VIOLATIONS : SUCCESS
-        unusedDeclaredArtifacts = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE@jar'] : []
+        unusedDeclaredArtifacts = isWarPluginBrokenWhenUsingProvidedRuntime(pair.v1) ? ['org.springframework.boot:spring-boot-starter-tomcat:2.3.6.RELEASE'] : []
     }
 
     @Unroll

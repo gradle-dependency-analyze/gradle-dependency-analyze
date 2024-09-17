@@ -58,9 +58,9 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult | usedUndeclaredArtifacts                                                                                          | unusedDeclaredArtifacts
-        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar", "org.springframework:spring-context:5.2.11.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
-        "runtimeOnly"    | BUILD_FAILURE  | []                                                                                                               | []
+        configuration    | expectedResult | usedUndeclaredArtifacts                                                                                  | unusedDeclaredArtifacts
+        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE", "org.springframework:spring-context:5.2.11.RELEASE"] | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"]
+        "runtimeOnly"    | BUILD_FAILURE  | []                                                                                                       | []
     }
 
     @Unroll
@@ -87,9 +87,9 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult | usedUndeclaredArtifacts                                 | unusedDeclaredArtifacts
-        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE@jar"] | []
-        "runtimeOnly"    | BUILD_FAILURE  | []                                                      | []
+        configuration    | expectedResult | usedUndeclaredArtifacts                             | unusedDeclaredArtifacts
+        "implementation" | VIOLATIONS     | ["org.springframework:spring-beans:5.2.11.RELEASE"] | []
+        "runtimeOnly"    | BUILD_FAILURE  | []                                                  | []
     }
 
     @Unroll
@@ -114,16 +114,15 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
         BuildResult result = buildGradleProject(expectedResult)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
+        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts, [], superfluousDeclaredArtifacts)
 
         where:
-        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        "implementation" | VIOLATIONS     | []                      | ["org.springframework:spring-context:5.2.11.RELEASE@jar"]
-        "runtimeOnly"    | BUILD_FAILURE  | []                      | []
+        configuration    | expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts | superfluousDeclaredArtifacts
+        "implementation" | VIOLATIONS     | []                      | []                      | ["org.springframework:spring-context:5.2.11.RELEASE"]
+        "runtimeOnly"    | BUILD_FAILURE  | []                      | []                      | []
     }
 
-    @Unroll
-    def "multiple aggregator dependencies declared and dependency available in both aggregators should choose the aggregator with less dependencies and report other as unused results in #expectedResult"() {
+    def "multiple aggregator dependencies declared and dependency available in both aggregators should choose the aggregator with less dependencies and report other as unused"() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -138,18 +137,13 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-
-        where:
-        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar"]
+        assertBuildResult(result, VIOLATIONS, [], ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE"])
     }
 
-    @Unroll
-    def "multiple aggregator dependencies declared in config and dependency available in both aggregators plus one additional should choose aggregators with less dependencies results in #expectedResult"() {
+    def "multiple aggregator dependencies declared in config and dependency available in both aggregators plus one additional should choose aggregators with less dependencies"() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -167,18 +161,13 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-
-        where:
-        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        assertBuildResult(result, VIOLATIONS, [], ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"])
     }
 
-    @Unroll
-    def "multiple aggregator dependencies declared in config and dependency available in both aggregators plus one additional should keep only used distinct aggregators results in #expectedResult"() {
+    def "multiple aggregator dependencies declared in config and dependency available in both aggregators plus one additional should keep only used distinct aggregators"() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -200,18 +189,13 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-
-        where:
-        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        assertBuildResult(result, VIOLATIONS, [], ["org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"])
     }
 
-    @Unroll
-    def "multiple aggregator dependencies declared in config and another aggregator is smaller results in #expectedResult"() {
+    def "multiple aggregator dependencies declared in config and another aggregator is smaller"() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -227,18 +211,13 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-
-        where:
-        expectedResult | usedUndeclaredArtifacts                                                 | unusedDeclaredArtifacts
-        VIOLATIONS     | ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE@jar"] | ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE@jar", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE@jar"]
+        assertBuildResult(result, VIOLATIONS, ["org.springframework.boot:spring-boot-starter-json:2.3.6.RELEASE"], ["org.springframework.boot:spring-boot-starter-web:2.3.6.RELEASE", "org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"])
     }
 
-    @Unroll
-    def "aggregator from project results in #expectedResult"() {
+    def "aggregator from project"() {
         setup:
         rootProject()
                 .withMavenRepositories()
@@ -256,14 +235,10 @@ class AnalyzeDependenciesPluginAggregatorSpec extends AnalyzeDependenciesPluginB
                 .create(projectDir)
 
         when:
-        BuildResult result = buildGradleProject(expectedResult)
+        BuildResult result = buildGradleProject(VIOLATIONS)
 
         then:
-        assertBuildResult(result, expectedResult, usedUndeclaredArtifacts, unusedDeclaredArtifacts)
-
-        where:
-        expectedResult | usedUndeclaredArtifacts | unusedDeclaredArtifacts
-        VIOLATIONS     | []                      | ["project:dependent:unspecified@jar"]
+        assertBuildResult(result, VIOLATIONS, [], [], [], ["project :dependent"])
     }
 
     def "aggregator from project with used jar dependency"() {

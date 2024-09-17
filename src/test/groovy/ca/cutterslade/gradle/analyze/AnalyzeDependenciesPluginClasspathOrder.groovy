@@ -45,6 +45,6 @@ class AnalyzeDependenciesPluginClasspathOrder extends AnalyzeDependenciesPluginB
         def result = buildGradleProject(VIOLATIONS)
 
         then:
-        assertBuildResult(result, VIOLATIONS, [], ['project:first:unspecified@jar'])
+        assertBuildResult(result, VIOLATIONS, [], ['project :first'])
     }
 }
