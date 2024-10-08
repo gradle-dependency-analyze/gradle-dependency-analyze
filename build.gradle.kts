@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.apache.maven.shared:maven-dependency-analyzer:1.14.1") {
+    implementation("org.apache.maven.shared:maven-dependency-analyzer:1.15.0") {
         exclude(group = "org.apache.maven")
     }
     implementation("org.apache.commons:commons-collections4:4.4")
