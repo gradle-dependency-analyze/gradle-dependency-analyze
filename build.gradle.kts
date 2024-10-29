@@ -27,7 +27,7 @@ dependencies {
     testImplementation("org.spockframework:spock-core:2.3-groovy-3.0") {
         exclude(group = "org.codehaus.groovy")
     }
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.0")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
     testImplementation("io.github.java-diff-utils:java-diff-utils:4.12")
     testImplementation("commons-io:commons-io:2.17.0")
 }
