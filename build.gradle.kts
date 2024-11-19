@@ -29,7 +29,7 @@ dependencies {
     }
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
     testImplementation("io.github.java-diff-utils:java-diff-utils:4.12")
-    testImplementation("commons-io:commons-io:2.17.0")
+    testImplementation("commons-io:commons-io:2.18.0")
 }
 
 tasks.named<PublishTask>("publishPlugins") {
