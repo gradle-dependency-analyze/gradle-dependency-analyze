@@ -11,3 +11,7 @@ repos:
       - id: check-case-conflict
       - id: check-shebang-scripts-are-executable
       - id: fix-byte-order-marker
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.4.2
+    hooks:
+      - id: prettier
