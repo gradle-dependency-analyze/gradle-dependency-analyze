@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize]
   workflow_dispatch:
 
-permissions: { }
+permissions: {}
 
 jobs:
   badge:
@@ -29,7 +29,7 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v4.6.0
         with:
-          distribution: 'temurin'
+          distribution: "temurin"
           java-version: 21
           cache: gradle
 
@@ -52,8 +52,8 @@ jobs:
         uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
         with:
           default_author: github_actions
-          message: 'update coverage badges'
-          add: '*.svg'
+          message: "update coverage badges"
+          add: "*.svg"
 
       - name: Upload JaCoCo coverage report
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0

@@ -26,8 +26,8 @@ list any relevant details for your test configuration
 
 **Test Configuration**
 
-* Java version:
-* Gradle version:
+- Java version:
+- Gradle version:
 
 ## Checklist
 

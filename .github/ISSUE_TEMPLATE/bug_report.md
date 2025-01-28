@@ -1,10 +1,9 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
+title: ""
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
 **Describe the bug**
@@ -12,12 +11,15 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. configure the plugin in the following way
+
 ```gradle
 plugins {
   id "ca.cutterslade.analyze" version "1.7.0"
 }
 ```
+
 2. execute command `gradlew build`
 3. See error
 

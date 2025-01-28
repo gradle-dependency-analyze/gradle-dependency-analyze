@@ -60,7 +60,7 @@ subprojects {
 The plugin is build with JDK 1.8 and is tested against Gradle 5.0 up to Gradle 7.1.
 
 | Plugin version | Gradle version |
-|----------------|----------------|
+| -------------- | -------------- |
 | \<= 1.4.0      | \< 5.0         |
 | \>= 1.4.1      | \>= 5.0        |
 
@@ -88,7 +88,7 @@ This plugin can not properly detect the following use cases and will issue a war
 declaration.
 
 1. When a constant is used inside the code that is located in a dependency, and it is the only usage of anything from
-   that dependency the plugin *might* report a problem about an unused dependency
+   that dependency the plugin _might_ report a problem about an unused dependency
 2. When a constant is used as a value in an annotation is located in a dependency, and it is the only usage of anything
    from that dependency the plugin is not able to detect that usage as in that case all references to the constant are
    erased by the java compiler
@@ -130,7 +130,7 @@ Additionally, the plugin will add analyze action for every custom sourceSet defi
 
 ### analyze*SourceSet*ClassesDependencies
 
-This task depends on the `*sourceSet*Classes` task and analyzes the dependencies of the *sourceSet*'s output directory.
+This task depends on the `*sourceSet*Classes` task and analyzes the dependencies of the _sourceSet_'s output directory.
 This ensures that all dependencies of the classes are declared in the `*sourceSet*Compile`, `*sourceSet*api`
 , `*sourceSet*implementation`, or `*sourceSet*CompileOnly` configuration. It also ensures the inverse, that all the
 dependencies of these configurations are used by classes; use of the `permit*SourceSet*UnusedDeclared` configuration
@@ -141,12 +141,12 @@ allows for exceptions to this restriction.
 This plugin adds the following configurations which may be used to define dependencies which should be handled in a
 special way. These configurations have no impact on the build outside this plugin.
 
-* `permitUnusedDeclared`
-* `permitTestUnusedDeclared`
-* `permitUsedUndeclared`
-* `permitTestUsedUndeclared`
-* `permit*SourceSet*UnusedDeclared`
-* `permit*SourceSet*UsedUndeclared`
+- `permitUnusedDeclared`
+- `permitTestUnusedDeclared`
+- `permitUsedUndeclared`
+- `permitTestUsedUndeclared`
+- `permit*SourceSet*UnusedDeclared`
+- `permit*SourceSet*UsedUndeclared`
 
 Adding dependencies to `permitUnusedDeclared` causes the dependency analyzer to ignore cases where the dependencies are
 declared but not used. Adding dependencies to `permitUsedUndeclared` causes the dependency analyzer to ignore cases
@@ -187,11 +187,11 @@ tasks.named('analyzeTestClassesDependencies').configure {
 }
 ```
 
-* `warnUsedUndeclared` - only warn if used undeclared dependencies are found, default: `false`
-* `warnUnusedDeclared` - only warn if unused declared dependencies are found, default: `false`
-* `warnSuperfluous` - only warn if superfluous declared dependencies are found, default: `false`
-* `warnCompileOnly` - warn for compileOnly dependencies, default: `false`
-* `logDependencyInformationToFiles` - logs dependency violations to log file, default: `false`
+- `warnUsedUndeclared` - only warn if used undeclared dependencies are found, default: `false`
+- `warnUnusedDeclared` - only warn if unused declared dependencies are found, default: `false`
+- `warnSuperfluous` - only warn if superfluous declared dependencies are found, default: `false`
+- `warnCompileOnly` - warn for compileOnly dependencies, default: `false`
+- `logDependencyInformationToFiles` - logs dependency violations to log file, default: `false`
 
 ### Disabling/enabling the plugin
 
@@ -236,11 +236,11 @@ tasks.named('analyzeClassesDependencies').configure {
 With version 1.6.0 a new feature has been added that allows the use of aggregator projects without the need to add
 many `permit*` dependencies. This makes the life easier when for example a project heavily uses `spring-boot-starters`.
 Normally you do not want to add all dependencies manually to one gradle project instead you want to dependent on the
-starter and *trust* the dependencies declared in that place. As this might be against the intention of this plugin we
+starter and _trust_ the dependencies declared in that place. As this might be against the intention of this plugin we
 still think it might be a good addition. As a benefit to still have a clean and small classpath the plugin tries to
 optimize the aggregator usage by picking the one with the smallest overhead (less transitive dependencies).
 
-*Example how to use:*
+_Example how to use:_
 
 ```gradle
 dependencies {
@@ -259,7 +259,7 @@ a `superfluousDeclaredArtifacts`. This one does not need to be added as it is al
 `permitAggregatorUse`. If you still want to have these extra dependencies listed and do not want to fail the build, set
 the option `warnSuperfluous = true` for the task.
 
-*Example for the optimization when a smaller aggregator is a better fit:*
+_Example for the optimization when a smaller aggregator is a better fit:_
 
 ```gradle
 dependencies {
@@ -275,7 +275,7 @@ have been declared the plugin will inform about the change that should be done t
 of `spring-boot-starter-web`. This optimization will only work when **multiple** `permitAggregatorUse` dependencies are
 declared for one gradle project.
 
-*Example how to use with platform plugin:*
+_Example how to use with platform plugin:_
 
 As this feature makes the most sense when used together with the `platform-plugin` the following example shows haw this
 can be achieved:
@@ -406,8 +406,8 @@ The dependency analyzer has been upgraded to version `1.10`, this new version ad
 which can cause some false positives (the lack of this detection used to cause false negatives). In order to assist in
 working around these false positives, two new configurations have been added to the plugin:
 
-* `permitUsedUndeclared`
-* `permitTestUsedUndeclared`
+- `permitUsedUndeclared`
+- `permitTestUsedUndeclared`
 
 These configurations are described above.
 
@@ -415,20 +415,20 @@ These configurations are described above.
 
 Version 1.2.0 of this plugin introduces a couple significant changes.
 
-* For multi project builds, the plugin must now be applied to the root project. If it has not been applied to the root
+- For multi project builds, the plugin must now be applied to the root project. If it has not been applied to the root
   project, the build will fail with the message `Dependency analysis plugin must also be applied to the root project`.
-* The plugin will no longer fail to apply if the java plugin has not been applied. Applying this plugin to a project
+- The plugin will no longer fail to apply if the java plugin has not been applied. Applying this plugin to a project
   without the java plugin will have no effect.
-* The plugin no longer caches dependency information in a static cache which would persist across executions when the
+- The plugin no longer caches dependency information in a static cache which would persist across executions when the
   gradle daemon was in use. It now caches dependency information in the root project. This represents a small
   performance penalty but avoids a potential issue if a dependency file is modified, and a potential memory leak if the
   path of dependency files changes regularly.
-* The tasks now produce output files at `$buildDir/dependency-analyse/$taskName`. This contains the exception message if
+- The tasks now produce output files at `$buildDir/dependency-analyse/$taskName`. This contains the exception message if
   the task causes the build to fail, or is empty if the task does not cause the build to fail.
-* The tasks now specify inputs and outputs allowing gradle to consider a task up-to-date if nothing has changed.
-* The tasks allows caching of outputs on gradle versions which support the task output cache. This allows the task work
+- The tasks now specify inputs and outputs allowing gradle to consider a task up-to-date if nothing has changed.
+- The tasks allows caching of outputs on gradle versions which support the task output cache. This allows the task work
   to be skipped even on clean builds if an appropriate cached result exists.
-* Tasks will now appear in the listing produced by `gradle tasks` under the Verification group.
+- Tasks will now appear in the listing produced by `gradle tasks` under the Verification group.
 
 #### Migration from 1.1.0
 
@@ -440,14 +440,14 @@ accomplished by applying the plugin in the `allprojects {}` block.
 
 Version 1.1.0 of this plugin introduced a couple significant changes.
 
-* The plugin now supports the `compileOnly` and `testCompileOnly` configurations introduced by gradle in version 2.12.
+- The plugin now supports the `compileOnly` and `testCompileOnly` configurations introduced by gradle in version 2.12.
   This feature was discussed in detail in
   a [posting on the gradle blog](https://gradle.org/blog/compile-only-dependencies/). These configurations should
   generally be used where [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin) would have
   been used.
-* The `permitUnusedDeclared` and `permitTestUnusedDeclared` configurations were introduced to allow for specific
+- The `permitUnusedDeclared` and `permitTestUnusedDeclared` configurations were introduced to allow for specific
   exceptions to the restriction which requires all declared dependencies to be used.
-* If the project makes use of the [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin)
+- If the project makes use of the [`provided`](https://github.com/nebula-plugins/gradle-extra-configurations-plugin)
   configuration, these dependencies are now treated the same as the `compile` configuration; specifically, dependencies
   of the `provided` configuration must be used by compiled class files. Previously, the `provided` configuration was an
   exception to that rule, allowing for the type of exception now supported by the `permitUnusedDeclared` configuration.
