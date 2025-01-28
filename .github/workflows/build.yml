@@ -22,8 +22,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v4.6.0
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
       - name: Build with Gradle
         run: ./gradlew build --no-daemon

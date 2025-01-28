@@ -1,13 +1,17 @@
 repos:
-- repo: https://github.com/gitleaks/gitleaks
-  rev: v8.18.4
-  hooks:
-  - id: gitleaks
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
-  hooks:
-  - id: end-of-file-fixer
-  - id: trailing-whitespace
-  - id: check-case-conflict
-  - id: check-shebang-scripts-are-executable
-  - id: fix-byte-order-marker
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.23.2
+    hooks:
+      - id: gitleaks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-case-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: fix-byte-order-marker
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.4.2
+    hooks:
+      - id: prettier

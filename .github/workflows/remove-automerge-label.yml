@@ -1,27 +1,27 @@
 name: Remove automerge label
 
 on:
-    pull_request_target:
-        types: [closed]
+  pull_request_target:
+    types: [closed]
 
-permissions: { }
+permissions: {}
 
 jobs:
-    remove-automerge-label:
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'automerge')
-        permissions:
-            contents: none
-            pull-requests: write
+  remove-automerge-label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'automerge')
+    permissions:
+      contents: none
+      pull-requests: write
 
-        steps:
-            - name: Harden Runner
-              uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
-              with:
-                egress-policy: audit
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        with:
+          egress-policy: audit
 
-            -   uses: actions-ecosystem/action-remove-labels@2ce5d41b4b6aa8503e285553f75ed56e0a40bae0 # v1.3.0
-                with:
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-                    labels: automerge
+      - uses: actions-ecosystem/action-remove-labels@2ce5d41b4b6aa8503e285553f75ed56e0a40bae0 # v1.3.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: automerge
