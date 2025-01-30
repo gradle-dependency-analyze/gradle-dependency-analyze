@@ -5,7 +5,7 @@ plugins {
     id("groovy")
     id("java-gradle-plugin")
     id("maven-publish")
-    id("com.gradle.plugin-publish") version "1.3.0"
+    id("com.gradle.plugin-publish") version "1.3.1"
     id("jacoco")
     id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
     id("com.diffplug.spotless") version "7.0.2"
