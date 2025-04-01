@@ -15,7 +15,6 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.maven.shared.dependency.analyzer.DependencyAnalyzer;
 import org.apache.maven.shared.dependency.analyzer.asm.ASMDependencyAnalyzer;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -41,7 +40,8 @@ class ProjectDependencyResolver {
   private final boolean logDependencyInformationToFiles;
 
   ProjectDependencyResolver(
-      final Project project,
+      final Logger logger,
+      final HashSetValuedHashMap<File, String> artifactClassCache,
       final List<Configuration> require,
       final List<Configuration> compileOnly,
       final List<Configuration> apiHelperConfiguration,
@@ -53,7 +53,7 @@ class ProjectDependencyResolver {
       final boolean logDependencyInformationToFiles) {
     this.logDependencyInformationToFiles = logDependencyInformationToFiles;
     this.logFilePath = logFilePath;
-    this.logger = project.getLogger();
+    this.logger = logger;
     this.require = removeNulls(require);
     this.compileOnly = compileOnly;
     this.api = apiHelperConfiguration;
@@ -61,10 +61,7 @@ class ProjectDependencyResolver {
     this.allowedToDeclare = removeNulls(allowedToDeclare);
     this.classesDirs = classesDirs;
     this.aggregatorsWithDependencies = getAggregatorsMapping(removeNulls(allowedAggregatorsToUse));
-    //noinspection unchecked
-    this.artifactClassCache =
-        (HashSetValuedHashMap<File, String>)
-            project.getRootProject().getExtensions().getByName(CACHE_NAME);
+    this.artifactClassCache = artifactClassCache;
   }
 
   ProjectDependencyAnalysisResult analyzeDependencies() {

@@ -2,28 +2,23 @@ package ca.cutterslade.gradle.analyze;
 
 import static ca.cutterslade.gradle.analyze.util.ProjectDependencyAnalysisResultHandler.warnAndLogOrFail;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.*;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.*;
 
 @CacheableTask
 public class AnalyzeDependenciesTask extends DefaultTask {
-  private final Path logFilePath =
-      getProject()
-          .getLayout()
-          .getBuildDirectory()
-          .dir("reports")
-          .get()
-          .getAsFile()
-          .toPath()
-          .resolve("dependency-analyze")
-          .resolve(getName() + ".log");
   private Boolean warnUsedUndeclared = false;
   private Boolean warnUnusedDeclared = false;
   private Boolean warnSuperfluous = false;
@@ -35,23 +30,52 @@ public class AnalyzeDependenciesTask extends DefaultTask {
   private List<Configuration> allowedToUse = new ArrayList<>();
   private List<Configuration> allowedToDeclare = new ArrayList<>();
   private List<Configuration> allowedAggregatorsToUse = new ArrayList<>();
-  private FileCollection classesDirs = getProject().files();
+  private final Logger logger;
+  private final HashSetValuedHashMap<File, String> artifactClassCache;
+  private final ConfigurableFileCollection classesDirs;
+  private final RegularFileProperty logFile;
+  private final DirectoryProperty buildDirectory;
+
+  @Inject
+  @SuppressWarnings("unchecked")
+  public AnalyzeDependenciesTask(ProjectLayout projectLayout, ObjectFactory objectFactory) {
+    this.classesDirs = objectFactory.fileCollection();
+    this.buildDirectory = projectLayout.getBuildDirectory();
+    this.logFile = objectFactory.fileProperty();
+
+    this.logger = getLogger();
+    try {
+      this.artifactClassCache =
+          (HashSetValuedHashMap<File, String>)
+              getProject()
+                  .getRootProject()
+                  .getExtensions()
+                  .getByName(ProjectDependencyResolver.CACHE_NAME);
+    } catch (UnknownDomainObjectException e) {
+      throw new IllegalStateException(
+          "Dependency analysis plugin must also be applied to the root project", e);
+    }
+    logFile.convention(
+        getBuildDirectory()
+            .dir("reports")
+            .map(directory -> directory.dir("dependency-analyze").file(getName() + ".log")));
+    dependsOn("jar");
+  }
 
   @TaskAction
   public void action() throws IOException {
+    final Path logFilePath = getLogFile().get().getAsFile().toPath();
     if (logDependencyInformationToFiles) {
-      getLogger().info("Writing dependency information to {}", logFilePath);
+      logger.info("Writing dependency information to {}", logFilePath);
     }
 
-    getLogger()
-        .info(
-            "Analyzing dependencies of {} for [require: {}, allowedToUse: {}, allowedToDeclare:"
-                + " {}]",
-            getClassesDirs(),
-            getRequire(),
-            getAllowedToUse(),
-            getAllowedToDeclare());
-    ProjectDependencyAnalysisResult analysis = getAnalysisResult();
+    logger.info(
+        "Analyzing dependencies of {} for [require: {}, allowedToUse: {}, allowedToDeclare: {}]",
+        getClassesDirs(),
+        getRequire(),
+        getAllowedToUse(),
+        getAllowedToDeclare());
+    ProjectDependencyAnalysisResult analysis = getAnalysisResult(logFilePath);
 
     warnAndLogOrFail(
         analysis,
@@ -61,29 +85,23 @@ public class AnalyzeDependenciesTask extends DefaultTask {
         warnSuperfluous,
         logFilePath,
         logDependencyInformationToFiles,
-        getLogger());
+        logger);
   }
 
-  private ProjectDependencyAnalysisResult getAnalysisResult() {
-    final ProjectDependencyResolver resolver;
-    try {
-      resolver =
-          new ProjectDependencyResolver(
-              getProject(),
-              require,
-              compileOnly,
-              apiHelperConfiguration,
-              allowedToUse,
-              allowedToDeclare,
-              classesDirs.getFiles(),
-              allowedAggregatorsToUse,
-              logFilePath,
-              logDependencyInformationToFiles);
-    } catch (UnknownDomainObjectException e) {
-      throw new IllegalStateException(
-          "Dependency analysis plugin must also be applied to the root project", e);
-    }
-    return resolver.analyzeDependencies();
+  private ProjectDependencyAnalysisResult getAnalysisResult(final Path logFilePath) {
+    return new ProjectDependencyResolver(
+            logger,
+            artifactClassCache,
+            require,
+            compileOnly,
+            apiHelperConfiguration,
+            allowedToUse,
+            allowedToDeclare,
+            classesDirs.getFiles(),
+            allowedAggregatorsToUse,
+            logFilePath,
+            logDependencyInformationToFiles)
+        .analyzeDependencies();
   }
 
   @Input
@@ -198,11 +216,17 @@ public class AnalyzeDependenciesTask extends DefaultTask {
   }
 
   public void setClassesDirs(final FileCollection classesDirs) {
-    this.classesDirs = classesDirs;
+    this.classesDirs.setFrom(classesDirs);
+  }
+
+  @InputDirectory
+  @PathSensitive(PathSensitivity.RELATIVE)
+  public DirectoryProperty getBuildDirectory() {
+    return buildDirectory;
   }
 
   @OutputFile
-  public Path getLogFilePath() {
-    return logFilePath;
+  public RegularFileProperty getLogFile() {
+    return logFile;
   }
 }

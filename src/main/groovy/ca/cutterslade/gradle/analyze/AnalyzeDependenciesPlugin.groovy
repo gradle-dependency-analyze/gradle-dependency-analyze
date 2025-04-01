@@ -30,6 +30,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                 it.dependsOn commonTask
             }
 
+            // Create a map to store all analyze tasks by source set
+            def analyzeTasksBySourceSet = [:]
+
             project.sourceSets.all { SourceSet sourceSet ->
                 project.configurations.create(sourceSet.getTaskName('permit', 'unusedDeclared')) {
                     it.canBeConsumed = false
@@ -59,6 +62,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                     group = 'Verification'
                     description = "Analyze project for dependency issues related to ${sourceSet.name} source set."
 
+                    // Always depend on jar
+                    dependsOn project.tasks.named('jar')
+
                     doFirst {
                         final def configuration = project.configurations.findByName('providedRuntime')
                         if (configuration != null && !configuration.resolvedConfiguration.firstLevelModuleDependencies.empty) {
@@ -66,6 +72,9 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                         }
                     }
                 }
+
+                // Store the task in our map
+                analyzeTasksBySourceSet[sourceSet.name] = analyzeTask
 
                 commonTask.configure {
                     dependsOn analyzeTask
@@ -102,9 +111,19 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
                             allowedToUse.add(project.configurations.compileClasspath)
                             if (project.configurations.any { it.name == 'testFixturesCompileClasspath' })
                                 allowedToUse.add(project.configurations.testFixturesCompileClasspath)
+
+                            // Test depends on main analyze task
+                            if (analyzeTasksBySourceSet.containsKey('main')) {
+                                dependsOn analyzeTasksBySourceSet['main']
+                            }
                         }
                         if (sourceSet.name == 'testFixtures') {
                             allowedToUse.add(project.configurations.testCompileClasspath)
+
+                            // TestFixtures depends on main analyze task
+                            if (analyzeTasksBySourceSet.containsKey('main')) {
+                                dependsOn analyzeTasksBySourceSet['main']
+                            }
                         }
                         classesDirs = sourceSet.output.classesDirs
                     }
@@ -112,5 +131,4 @@ class AnalyzeDependenciesPlugin implements Plugin<Project> {
             }
         }
     }
-
 }
