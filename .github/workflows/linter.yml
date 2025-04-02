@@ -24,14 +24,15 @@ jobs:
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-      - uses: github/super-linter@b807e99ddd37e444d189cfd2c2ca1274d8ae8ef1 # v7
+      - name: Super-linter
+        uses: super-linter/super-linter@v7.3.0
         env:
           DEFAULT_BRANCH: origin/master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_JSCPD: false
-          VALIDATE_GROOVY: false
           VALIDATE_JAVA: false
-          FILTER_REGEX_EXCLUDE: .*(test/resources/|gradlew|gradlew\.bat).*
+          FILTER_REGEX_EXCLUDE: .*(build\/|\.github\/|\.idea\/|test\/resources\/|gradlew|gradlew\.bat).*

@@ -57,12 +57,13 @@ subprojects {
 
 ## Compatibility
 
-The plugin is build with JDK 1.8 and is tested against Gradle 5.0 up to Gradle 7.1.
+The plugin is build with JDK 1.8 and is tested against Gradle 5.3 up to Gradle 8.13.
 
 | Plugin version | Gradle version |
 | -------------- | -------------- |
 | \<= 1.4.0      | \< 5.0         |
-| \>= 1.4.1      | \>= 5.0        |
+| 1.4.1 - 1.10.0 | \>= 5.0        |
+| \>= 2.0.0      | \>=5.3         |
 
 ## Sample Output
 
@@ -359,8 +360,15 @@ as practical.
 
 The `justWarn` flag is now removed, use the dedicated options `warnUsedUndeclared`, `warnUnusedDeclared`,
 `warnSuperfluous` and `warnCompileOnly`.
+
 A new option `warnSuperfluous` has been introduced to just warn instead of failing in case when a dependency is declared
 additionally to an aggregator dependency (which includes also this dependency).
+
+Gradle version >= 5.3 is now required to start supporting the configuration cache, also warnings related to unsafe
+access to the project() have been removed.
+
+Converted the code to plain Java to avoid various issues related to type mismatches in the implementation and between
+gradle versions.
 
 ### Version 1.10.0
 

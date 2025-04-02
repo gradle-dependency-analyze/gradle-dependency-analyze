@@ -1,14 +1,14 @@
 import com.gradle.publish.PublishTask
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    id("groovy")
+    id("java")
     id("java-gradle-plugin")
     id("maven-publish")
     id("com.gradle.plugin-publish") version "1.3.1"
     id("jacoco")
     id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
     id("com.diffplug.spotless") version "7.0.2"
+    id("com.adarshr.test-logger") version "4.0.0"
 }
 
 group = "ca.cutterslade.gradle"
@@ -24,12 +24,12 @@ dependencies {
     }
     implementation("org.apache.commons:commons-collections4:4.4")
 
-    testImplementation("org.spockframework:spock-core:2.3-groovy-3.0") {
-        exclude(group = "org.codehaus.groovy")
-    }
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     testImplementation("io.github.java-diff-utils:java-diff-utils:4.15")
     testImplementation("commons-io:commons-io:2.18.0")
+    testImplementation(platform("org.junit:junit-bom:5.12.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.named<PublishTask>("publishPlugins") {
@@ -62,9 +62,6 @@ java {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
-    testLogging {
-        events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
-    }
     finalizedBy(tasks.jacocoTestReport)
 }
 
@@ -83,11 +80,6 @@ jacoco {
 spotless {
     java {
         googleJavaFormat()
-    }
-    groovy {
-        importOrder()
-        removeSemicolons()
-        excludeJava()
     }
     kotlinGradle {
         ktlint()
