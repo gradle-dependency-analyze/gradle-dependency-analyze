@@ -1,17 +1,33 @@
+---
+default_install_hook_types: [pre-commit, pre-push, commit-msg]
+
 repos:
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.23.2
+    rev: v8.24.2
     hooks:
       - id: gitleaks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+      - id: check-case-conflict
       - id: end-of-file-fixer
       - id: trailing-whitespace
-      - id: check-case-conflict
       - id: check-shebang-scripts-are-executable
       - id: fix-byte-order-marker
+      - id: check-json
+      - id: check-xml
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.4.2
+    rev: v3.5.3
     hooks:
       - id: prettier
+        stages: [pre-commit]
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.22.0
+    hooks:
+      - id: commitlint
+        additional_dependencies: ["@commitlint/config-conventional"]
+        stages: [commit-msg]
