@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import org.gradle.testkit.runner.BuildResult;
@@ -13,7 +14,7 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
   @ParameterizedTest
   @CsvSource({"true, org.projectlombok:lombok:1.18.22", "false, "})
   void buildWithCompileOnlyDependencyNotNeededInRuntimeAndWarnCompileOnly(
-      boolean warnCompileOnly, String compileOnlyArtifact) {
+      final boolean warnCompileOnly, final String compileOnlyArtifact) throws IOException {
     // setup
     rootProject()
         .withMavenRepositories()
@@ -33,10 +34,10 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
-    List<String> compileOnlyArtifacts =
+    final List<String> compileOnlyArtifacts =
         compileOnlyArtifact == null || compileOnlyArtifact.isEmpty()
             ? Collections.emptyList()
             : Collections.singletonList(compileOnlyArtifact);
@@ -56,10 +57,11 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
     "false, success, , "
   })
   void buildWithCompileOnlyDependencyNeededAlsoInRuntimeAndWarnCompileOnly(
-      boolean warnCompileOnly,
-      String buildResult,
-      String usedUndeclaredArtifact,
-      String compileOnlyArtifact) {
+      final boolean warnCompileOnly,
+      final String buildResult,
+      final String usedUndeclaredArtifact,
+      final String compileOnlyArtifact)
+      throws IOException {
     // setup
     rootProject()
         .withMavenRepositories()
@@ -72,15 +74,16 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(buildResult.equals("success") ? SUCCESS : VIOLATIONS);
+    final BuildResult result =
+        buildGradleProject(buildResult.equals("success") ? SUCCESS : VIOLATIONS);
 
     // then
-    List<String> usedUndeclaredArtifacts =
+    final List<String> usedUndeclaredArtifacts =
         usedUndeclaredArtifact == null || usedUndeclaredArtifact.isEmpty()
             ? Collections.emptyList()
             : Collections.singletonList(usedUndeclaredArtifact);
 
-    List<String> compileOnlyArtifacts =
+    final List<String> compileOnlyArtifacts =
         compileOnlyArtifact == null || compileOnlyArtifact.isEmpty()
             ? Collections.emptyList()
             : Collections.singletonList(compileOnlyArtifact);
@@ -100,10 +103,11 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
     "false, success, , "
   })
   void buildWithCompileOnlyDependencyNeededAlsoInRuntimeAndCompileOnlyAndWarnCompileOnly(
-      boolean warnCompileOnly,
-      String buildResult,
-      String usedUndeclaredArtifact,
-      String compileOnlyArtifact) {
+      final boolean warnCompileOnly,
+      final String buildResult,
+      final String usedUndeclaredArtifact,
+      final String compileOnlyArtifact)
+      throws IOException {
     // setup
     rootProject()
         .withMavenRepositories()
@@ -119,15 +123,16 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(buildResult.equals("success") ? SUCCESS : VIOLATIONS);
+    final BuildResult result =
+        buildGradleProject(buildResult.equals("success") ? SUCCESS : VIOLATIONS);
 
     // then
-    List<String> usedUndeclaredArtifacts =
+    final List<String> usedUndeclaredArtifacts =
         usedUndeclaredArtifact == null || usedUndeclaredArtifact.isEmpty()
             ? Collections.emptyList()
             : Collections.singletonList(usedUndeclaredArtifact);
 
-    List<String> compileOnlyArtifacts =
+    final List<String> compileOnlyArtifacts =
         compileOnlyArtifact == null || compileOnlyArtifact.isEmpty()
             ? Collections.emptyList()
             : Collections.singletonList(compileOnlyArtifact);
@@ -144,7 +149,7 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
   @ParameterizedTest
   @CsvSource({"true, ", "false, "})
   void buildWithCompileOnlyDependencyNeededAlsoInImplementationAndCompileOnlyAndWarnCompileOnly(
-      boolean warnCompileOnly, String compileOnlyArtifact) {
+      final boolean warnCompileOnly, final String compileOnlyArtifact) throws IOException {
     // setup
     rootProject()
         .withMavenRepositories()
@@ -160,10 +165,10 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
-    List<String> compileOnlyArtifacts =
+    final List<String> compileOnlyArtifacts =
         compileOnlyArtifact == null || compileOnlyArtifact.isEmpty()
             ? Collections.emptyList()
             : Collections.singletonList(compileOnlyArtifact);
@@ -180,7 +185,7 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
   @ParameterizedTest
   @CsvSource({"true, org.projectlombok:lombok:1.18.22", "false, "})
   void buildWithCompileOnlyDependencyNeededInRuntimeAndCompileOnlyAndWarnCompileOnly(
-      boolean warnCompileOnly, String compileOnlyArtifact) {
+      final boolean warnCompileOnly, final String compileOnlyArtifact) throws IOException {
     // setup
     rootProject()
         .withMavenRepositories()
@@ -197,10 +202,10 @@ class AnalyzeDependenciesPluginCompileOnlyTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
-    List<String> compileOnlyArtifacts =
+    final List<String> compileOnlyArtifacts =
         compileOnlyArtifact == null || compileOnlyArtifact.isEmpty()
             ? Collections.emptyList()
             : Collections.singletonList(compileOnlyArtifact);

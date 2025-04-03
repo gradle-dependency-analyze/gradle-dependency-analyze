@@ -2,13 +2,14 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
 
 class AnalyzeDependenciesPluginPermitTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
-  void projectWithUnusedDependencyButPermitted() {
+  void projectWithUnusedDependencyButPermitted() throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
@@ -25,14 +26,14 @@ class AnalyzeDependenciesPluginPermitTest extends AnalyzeDependenciesPluginBaseT
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
   }
 
   @Test
-  void projectWithUsedDependencyButPermitted() {
+  void projectWithUsedDependencyButPermitted() throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
@@ -52,7 +53,7 @@ class AnalyzeDependenciesPluginPermitTest extends AnalyzeDependenciesPluginBaseT
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);

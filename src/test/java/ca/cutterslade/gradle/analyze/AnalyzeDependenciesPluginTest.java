@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.stream.Stream;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
-  void simpleBuildWithoutDependenciesResultsInSuccess() {
+  void simpleBuildWithoutDependenciesResultsInSuccess() throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main"))
@@ -20,7 +21,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
@@ -29,7 +30,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
   @ParameterizedTest
   @MethodSource("provideDependencyConfigurationParameters")
   void usedMainDependencyDeclaredWithConfigurationResultsInExpectedResult(
-      String configuration, String expectedResult) {
+      final String configuration, final String expectedResult) throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
@@ -39,7 +40,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(result, expectedResult);
@@ -53,10 +54,11 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
   @ParameterizedTest
   @MethodSource("provideTransientMainDependencyParameters")
   void usedTransientMainDependencyDeclaredWithConfigurationResultsInExpectedResult(
-      String configuration,
-      String expectedResult,
-      String[] usedUndeclaredArtifacts,
-      String[] unusedDeclaredArtifacts) {
+      final String configuration,
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("Transient"))
@@ -71,7 +73,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(
@@ -94,10 +96,11 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
   @ParameterizedTest
   @MethodSource("provideUnusedMainDependencyParameters")
   void unusedMainDependencyDeclaredWithConfigurationResultsInExpectedResult(
-      String configuration,
-      String expectedResult,
-      String[] usedUndeclaredArtifacts,
-      String[] unusedDeclaredArtifacts) {
+      final String configuration,
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main"))
@@ -107,7 +110,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(
@@ -127,7 +130,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
   @ParameterizedTest
   @MethodSource("provideUsedTestDependencyParameters")
   void usedTestDependencyDeclaredWithConfigurationResultsInExpectedResult(
-      String configuration, String expectedResult) {
+      final String configuration, final String expectedResult) throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main"))
@@ -138,7 +141,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(result, expectedResult);
@@ -153,10 +156,11 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
   @ParameterizedTest
   @MethodSource("provideUnusedTestDependencyParameters")
   void unusedTestDependencyDeclaredWithConfigurationResultsInExpectedResult(
-      String configuration,
-      String expectedResult,
-      String[] usedUndeclaredArtifacts,
-      String[] unusedDeclaredArtifacts) {
+      final String configuration,
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main"))
@@ -167,7 +171,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(
@@ -187,10 +191,11 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
   @ParameterizedTest
   @MethodSource("provideTransientTestDependencyParameters")
   void usedTransientTestDependencyDeclaredWithConfigurationResultsInExpectedResult(
-      String configuration,
-      String expectedResult,
-      String[] usedUndeclaredArtifacts,
-      String[] unusedDeclaredArtifacts) {
+      final String configuration,
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main"))
@@ -207,7 +212,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(

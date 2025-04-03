@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.Collections;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class AnalyzeDependenciesPluginConstantsTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
-  void buildWithConstantsUsageFromDependency() {
+  void buildWithConstantsUsageFromDependency() throws IOException {
     // setup
     rootProject()
         .withAllProjectsPlugin("ca.cutterslade.analyze")
@@ -37,7 +38,7 @@ class AnalyzeDependenciesPluginConstantsTest extends AnalyzeDependenciesPluginBa
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildResult(

@@ -25,8 +25,7 @@ dependencies {
     implementation("org.apache.commons:commons-collections4:4.4")
 
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
-    testImplementation("io.github.java-diff-utils:java-diff-utils:4.15")
-    testImplementation("commons-io:commons-io:2.18.0")
+    testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation(platform("org.junit:junit-bom:5.12.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

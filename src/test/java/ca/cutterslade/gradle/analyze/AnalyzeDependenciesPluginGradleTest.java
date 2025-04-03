@@ -27,7 +27,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
   @ParameterizedTest
   @MethodSource("provideBuildWithoutDependenciesParameters")
   void simpleBuildWithoutDependenciesResultsInExpectedResult(
-      GradleVersion gradleVersion, String expectedResult) {
+      final GradleVersion gradleVersion, final String expectedResult) throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main"))
@@ -35,7 +35,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
+    final BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
 
     // Then
     assertBuildResult(result, expectedResult);
@@ -44,7 +44,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
   @ParameterizedTest
   @MethodSource("provideUsedMainDependencyParameters")
   void usedMainDependencyDeclaredResultsInExpectedResult(
-      GradleVersion gradleVersion, String expectedResult) {
+      final GradleVersion gradleVersion, final String expectedResult) throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("Dependent"))
@@ -54,7 +54,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
+    final BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
 
     // Then
     assertBuildResult(result, expectedResult);
@@ -63,7 +63,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
   @ParameterizedTest
   @MethodSource("provideTestFixtureClassesParameters")
   void projectOnlyWithTestFixtureClassesResultsInExpectedResult(
-      GradleVersion gradleVersion, String expectedResult) {
+      final GradleVersion gradleVersion, final String expectedResult) throws IOException {
     // Setup
     rootProject()
         .withPlugin("java-test-fixtures")
@@ -72,7 +72,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
+    final BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
 
     // Then
     assertBuildResult(result, expectedResult);
@@ -81,7 +81,10 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
   @ParameterizedTest
   @MethodSource("provideProvidedRuntimeParameters")
   void projectWithProvidedRuntimeResultsInExpectedResult(
-      GradleVersion gradleVersion, String expectedResult, List<String> unusedDeclaredArtifacts) {
+      final GradleVersion gradleVersion,
+      final String expectedResult,
+      final List<String> unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -95,11 +98,11 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
+    final BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
 
     // Then
     assertBuildResult(result, expectedResult, Collections.emptyList(), unusedDeclaredArtifacts);
-    boolean isWarPluginBroken =
+    final boolean isWarPluginBroken =
         GradleVersionUtil.isWarPluginBrokenWhenUsingProvidedRuntime(gradleVersion);
     assert result.getOutput().contains("https://github.com/gradle/gradle/issues/17415")
         == isWarPluginBroken;
@@ -108,7 +111,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
   @ParameterizedTest
   @MethodSource("provideAggregatorDependencyParameters")
   void aggregatorDependencyDeclaredInConfigAndUsedInBuildResultsInExpectedResult(
-      GradleVersion gradleVersion, String expectedResult) {
+      final GradleVersion gradleVersion, final String expectedResult) throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -131,7 +134,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
+    final BuildResult result = buildGradleProject(expectedResult, gradleVersion, false);
 
     // Then
     assertBuildResult(result, expectedResult);
@@ -168,18 +171,19 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
     return determineMinorVersions("5.3").stream().map(pair -> Arguments.of(pair.v1, pair.v2));
   }
 
-  private static List<Tuple2<GradleVersion, String>> determineMinorVersions(String minVersion) {
+  private static List<Tuple2<GradleVersion, String>> determineMinorVersions(
+      final String minVersion) {
     return determineMinorVersions(minVersion, maxVersion);
   }
 
   private static List<Tuple2<GradleVersion, String>> determineMinorVersions(
-      String minVersion, String maxVersion) {
+      final String minVersion, final String maxVersion) {
     try {
-      URL serviceUrl = new URL("https://services.gradle.org/versions/all");
-      ObjectMapper mapper = new ObjectMapper();
-      JsonNode versions = mapper.readValue(serviceUrl, JsonNode.class);
-      GradleVersion minGradleVersion = GradleVersion.version(minVersion);
-      GradleVersion maxGradleVersion = GradleVersion.version(maxVersion);
+      final URL serviceUrl = new URL("https://services.gradle.org/versions/all");
+      final ObjectMapper mapper = new ObjectMapper();
+      final JsonNode versions = mapper.readValue(serviceUrl, JsonNode.class);
+      final GradleVersion minGradleVersion = GradleVersion.version(minVersion);
+      final GradleVersion maxGradleVersion = GradleVersion.version(maxVersion);
 
       return StreamSupport.stream(versions.spliterator(), false)
           .filter(node -> !node.get("broken").asBoolean())
@@ -193,8 +197,8 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
           .collect(
               Collectors.groupingBy(
                   version -> {
-                    String versionStr = version.toString();
-                    int idx = ordinalIndexOf(versionStr, 2);
+                    final String versionStr = version.toString();
+                    final int idx = ordinalIndexOf(versionStr, 2);
                     return idx == -1 ? versionStr : versionStr.substring(0, idx);
                   }))
           .values()
@@ -207,16 +211,16 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
                           () -> new RuntimeException("Could not determine the minimum version")))
           .map(version -> new Tuple2<>(version, AnalyzeDependenciesPluginBaseTest.SUCCESS))
           .collect(Collectors.toList());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
   /** Utility method to find the nth occurrence of a substring */
-  private static int ordinalIndexOf(String str, int n) {
+  private static int ordinalIndexOf(final String str, int n) {
     int pos = -1;
     while (true) {
-      int newPos = str.indexOf(".", pos + 1);
+      final int newPos = str.indexOf(".", pos + 1);
       if (newPos == -1) {
         pos = -1;
         break;
@@ -234,7 +238,7 @@ class AnalyzeDependenciesPluginGradleTest extends AnalyzeDependenciesPluginBaseT
     private final V1 v1;
     private final V2 v2;
 
-    public Tuple2(V1 v1, V2 v2) {
+    public Tuple2(final V1 v1, final V2 v2) {
       this.v1 = v1;
       this.v2 = v2;
     }

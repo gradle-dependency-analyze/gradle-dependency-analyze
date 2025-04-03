@@ -37,6 +37,7 @@ class ProjectDependencyResolver {
   private final List<Provider<Configuration>> allowedToDeclare;
   private final Collection<File> classesDirs;
   private final Map<ComponentIdentifier, Set<ComponentIdentifier>> aggregatorsWithDependencies;
+  private final Map<ComponentIdentifier, Set<ComponentIdentifier>> pomsWithDependencies;
   private final Path logFilePath;
   private final boolean logDependencyInformationToFiles;
 
@@ -55,13 +56,14 @@ class ProjectDependencyResolver {
     this.logDependencyInformationToFiles = logDependencyInformationToFiles;
     this.logFilePath = logFilePath;
     this.logger = logger;
-    this.require = removeNulls(require);
+    this.require = require;
     this.compileOnly = compileOnly;
     this.api = apiHelperConfiguration;
-    this.allowedToUse = removeNulls(allowedToUse);
-    this.allowedToDeclare = removeNulls(allowedToDeclare);
+    this.allowedToUse = allowedToUse;
+    this.allowedToDeclare = allowedToDeclare;
     this.classesDirs = classesDirs;
-    this.aggregatorsWithDependencies = getAggregatorsMapping(removeNulls(allowedAggregatorsToUse));
+    this.pomsWithDependencies = getPomsWithDependenciesMapping(require, logger);
+    this.aggregatorsWithDependencies = getAggregatorsMapping(allowedAggregatorsToUse);
     this.artifactClassCache = artifactClassCache;
   }
 
@@ -72,73 +74,74 @@ class ProjectDependencyResolver {
         logFilePath,
         logger -> {
           // Use utility methods that directly accept providers
-          List<ResolvedDependency> allowedToUseDeps = getFirstLevelDependencies(allowedToUse);
-          List<ResolvedDependency> allowedToDeclareDeps =
+          final List<ResolvedDependency> allowedToUseDeps = getFirstLevelDependencies(allowedToUse);
+          final List<ResolvedDependency> allowedToDeclareDeps =
               getFirstLevelDependencies(allowedToDeclare);
-          List<ResolvedDependency> requiredDeps = getFirstLevelDependencies(require);
+          final List<ResolvedDependency> requiredDeps = getFirstLevelDependencies(require);
           requiredDeps.removeIf(
               req ->
                   allowedToUseDeps.stream()
                       .anyMatch(
                           allowed -> req.getModule().getId().equals(allowed.getModule().getId())));
 
-          MultiValuedMap<ComponentIdentifier, File> dependencyArtifacts =
+          final MultiValuedMap<ComponentIdentifier, File> dependencyArtifacts =
               findModuleArtifactFiles(requiredDeps);
           logger.info("dependencyArtifacts", dependencyArtifacts);
 
-          MultiValuedMap<ComponentIdentifier, File> allDependencyArtifactFiles =
+          final MultiValuedMap<ComponentIdentifier, File> allDependencyArtifactFiles =
               findAllModuleArtifactFiles(requiredDeps);
           logger.info("allDependencyArtifactFiles", allDependencyArtifactFiles);
 
-          MultiValuedMap<ComponentIdentifier, String> fileClassMap =
+          final MultiValuedMap<ComponentIdentifier, String> fileClassMap =
               buildArtifactClassMap(this.logger, artifactClassCache, allDependencyArtifactFiles);
           logger.info("fileClassMap", fileClassMap);
 
-          Set<String> dependencyClasses = analyzeClassDependencies();
+          final Set<String> dependencyClasses = analyzeClassDependencies();
           logger.info("dependencyClasses", dependencyClasses);
 
-          MultiValuedMap<ComponentIdentifier, String> usedClassesInArtifacts =
+          final MultiValuedMap<ComponentIdentifier, String> usedClassesInArtifacts =
               buildUsedArtifacts(fileClassMap, dependencyClasses);
           logger.info("usedClassesInArtifacts", usedClassesInArtifacts);
 
-          Set<ComponentIdentifier> usedArtifacts = usedClassesInArtifacts.keySet();
+          final Set<ComponentIdentifier> usedArtifacts =
+              new HashSet<>(usedClassesInArtifacts.keySet());
           logger.info("usedArtifacts", usedArtifacts);
 
-          HashSet<ComponentIdentifier> usedDeclaredArtifactFiles =
+          final Set<ComponentIdentifier> usedDeclaredArtifactFiles =
               new HashSet<>(dependencyArtifacts.keySet());
           usedDeclaredArtifactFiles.retainAll(usedArtifacts);
           logger.info("usedDeclaredArtifacts", usedDeclaredArtifactFiles);
 
-          HashSet<ComponentIdentifier> usedUndeclaredArtifactFiles = new HashSet<>(usedArtifacts);
+          final Set<ComponentIdentifier> usedUndeclaredArtifactFiles = new HashSet<>(usedArtifacts);
           usedUndeclaredArtifactFiles.removeAll(dependencyArtifacts.keySet());
           logger.info("usedUndeclaredArtifacts", usedUndeclaredArtifactFiles);
 
-          HashSet<ComponentIdentifier> unusedDeclaredArtifactFiles =
+          final Set<ComponentIdentifier> unusedDeclaredArtifactFiles =
               new HashSet<>(dependencyArtifacts.keySet());
           unusedDeclaredArtifactFiles.removeAll(usedArtifacts);
           logger.info("unusedDeclaredArtifacts", unusedDeclaredArtifactFiles);
 
-          Set<ResolvedArtifact> allowedToUseArtifacts =
+          final Set<ResolvedArtifact> allowedToUseArtifacts =
               collectMany(allowedToUseDeps, ResolvedDependency::getModuleArtifacts);
           logger.info("allowedToUseArtifacts", allowedToUseArtifacts);
 
-          Set<ComponentIdentifier> allowedToUseComponentIdentifiers =
+          final Set<ComponentIdentifier> allowedToUseComponentIdentifiers =
               collect(allowedToUseArtifacts, resolvedArtifactToComponentIdentifier);
           logger.info("allowedToUseComponentIdentifiers", allowedToUseComponentIdentifiers);
 
-          Set<ResolvedArtifact> allowedToDeclareArtifacts =
+          final Set<ResolvedArtifact> allowedToDeclareArtifacts =
               collectMany(allowedToDeclareDeps, ResolvedDependency::getModuleArtifacts);
           logger.info("allowedToDeclareArtifacts", allowedToDeclareArtifacts);
 
-          Set<ComponentIdentifier> allArtifacts =
+          final Set<ComponentIdentifier> allArtifacts =
               collect(resolveArtifacts(require), resolvedArtifactToComponentIdentifier);
           logger.info("allArtifacts", allArtifacts);
 
-          Set<ComponentIdentifier> usedDeclared =
+          final Set<ComponentIdentifier> usedDeclared =
               findAll(allArtifacts, usedDeclaredArtifactFiles::contains);
           logger.info("usedDeclared", usedDeclared);
 
-          Set<ComponentIdentifier> usedUndeclared =
+          final Set<ComponentIdentifier> usedUndeclared =
               findAll(allArtifacts, usedUndeclaredArtifactFiles::contains);
           logger.info("usedUndeclared", usedUndeclared);
 
@@ -147,51 +150,58 @@ class ProjectDependencyResolver {
             logger.info("usedUndeclared without allowedToUseArtifacts", usedUndeclared);
           }
 
-          Set<ComponentIdentifier> unusedDeclared =
+          final Set<ComponentIdentifier> unusedDeclared =
               findAll(allArtifacts, unusedDeclaredArtifactFiles::contains);
           logger.info("unusedDeclared", unusedDeclared);
 
           if (!allowedToDeclareArtifacts.isEmpty()) {
-            Set<ComponentIdentifier> allowedToDeclareComponentIdentifiers =
+            final Set<ComponentIdentifier> allowedToDeclareComponentIdentifiers =
                 collect(allowedToDeclareArtifacts, resolvedArtifactToComponentIdentifier);
             unusedDeclared.removeIf(allowedToDeclareComponentIdentifiers::contains);
             logger.info("unusedDeclared without allowedToDeclareArtifacts", unusedDeclared);
           }
 
-          Set<ComponentIdentifier> superfluous = new LinkedHashSet<>();
-          if (!aggregatorsWithDependencies.isEmpty()) {
-            Set<ComponentIdentifier> usedIdentifiers =
+          final Set<ComponentIdentifier> superfluous = new LinkedHashSet<>();
+
+          final Map<ComponentIdentifier, Set<ComponentIdentifier>> dependencyMap = new HashMap<>();
+          dependencyMap.putAll(aggregatorsWithDependencies);
+          dependencyMap.putAll(pomsWithDependencies);
+
+          if (!dependencyMap.isEmpty()) {
+            final Set<ComponentIdentifier> usedIdentifiers =
                 collect(
                     collectMany(requiredDeps, ResolvedDependency::getAllModuleArtifacts),
                     resolvedArtifactToComponentIdentifier);
 
-            Map<Boolean, Map<ComponentIdentifier, Collection<ComponentIdentifier>>>
+            usedIdentifiers.addAll(pomsWithDependencies.keySet());
+            usedDeclared.addAll(pomsWithDependencies.keySet());
+            usedArtifacts.addAll(pomsWithDependencies.keySet());
+
+            final Map<Boolean, Map<ComponentIdentifier, Collection<ComponentIdentifier>>>
                 aggregatorUsage =
-                    used(usedIdentifiers, usedArtifacts, aggregatorsWithDependencies, logger)
-                        .entrySet()
-                        .stream()
+                    used(usedIdentifiers, usedArtifacts, dependencyMap, logger).entrySet().stream()
                         .collect(
                             Collectors.groupingBy(
                                 o -> o.getValue().isEmpty(),
                                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             if (aggregatorUsage.containsKey(true)) {
-              Set<ComponentIdentifier> aggregators = aggregatorUsage.get(true).keySet();
+              final Set<ComponentIdentifier> aggregators = aggregatorUsage.get(true).keySet();
               superfluous.addAll(SetUtils.intersection(aggregators, usedIdentifiers));
+              superfluous.removeIf(pomsWithDependencies.keySet()::contains);
             }
             if (aggregatorUsage.containsKey(false)) {
-              Set<ComponentIdentifier> aggregators = aggregatorUsage.get(false).keySet();
+              final Set<ComponentIdentifier> aggregators = aggregatorUsage.get(false).keySet();
               usedDeclared.addAll(SetUtils.intersection(aggregators, unusedDeclared));
 
-              Set<ComponentIdentifier> aggregatorDependencies =
+              final Set<ComponentIdentifier> aggregatorDependencies =
                   collectMany(aggregatorUsage.get(false).values(), c -> c);
               superfluous.addAll(SetUtils.intersection(usedDeclared, aggregatorDependencies));
 
               superfluous.removeIf(aggregators::contains);
               unusedDeclared.removeIf(aggregators::contains);
-              collectMany(aggregators, aggregatorsWithDependencies::get)
-                  .forEach(usedUndeclared::remove);
+              collectMany(aggregators, dependencyMap::get).forEach(usedUndeclared::remove);
 
-              Set<ComponentIdentifier> apiDependencies =
+              final Set<ComponentIdentifier> apiDependencies =
                   collect(
                       collectMany(
                           getFirstLevelDependencies(api),
@@ -200,7 +210,7 @@ class ProjectDependencyResolver {
               unusedDeclared.removeIf(apiDependencies::contains);
               superfluous.removeIf(apiDependencies::contains);
 
-              Set<ComponentIdentifier> undeclaredAggregators =
+              final Set<ComponentIdentifier> undeclaredAggregators =
                   findAll(
                       aggregators,
                       componentIdentifier -> !usedDeclared.contains(componentIdentifier));
@@ -208,16 +218,16 @@ class ProjectDependencyResolver {
               usedUndeclared.removeIf(
                   id ->
                       allowedToUseComponentIdentifiers.contains(id)
-                          && aggregatorsWithDependencies.containsKey(id));
+                          && dependencyMap.containsKey(id));
             }
           }
 
-          Map<ComponentIdentifier, List<ResolvedArtifact>> compileOnlyDependencyArtifacts =
+          final Map<ComponentIdentifier, List<ResolvedArtifact>> compileOnlyDependencyArtifacts =
               resolveArtifacts(compileOnly).stream()
                   .collect(Collectors.groupingBy(resolvedArtifactToComponentIdentifier));
           logger.info("compileOnlyDependencyArtifacts", compileOnlyDependencyArtifacts);
 
-          Set<ComponentIdentifier> compileOnlyDependencyModuleIdentifiers =
+          final Set<ComponentIdentifier> compileOnlyDependencyModuleIdentifiers =
               compileOnlyDependencyArtifacts.keySet();
           usedUndeclared.addAll(
               findAll(usedDeclared, compileOnlyDependencyModuleIdentifiers::contains));

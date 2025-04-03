@@ -36,13 +36,12 @@ public class AnalyzeDependenciesTask extends DefaultTask {
   private final HashSetValuedHashMap<File, String> artifactClassCache;
   private final ConfigurableFileCollection classesDirs;
   private final RegularFileProperty logFile;
-  private final DirectoryProperty buildDirectory;
 
   @Inject
   @SuppressWarnings("unchecked")
-  public AnalyzeDependenciesTask(ProjectLayout projectLayout, ObjectFactory objectFactory) {
+  public AnalyzeDependenciesTask(
+      final ProjectLayout projectLayout, final ObjectFactory objectFactory) {
     this.classesDirs = objectFactory.fileCollection();
-    this.buildDirectory = projectLayout.getBuildDirectory();
     this.logFile = objectFactory.fileProperty();
 
     this.logger = getLogger();
@@ -53,12 +52,13 @@ public class AnalyzeDependenciesTask extends DefaultTask {
                   .getRootProject()
                   .getExtensions()
                   .getByName(ProjectDependencyResolver.CACHE_NAME);
-    } catch (UnknownDomainObjectException e) {
+    } catch (final UnknownDomainObjectException e) {
       throw new IllegalStateException(
           "Dependency analysis plugin must also be applied to the root project", e);
     }
     logFile.convention(
-        getBuildDirectory()
+        projectLayout
+            .getBuildDirectory()
             .dir("reports")
             .map(directory -> directory.dir("dependency-analyze").file(getName() + ".log")));
 
@@ -75,11 +75,11 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
     if (logger.isInfoEnabled()) {
       // Resolve Configuration providers when needed at execution time
-      List<Configuration> resolvedRequire =
+      final List<Configuration> resolvedRequire =
           require.stream().map(Provider::get).collect(Collectors.toList());
-      List<Configuration> resolvedAllowedToUse =
+      final List<Configuration> resolvedAllowedToUse =
           allowedToUse.stream().map(Provider::get).collect(Collectors.toList());
-      List<Configuration> resolvedAllowedToDeclare =
+      final List<Configuration> resolvedAllowedToDeclare =
           allowedToDeclare.stream().map(Provider::get).collect(Collectors.toList());
 
       logger.info(
@@ -90,7 +90,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
           resolvedAllowedToDeclare);
     }
 
-    ProjectDependencyAnalysisResult analysis =
+    final ProjectDependencyAnalysisResult analysis =
         new ProjectDependencyResolver(
                 logger,
                 artifactClassCache,
@@ -237,12 +237,6 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
   public void setClassesDirs(final FileCollection classesDirs) {
     this.classesDirs.setFrom(classesDirs);
-  }
-
-  @InputDirectory
-  @PathSensitive(PathSensitivity.RELATIVE)
-  public DirectoryProperty getBuildDirectory() {
-    return buildDirectory;
   }
 
   @OutputFile

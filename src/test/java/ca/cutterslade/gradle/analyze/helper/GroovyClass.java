@@ -1,8 +1,9 @@
 package ca.cutterslade.gradle.analyze.helper;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -15,53 +16,57 @@ public class GroovyClass {
   private final Set<ClassConstant> classConstants = new HashSet<>();
   private final Set<ClassAnnotation> classAnnotations = new HashSet<>();
 
-  public GroovyClass(String name) {
+  public GroovyClass(final String name) {
     this(name, false);
   }
 
-  public GroovyClass(String name, boolean annotation) {
+  public GroovyClass(final String name, final boolean annotation) {
     this.annotation = annotation;
     this.name = name;
   }
 
-  public GroovyClass withClassAnnotation(String annotationName, String value) {
+  public GroovyClass withClassAnnotation(final String annotationName, final String value) {
     classAnnotations.add(new ClassAnnotation(annotationName, value));
     return this;
   }
 
-  public GroovyClass usesClass(String clazz) {
+  public GroovyClass usesClass(final String clazz) {
     usedClasses.add(clazz);
     return this;
   }
 
   public GroovyClass addClassConstant(
-      String constantName, String constantType, String constantValue, boolean isFinal) {
+      final String constantName,
+      final String constantType,
+      final String constantValue,
+      final boolean isFinal) {
     classConstants.add(new ClassConstant(constantType, constantName, constantValue, isFinal));
     return this;
   }
 
   public GroovyClass addClassConstant(
-      String constantName, String constantType, String constantValue) {
+      final String constantName, final String constantType, final String constantValue) {
     return addClassConstant(constantName, constantType, constantValue, true);
   }
 
-  public GroovyClass usesClassConstant(String clazz, String constantName, String constantType) {
+  public GroovyClass usesClassConstant(
+      final String clazz, final String constantName, final String constantType) {
     usedClassConstants.add(new ClassConstantUsage(clazz, constantName, constantType));
     return this;
   }
 
   private String buildUsedClasses() {
-    StringBuilder out = new StringBuilder();
-    for (String clazz : usedClasses) {
-      String var = clazz.contains(".") ? clazz.substring(clazz.lastIndexOf('.') + 1) : clazz;
+    final StringBuilder out = new StringBuilder();
+    for (final String clazz : usedClasses) {
+      final String var = clazz.contains(".") ? clazz.substring(clazz.lastIndexOf('.') + 1) : clazz;
       out.append("  private ").append(clazz).append(" _").append(var.toLowerCase()).append("\n");
     }
     return out.toString();
   }
 
   private String buildUsedConstants() {
-    StringBuilder out = new StringBuilder();
-    for (ClassConstantUsage usedConst : usedClassConstants) {
+    final StringBuilder out = new StringBuilder();
+    for (final ClassConstantUsage usedConst : usedClassConstants) {
       out.append("  private ")
           .append(usedConst.getType())
           .append(" _")
@@ -76,8 +81,8 @@ public class GroovyClass {
   }
 
   private String buildClassConstants() {
-    StringBuilder out = new StringBuilder();
-    for (ClassConstant classConst : classConstants) {
+    final StringBuilder out = new StringBuilder();
+    for (final ClassConstant classConst : classConstants) {
       out.append("  public static ")
           .append(classConst.isFinal() ? "final " : "")
           .append(classConst.getType())
@@ -91,8 +96,8 @@ public class GroovyClass {
   }
 
   private String buildClassAnnotation() {
-    StringBuilder out = new StringBuilder();
-    for (ClassAnnotation annotation : classAnnotations) {
+    final StringBuilder out = new StringBuilder();
+    for (final ClassAnnotation annotation : classAnnotations) {
       out.append("@")
           .append(annotation.getName())
           .append("(")
@@ -102,8 +107,8 @@ public class GroovyClass {
     return out.toString();
   }
 
-  public void create(File dir) {
-    StringBuilder out = new StringBuilder();
+  public void create(final Path dir) throws IOException {
+    final StringBuilder out = new StringBuilder();
     if (annotation) {
       out.append("import java.lang.annotation.ElementType\n");
       out.append("import java.lang.annotation.Retention\n");
@@ -123,21 +128,15 @@ public class GroovyClass {
     }
     out.append("}");
 
-    try (FileWriter writer = new FileWriter(new File(dir, name + ".groovy"))) {
-      writer.write(out.toString());
-    } catch (IOException e) {
-      throw new RuntimeException("Could not write class file: " + name + ".groovy", e);
-    }
+    Files.write(dir.resolve(name + ".groovy"), out.toString().getBytes(StandardCharsets.UTF_8));
   }
-
-  // Inner classes for type safety replacing Groovy Tuples
 
   private static class ClassConstantUsage {
     private final String clazz;
     private final String name;
     private final String type;
 
-    public ClassConstantUsage(String clazz, String name, String type) {
+    public ClassConstantUsage(final String clazz, final String name, final String type) {
       this.clazz = clazz;
       this.name = name;
       this.type = type;
@@ -156,10 +155,10 @@ public class GroovyClass {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ClassConstantUsage that = (ClassConstantUsage) o;
+      final ClassConstantUsage that = (ClassConstantUsage) o;
       return Objects.equals(clazz, that.clazz)
           && Objects.equals(name, that.name)
           && Objects.equals(type, that.type);
@@ -177,7 +176,8 @@ public class GroovyClass {
     private final String value;
     private final boolean isFinal;
 
-    public ClassConstant(String type, String name, String value, boolean isFinal) {
+    public ClassConstant(
+        final String type, final String name, final String value, final boolean isFinal) {
       this.type = type;
       this.name = name;
       this.value = value;
@@ -201,10 +201,10 @@ public class GroovyClass {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ClassConstant that = (ClassConstant) o;
+      final ClassConstant that = (ClassConstant) o;
       return isFinal == that.isFinal
           && Objects.equals(type, that.type)
           && Objects.equals(name, that.name)
@@ -221,7 +221,7 @@ public class GroovyClass {
     private final String name;
     private final String value;
 
-    public ClassAnnotation(String name, String value) {
+    public ClassAnnotation(final String name, final String value) {
       this.name = name;
       this.value = value;
     }
@@ -235,10 +235,10 @@ public class GroovyClass {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ClassAnnotation that = (ClassAnnotation) o;
+      final ClassAnnotation that = (ClassAnnotation) o;
       return Objects.equals(name, that.name) && Objects.equals(value, that.value);
     }
 
