@@ -45,19 +45,19 @@ public final class ClassFileCollectorUtil {
       while ((entry = jis.getNextJarEntry()) != null) {
         addToClassFilesIfMatches(entry.getName(), classFiles);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new IllegalArgumentException("unable to collect classes from file", e);
     }
   }
 
   private static void collectFromDirectory(final File directory, final Set<String> classFiles) {
-    List<Path> classes;
+    final List<Path> classes;
     final Path directoryPath = directory.toPath();
-    try (Stream<Path> walk = Files.walk(directoryPath)) {
+    try (final Stream<Path> walk = Files.walk(directoryPath)) {
       classes =
           walk.filter(path -> path.getFileName().toString().endsWith(classSuffix))
               .collect(Collectors.toList());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(
           String.format("%s from directory = %s", e.getMessage(), directoryPath), e);
     }

@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.provider.Provider;
 
 public final class ProjectDependencyResolverUtils {
@@ -92,67 +94,112 @@ public final class ProjectDependencyResolverUtils {
   public static Map<ComponentIdentifier, Collection<ComponentIdentifier>> used(
       final Set<ComponentIdentifier> allDependencyArtifacts,
       final Set<ComponentIdentifier> usedArtifacts,
-      final Map<ComponentIdentifier, Set<ComponentIdentifier>> aggregatorsWithDependencies,
+      final Map<ComponentIdentifier, Set<ComponentIdentifier>> parentDependenciesMap,
       final AnalyzeDependenciesLogger logger) {
-    final Map<ComponentIdentifier, Collection<ComponentIdentifier>> usedAggregators =
-        aggregatorsWithDependencies.entrySet().stream()
+    final Map<ComponentIdentifier, Collection<ComponentIdentifier>> usedParents =
+        parentDependenciesMap.entrySet().stream()
             .filter(e -> allDependencyArtifacts.contains(e.getKey()))
             .collect(
                 Collectors.toMap(
                     Map.Entry::getKey,
                     e -> {
-                      final Set<ComponentIdentifier> ComponentsForAggregator =
+                      final Set<ComponentIdentifier> componentsForParent =
                           e.getValue().stream()
                               .filter(usedArtifacts::contains)
                               .collect(Collectors.toSet());
 
                       return e.getValue().stream()
-                          .filter(ComponentsForAggregator::contains)
+                          .filter(componentsForParent::contains)
                           .collect(Collectors.toSet());
                     }));
 
-    return removeDuplicates(usedAggregators, aggregatorsWithDependencies, logger);
+    return removeDuplicates(usedParents, parentDependenciesMap, logger);
   }
 
   private static Map<ComponentIdentifier, Collection<ComponentIdentifier>> removeDuplicates(
-      final Map<ComponentIdentifier, Collection<ComponentIdentifier>> usedAggregators,
-      final Map<ComponentIdentifier, Set<ComponentIdentifier>> aggregatorsWithDependencies,
+      final Map<ComponentIdentifier, Collection<ComponentIdentifier>> usedParents,
+      final Map<ComponentIdentifier, Set<ComponentIdentifier>> parentDependenciesMap,
       final AnalyzeDependenciesLogger logger) {
-    final Map<ComponentIdentifier, Collection<ComponentIdentifier>>
-        aggregatorsSortedByDependencies =
-            usedAggregators.entrySet().stream()
-                .sorted(
-                    Map.Entry
-                        .<ComponentIdentifier, Collection<ComponentIdentifier>>comparingByValue(
-                            Comparator.comparingInt(Collection::size))
-                        .thenComparing(
-                            Map.Entry.comparingByKey(
-                                Comparator.<ComponentIdentifier>comparingInt(
-                                        k -> aggregatorsWithDependencies.get(k).size())
-                                    .reversed())))
-                .collect(
-                    Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a1, a2) -> a2,
-                        LinkedHashMap::new));
+    final Map<ComponentIdentifier, Collection<ComponentIdentifier>> parentsSortedByDependencies =
+        usedParents.entrySet().stream()
+            .sorted(
+                Map.Entry.<ComponentIdentifier, Collection<ComponentIdentifier>>comparingByValue(
+                        Comparator.comparingInt(Collection::size))
+                    .thenComparing(
+                        Map.Entry.comparingByKey(
+                            Comparator.<ComponentIdentifier>comparingInt(
+                                    k -> parentDependenciesMap.get(k).size())
+                                .reversed())))
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey, Map.Entry::getValue, (a1, a2) -> a2, LinkedHashMap::new));
 
-    final Set<ComponentIdentifier> aggregatorArtifactAlreadySeen = new HashSet<>();
+    final Set<ComponentIdentifier> parentArtifactAlreadySeen = new HashSet<>();
 
-    aggregatorsSortedByDependencies
+    parentsSortedByDependencies
         .entrySet()
         .removeIf(
             e -> {
-              aggregatorArtifactAlreadySeen.add(e.getKey());
-              return aggregatorsSortedByDependencies.entrySet().stream()
+              parentArtifactAlreadySeen.add(e.getKey());
+              return parentsSortedByDependencies.entrySet().stream()
                   .anyMatch(
                       e2 ->
-                          !aggregatorArtifactAlreadySeen.contains(e2.getKey())
+                          !parentArtifactAlreadySeen.contains(e2.getKey())
                               && e2.getValue().containsAll(e.getValue()));
             });
 
-    logger.info("used aggregators", aggregatorsSortedByDependencies.keySet());
-    return aggregatorsSortedByDependencies;
+    logger.info("used aggregators", parentsSortedByDependencies.keySet());
+    return parentsSortedByDependencies;
+  }
+
+  /**
+   * Maps POM dependencies to their dependencies.
+   *
+   * @param configurationProviders a collection of Configuration providers
+   * @param logger logger
+   * @return a map of POM component identifiers to their dependencies
+   */
+  public static Map<ComponentIdentifier, Set<ComponentIdentifier>> getPomsWithDependenciesMapping(
+      final List<Provider<Configuration>> configurationProviders, final Logger logger) {
+    if (configurationProviders.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    // First detect all POM dependencies
+    final Set<ModuleComponentIdentifier> pomDependencies =
+        new PomDependencyDetector(logger).processDependencies(configurationProviders);
+
+    // For each POM dependency, get all of its dependencies
+    final Map<ComponentIdentifier, Set<ComponentIdentifier>> pomsWithDeps = new HashMap<>();
+
+    // Get all first-level dependencies to examine
+    final List<ResolvedDependency> allDependencies =
+        getFirstLevelDependencies(configurationProviders);
+
+    // For each POM dependency, find its corresponding ResolvedDependency and add its dependencies
+    for (final ModuleComponentIdentifier pomId : pomDependencies) {
+      for (final ResolvedDependency dependency : allDependencies) {
+        // Use the module coordinates to match dependencies
+        final ModuleVersionIdentifier moduleId = dependency.getModule().getId();
+
+        if (pomId.getGroup().equals(moduleId.getGroup())
+            && pomId.getModule().equals(moduleId.getName())
+            && pomId.getVersion().equals(moduleId.getVersion())) {
+
+          // Found matching dependency, add all its dependencies
+          final Set<ComponentIdentifier> deps =
+              dependency.getChildren().stream()
+                  .flatMap(child -> child.getAllModuleArtifacts().stream())
+                  .map(artifact -> artifact.getId().getComponentIdentifier())
+                  .collect(Collectors.toSet());
+
+          pomsWithDeps.put(pomId, deps);
+          break;
+        }
+      }
+    }
+
+    return pomsWithDeps;
   }
 
   /**
@@ -162,7 +209,7 @@ public final class ProjectDependencyResolverUtils {
    * @return a map of component identifiers to their dependencies
    */
   public static Map<ComponentIdentifier, Set<ComponentIdentifier>> getAggregatorsMapping(
-      final Collection<Provider<Configuration>> configurationProviders) {
+      final List<Provider<Configuration>> configurationProviders) {
     if (configurationProviders.isEmpty()) {
       return Collections.emptyMap();
     } else {
@@ -184,15 +231,6 @@ public final class ProjectDependencyResolverUtils {
                       d.getAllModuleArtifacts().stream()
                           .map(a -> a.getId().getComponentIdentifier())
                           .collect(Collectors.toSet())));
-    }
-  }
-
-  public static <T> List<Provider<T>> removeNulls(final List<Provider<T>> collection) {
-    if (collection == null) {
-      return Collections.emptyList();
-    } else {
-      collection.removeIf(Objects::isNull);
-      return collection;
     }
   }
 }

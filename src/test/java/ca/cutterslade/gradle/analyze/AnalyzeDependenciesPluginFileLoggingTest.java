@@ -1,21 +1,20 @@
 package ca.cutterslade.gradle.analyze;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
-import com.github.difflib.DiffUtils;
-import com.github.difflib.patch.AbstractDelta;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class AnalyzeDependenciesPluginFileLoggingTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
-  void simpleBuildWithoutDependenciesResultsInSuccess() {
+  void simpleBuildWithoutDependenciesResultsInSuccess() throws IOException {
     // setup
     rootProject()
         .logDependencyInformationToFiles()
@@ -24,14 +23,15 @@ class AnalyzeDependenciesPluginFileLoggingTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildSuccess(result);
   }
 
   @Test
-  void simpleBuildWithUnusedDependenciesResultsInViolation() throws IOException {
+  void simpleBuildWithUnusedDependenciesResultsInViolation()
+      throws URISyntaxException, IOException {
     // setup
     rootProject()
         .logDependencyInformationToFiles()
@@ -45,9 +45,7 @@ class AnalyzeDependenciesPluginFileLoggingTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(VIOLATIONS);
-    FileContent files =
-        getFileContent("analyzeClassesDependencies.log", "analyzeClassesDependencies.log");
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // then
     assertBuildResult(
@@ -56,16 +54,17 @@ class AnalyzeDependenciesPluginFileLoggingTest extends AnalyzeDependenciesPlugin
         Collections.emptyList(),
         Collections.singletonList("org.springframework.boot:spring-boot-starter:2.3.6.RELEASE"));
 
-    if (!Objects.equals(files.v1, files.v2)) {
-      System.out.println(
-          "Files differ:" + System.lineSeparator() + generateDiff(files.v1, files.v2));
-    }
-
-    Assertions.assertEquals(files.v1, files.v2);
+    assertThat(
+            projectDir
+                .resolve("build/reports/dependency-analyze/analyzeClassesDependencies.log")
+                .toFile())
+        .hasSameTextualContentAs(
+            new File(getClass().getResource("/analyzeClassesDependencies.log").toURI()));
   }
 
   @Test
-  void simpleBuildWithUnusedDependenciesResultsInSuccessWhenWarnIsTrue() throws IOException {
+  void simpleBuildWithUnusedDependenciesResultsInSuccessWhenWarnIsTrue()
+      throws URISyntaxException, IOException {
     // setup
     rootProject()
         .logDependencyInformationToFiles()
@@ -81,22 +80,21 @@ class AnalyzeDependenciesPluginFileLoggingTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
-    FileContent files =
-        getFileContent("analyzeClassesDependencies.log", "analyzeClassesDependencies.log");
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildSuccess(result);
-    if (!Objects.equals(files.v1, files.v2)) {
-      System.out.println(
-          "Files differ:" + System.lineSeparator() + generateDiff(files.v1, files.v2));
-    }
 
-    Assertions.assertEquals(files.v1, files.v2);
+    assertThat(
+            projectDir
+                .resolve("build/reports/dependency-analyze/analyzeClassesDependencies.log")
+                .toFile())
+        .hasSameTextualContentAs(
+            new File(getClass().getResource("/analyzeClassesDependencies.log").toURI()));
   }
 
   @Test
-  void buildWithDependencyDeclaredInConfigAndUsedInBuild() throws IOException {
+  void buildWithDependencyDeclaredInConfigAndUsedInBuild() throws URISyntaxException, IOException {
     // setup
     rootProject()
         .withMavenRepositories()
@@ -120,71 +118,16 @@ class AnalyzeDependenciesPluginFileLoggingTest extends AnalyzeDependenciesPlugin
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
-    FileContent files =
-        getFileContent("complex_analyzeDependencies.log", "analyzeClassesDependencies.log");
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildSuccess(result);
-    if (!Objects.equals(files.v1, files.v2)) {
-      System.out.println(
-          "Files differ:" + System.lineSeparator() + generateDiff(files.v1, files.v2));
-    }
 
-    Assertions.assertEquals(files.v1, files.v2);
-  }
-
-  private FileContent getFileContent(String fileWithExpectedContent, String fileName)
-      throws IOException {
-    // Read actual file
-    StringBuilder actualContent = new StringBuilder();
-    try (BufferedReader reader =
-        new BufferedReader(
-            new FileReader(new File(projectDir, "build/reports/dependency-analyze/" + fileName)))) {
-      String line;
-      while ((line = reader.readLine()) != null) {
-        actualContent.append(line).append(System.lineSeparator());
-      }
-    }
-    String actual = actualContent.toString();
-
-    // Read expected file from resources
-    StringBuilder expectedContent = new StringBuilder();
-    try (InputStream inputStream = getClass().getResourceAsStream("/" + fileWithExpectedContent);
-        BufferedReader expectedReader = new BufferedReader(new InputStreamReader(inputStream))) {
-      String line;
-      while ((line = expectedReader.readLine()) != null) {
-        expectedContent.append(line).append(System.lineSeparator());
-      }
-    }
-    String expected = expectedContent.toString().replaceAll("\\r\\n", System.lineSeparator());
-
-    return new FileContent(actual, expected);
-  }
-
-  private String generateDiff(String content1, String content2) {
-    List<String> lines1 = readLines(content1);
-    List<String> lines2 = readLines(content2);
-
-    com.github.difflib.patch.Patch<String> diff = DiffUtils.diff(lines1, lines2);
-
-    return diff.getDeltas().stream()
-        .map(AbstractDelta::toString)
-        .collect(java.util.stream.Collectors.joining(System.lineSeparator()));
-  }
-
-  private List<String> readLines(String content) {
-    return java.util.Arrays.stream(content.split("\\r?\\n"))
-        .collect(java.util.stream.Collectors.toList());
-  }
-
-  private static class FileContent {
-    final String v1;
-    final String v2;
-
-    FileContent(String v1, String v2) {
-      this.v1 = v1;
-      this.v2 = v2;
-    }
+    assertThat(
+            projectDir
+                .resolve("build/reports/dependency-analyze/analyzeClassesDependencies.log")
+                .toFile())
+        .hasSameTextualContentAs(
+            new File(getClass().getResource("/complex_analyzeDependencies.log").toURI()));
   }
 }

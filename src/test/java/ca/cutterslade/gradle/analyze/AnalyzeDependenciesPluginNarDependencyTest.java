@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.Collections;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class AnalyzeDependenciesPluginNarDependencyTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
-  void projectWithNarDependency() {
+  void projectWithNarDependency() throws IOException {
     // setup
     rootProject()
         .withMainClass(new GroovyClass("Main"))
@@ -21,7 +22,7 @@ class AnalyzeDependenciesPluginNarDependencyTest extends AnalyzeDependenciesPlug
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // then
     assertBuildResult(

@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.stream.Stream;
 import org.gradle.testkit.runner.BuildResult;
@@ -15,7 +16,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
   @ParameterizedTest
   @MethodSource("provideAggregatorDependencyParameters")
   void aggregatorDependencyDeclaredInConfigAndUsedInBuildResultsInExpectedResult(
-      String configuration, String expectedResult) {
+      final String configuration, final String expectedResult) throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -38,7 +39,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(result, expectedResult);
@@ -52,10 +53,11 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
   @ParameterizedTest
   @MethodSource("provideUnusedAggregatorDependencyParameters")
   void aggregatorDependencyNotDeclaredInConfigAndUsedInBuildShouldReportUnusedAggregator(
-      String configuration,
-      String expectedResult,
-      String[] usedUndeclaredArtifacts,
-      String[] unusedDeclaredArtifacts) {
+      final String configuration,
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -74,7 +76,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(
@@ -100,10 +102,11 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
   @ParameterizedTest
   @MethodSource("provideMissingDependencyParameters")
   void aggregatorDependencyDeclaredInConfigAndNotUsedInBuildShouldReportMissingDependency(
-      String configuration,
-      String expectedResult,
-      String[] usedUndeclaredArtifacts,
-      String[] unusedDeclaredArtifacts) {
+      final String configuration,
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -126,7 +129,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(
@@ -150,11 +153,12 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
   @MethodSource("provideExplicitDependencyParameters")
   void
       aggregatorDependencyDeclaredInConfigAndUsedInBuildWithDedicatedDependencyShouldReportExplicitDependencyAsUnused(
-          String configuration,
-          String expectedResult,
-          String[] usedUndeclaredArtifacts,
-          String[] unusedDeclaredArtifacts,
-          String[] superfluousDeclaredArtifacts) {
+          final String configuration,
+          final String expectedResult,
+          final String[] usedUndeclaredArtifacts,
+          final String[] unusedDeclaredArtifacts,
+          final String[] superfluousDeclaredArtifacts)
+          throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -181,7 +185,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(
@@ -207,7 +211,8 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
 
   @Test
   void
-      multipleAggregatorDependenciesDeclaredAndDependencyAvailableInBothAggregatorsShouldChooseAggregatorWithLessDependencies() {
+      multipleAggregatorDependenciesDeclaredAndDependencyAvailableInBothAggregatorsShouldChooseAggregatorWithLessDependencies()
+          throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -234,7 +239,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // Then
     assertBuildResult(
@@ -247,7 +252,8 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
 
   @Test
   void
-      multipleAggregatorDependenciesDeclaredInConfigAndDependencyAvailableInBothAggregatorsPlusOneAdditionalShouldChooseAggregatorWithLessDependencies() {
+      multipleAggregatorDependenciesDeclaredInConfigAndDependencyAvailableInBothAggregatorsPlusOneAdditionalShouldChooseAggregatorWithLessDependencies()
+          throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -283,7 +289,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // Then
     assertBuildResult(
@@ -297,7 +303,8 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
 
   @Test
   void
-      multipleAggregatorDependenciesDeclaredInConfigAndDependencyAvailableInBothAggregatorsPlusOneAdditionalShouldKeepOnlyUsedDistinctAggregators() {
+      multipleAggregatorDependenciesDeclaredInConfigAndDependencyAvailableInBothAggregatorsPlusOneAdditionalShouldKeepOnlyUsedDistinctAggregators()
+          throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -343,7 +350,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // Then
     assertBuildResult(
@@ -354,7 +361,8 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
   }
 
   @Test
-  void multipleAggregatorDependenciesDeclaredInConfigAndAnotherAggregatorIsSmaller() {
+  void multipleAggregatorDependenciesDeclaredInConfigAndAnotherAggregatorIsSmaller()
+      throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -382,7 +390,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // Then
     assertBuildResult(
@@ -396,7 +404,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
   }
 
   @Test
-  void aggregatorFromProject() {
+  void aggregatorFromProject() throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -415,7 +423,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // Then
     assertBuildResult(
@@ -428,7 +436,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
   }
 
   @Test
-  void aggregatorFromProjectWithUsedJarDependency() {
+  void aggregatorFromProjectWithUsedJarDependency() throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -458,14 +466,14 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
   }
 
   @Test
-  void aggregatorWithApiAndImplementationFromProjectWithUsedJarDependency() {
+  void aggregatorWithApiAndImplementationFromProjectWithUsedJarDependency() throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -501,14 +509,15 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
   }
 
   @Test
-  void aggregatorWithImplementationDependencyAndAdditionalOverlappingApiDependency() {
+  void aggregatorWithImplementationDependencyAndAdditionalOverlappingApiDependency()
+      throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -532,7 +541,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
@@ -540,7 +549,8 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
 
   @Test
   void
-      aggregatorWithImplementationDependencyAndAdditionalOverlappingApiDependencyWhenVersionsManagedByPlatform() {
+      aggregatorWithImplementationDependencyAndAdditionalOverlappingApiDependencyWhenVersionsManagedByPlatform()
+          throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -570,7 +580,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);

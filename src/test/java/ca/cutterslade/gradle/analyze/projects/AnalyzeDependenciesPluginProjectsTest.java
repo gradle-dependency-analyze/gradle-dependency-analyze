@@ -15,7 +15,7 @@ class AnalyzeDependenciesPluginProjectsTest extends AnalyzeDependenciesPluginBas
     copyProjectToTestFolder("projects/issue_527", projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildResult(result, SUCCESS);
@@ -27,7 +27,7 @@ class AnalyzeDependenciesPluginProjectsTest extends AnalyzeDependenciesPluginBas
     copyProjectToTestFolder("projects/issue_400", projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildResult(result, SUCCESS);
@@ -39,7 +39,19 @@ class AnalyzeDependenciesPluginProjectsTest extends AnalyzeDependenciesPluginBas
     copyProjectToTestFolder("projects/issue_288", projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
+
+    // then
+    assertBuildResult(result, SUCCESS);
+  }
+
+  @Test
+  void issue_299() throws URISyntaxException, IOException {
+    // setup
+    copyProjectToTestFolder("projects/issue_299", projectDir);
+
+    // when
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildResult(result, SUCCESS);
@@ -51,7 +63,7 @@ class AnalyzeDependenciesPluginProjectsTest extends AnalyzeDependenciesPluginBas
     copyProjectToTestFolder("projects/issue_528", projectDir);
 
     // when
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // then
     assertBuildResult(

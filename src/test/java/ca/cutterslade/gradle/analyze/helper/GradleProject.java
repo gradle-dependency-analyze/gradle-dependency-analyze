@@ -1,7 +1,9 @@
 package ca.cutterslade.gradle.analyze.helper;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -10,7 +12,7 @@ import java.util.Set;
 public class GradleProject {
 
   // Helper method to join task names with comma separator
-  private String joinTaskNames(Set<String> taskNames) {
+  private String joinTaskNames(final Set<String> taskNames) {
     return taskNames.stream()
         .map(task -> "'" + task + "'")
         .collect(java.util.stream.Collectors.joining(", "));
@@ -34,56 +36,56 @@ public class GradleProject {
   private String platformConfiguration = "";
   private final Map<String, String> additionalTasks = new LinkedHashMap<>();
 
-  public GradleProject(String name) {
+  public GradleProject(final String name) {
     this(name, false);
   }
 
-  public GradleProject(String name, boolean rootProject) {
+  public GradleProject(final String name, final boolean rootProject) {
     this.name = name;
     this.rootProject = rootProject;
   }
 
-  public GradleProject withSubProject(GradleProject project) {
+  public GradleProject withSubProject(final GradleProject project) {
     subProjects.add(project);
     return this;
   }
 
-  public GradleProject withMainClass(GroovyClass clazz) {
+  public GradleProject withMainClass(final GroovyClass clazz) {
     mainClasses.add(clazz);
     return this;
   }
 
-  public GradleProject withTestClass(GroovyClass clazz) {
+  public GradleProject withTestClass(final GroovyClass clazz) {
     testClasses.add(clazz);
     return this;
   }
 
-  public GradleProject withTestFixturesClass(GroovyClass clazz) {
+  public GradleProject withTestFixturesClass(final GroovyClass clazz) {
     testFixturesClasses.add(clazz);
     return this;
   }
 
-  public GradleProject withPlugin(String plugin) {
+  public GradleProject withPlugin(final String plugin) {
     plugins.add(plugin);
     return this;
   }
 
-  public GradleProject withAllProjectsPlugin(String plugin) {
+  public GradleProject withAllProjectsPlugin(final String plugin) {
     allProjectPlugins.add(plugin);
     return this;
   }
 
-  public GradleProject withWarnCompileOnly(boolean value) {
+  public GradleProject withWarnCompileOnly(final boolean value) {
     warnCompileOnly = value;
     return this;
   }
 
-  public GradleProject withWarnUsedUndeclared(boolean value) {
+  public GradleProject withWarnUsedUndeclared(final boolean value) {
     warnUsedUndeclared = value;
     return this;
   }
 
-  public GradleProject withWarnUnusedDeclared(boolean value) {
+  public GradleProject withWarnUnusedDeclared(final boolean value) {
     warnUnusedDeclared = value;
     return this;
   }
@@ -93,23 +95,23 @@ public class GradleProject {
     return this;
   }
 
-  public GradleProject withDependency(GradleDependency dep) {
+  public GradleProject withDependency(final GradleDependency dep) {
     dependencies.add(dep);
     return this;
   }
 
-  public GradleProject withGradleDependency(String configuration) {
+  public GradleProject withGradleDependency(final String configuration) {
     dependencies.add(
         new GradleDependency().setConfiguration(configuration).setReference("localGroovy()"));
     return this;
   }
 
-  public GradleProject withAggregator(GradleDependency aggregator) {
+  public GradleProject withAggregator(final GradleDependency aggregator) {
     dependencies.add(aggregator);
     return this;
   }
 
-  public GradleProject withAdditionalTask(String taskName, String buildGradleSnippet) {
+  public GradleProject withAdditionalTask(final String taskName, final String buildGradleSnippet) {
     additionalTasks.put(taskName, buildGradleSnippet);
     return this;
   }
@@ -121,8 +123,7 @@ public class GradleProject {
 
   public GradleProject applyPlatformConfiguration() {
     platformConfiguration =
-        ""
-            + "configurations {\n"
+        "configurations {\n"
             + "    myPlatform {\n"
             + "        canBeResolved = false\n"
             + "        canBeConsumed = false\n"
@@ -139,11 +140,13 @@ public class GradleProject {
     return this;
   }
 
-  public void create(File root) {
+  public void create(final Path root) throws IOException {
     additionalTasks.putIfAbsent("build", "");
 
-    root.mkdirs();
-    subProjects.forEach(project -> project.create(new File(root, project.name)));
+    Files.createDirectories(root);
+    for (final GradleProject project : subProjects) {
+      project.create(root.resolve(project.name));
+    }
 
     createBuildGradle(root);
     createSettingsGradle(root);
@@ -159,38 +162,34 @@ public class GradleProject {
     }
   }
 
-  private static void createClasses(File root, String dir, Set<GroovyClass> classes) {
-    File sourceDir = new File(root, dir);
-    if (!sourceDir.mkdirs() && !sourceDir.exists()) {
-      throw new IllegalStateException("Could not create source dir " + sourceDir);
-    }
-
-    for (GroovyClass clazz : classes) {
+  private static void createClasses(
+      final Path root, final String dir, final Set<GroovyClass> classes) throws IOException {
+    final Path sourceDir = root.resolve(dir);
+    Files.createDirectories(sourceDir);
+    for (final GroovyClass clazz : classes) {
       clazz.create(sourceDir);
     }
   }
 
-  private void createSettingsGradle(File root) {
-    StringBuilder settingsGradle = new StringBuilder();
+  private void createSettingsGradle(final Path root) throws IOException {
+    final StringBuilder settingsGradle = new StringBuilder();
     if (name != null) {
       settingsGradle.append("rootProject.name = '").append(name).append("'\n");
     }
 
-    for (GradleProject subProject : subProjects) {
+    for (final GradleProject subProject : subProjects) {
       settingsGradle.append("include(':").append(subProject.name).append("')\n");
     }
 
     if (settingsGradle.length() > 0) {
-      try (java.io.FileWriter writer = new java.io.FileWriter(new File(root, "settings.gradle"))) {
-        writer.write(settingsGradle.toString());
-      } catch (IOException e) {
-        throw new RuntimeException("Could not write settings.gradle file", e);
-      }
+      Files.write(
+          root.resolve("settings.gradle"),
+          settingsGradle.toString().getBytes(StandardCharsets.UTF_8));
     }
   }
 
-  private void createBuildGradle(final File root) {
-    StringBuilder buildGradle = new StringBuilder();
+  private void createBuildGradle(final Path root) throws IOException {
+    final StringBuilder buildGradle = new StringBuilder();
     if (!plugins.isEmpty()) {
       buildGradle.append("plugins {\n");
       plugins.forEach(plugin -> buildGradle.append("  id '").append(plugin).append("'\n"));
@@ -202,7 +201,7 @@ public class GradleProject {
     buildGradle.append(repositories != null ? repositories : "");
     if (!dependencies.isEmpty()) {
       buildGradle.append("dependencies {\n");
-      for (GradleDependency dep : dependencies) {
+      for (final GradleDependency dep : dependencies) {
         buildGradle.append("  ").append(dep.get()).append("\n");
       }
       buildGradle.append("}\n");
@@ -217,7 +216,7 @@ public class GradleProject {
 
     if (rootProject && !allProjectPlugins.isEmpty()) {
       buildGradle.append("allprojects {\n");
-      for (String plugin : allProjectPlugins) {
+      for (final String plugin : allProjectPlugins) {
         buildGradle.append("  apply plugin: '").append(plugin).append("'\n");
       }
       buildGradle.append("}\n");
@@ -245,10 +244,7 @@ public class GradleProject {
 
     additionalTasks.values().forEach(task -> buildGradle.append(task).append("\n"));
 
-    try (java.io.FileWriter writer = new java.io.FileWriter(new File(root, "build.gradle"))) {
-      writer.write(buildGradle.toString());
-    } catch (IOException e) {
-      throw new RuntimeException("Could not write build.gradle file", e);
-    }
+    Files.write(
+        root.resolve("build.gradle"), buildGradle.toString().getBytes(StandardCharsets.UTF_8));
   }
 }

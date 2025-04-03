@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.Collections;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class AnalyzeDependenciesPluginJavaTestFixturesTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
-  void projectOnlyWithTestFixtureClassesResultsInSuccess() {
+  void projectOnlyWithTestFixtureClassesResultsInSuccess() throws IOException {
     // Setup
     rootProject()
         .withPlugin("java-test-fixtures")
@@ -18,14 +19,14 @@ class AnalyzeDependenciesPluginJavaTestFixturesTest extends AnalyzeDependenciesP
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
   }
 
   @Test
-  void projectWithMainClassAndTestFixtureClassesResultsInSuccess() {
+  void projectWithMainClassAndTestFixtureClassesResultsInSuccess() throws IOException {
     // Setup
     rootProject()
         .withPlugin("java-test-fixtures")
@@ -35,14 +36,15 @@ class AnalyzeDependenciesPluginJavaTestFixturesTest extends AnalyzeDependenciesP
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
   }
 
   @Test
-  void projectWithTestFixtureClassUsingMainClassFromDifferentModuleResultsInSuccess() {
+  void projectWithTestFixtureClassUsingMainClassFromDifferentModuleResultsInSuccess()
+      throws IOException {
     // Setup
     rootProject()
         .withPlugin("java-test-fixtures")
@@ -56,14 +58,15 @@ class AnalyzeDependenciesPluginJavaTestFixturesTest extends AnalyzeDependenciesP
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);
   }
 
   @Test
-  void projectWithTestFixtureClassAndMainClassFromDifferentModuleNotUsedResultsInFailure() {
+  void projectWithTestFixtureClassAndMainClassFromDifferentModuleNotUsedResultsInFailure()
+      throws IOException {
     // Setup
     rootProject()
         .withPlugin("java-test-fixtures")
@@ -77,7 +80,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesTest extends AnalyzeDependenciesP
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(BUILD_FAILURE);
+    final BuildResult result = buildGradleProject(BUILD_FAILURE);
 
     // Then
     assertBuildResult(
@@ -88,8 +91,8 @@ class AnalyzeDependenciesPluginJavaTestFixturesTest extends AnalyzeDependenciesP
   }
 
   @Test
-  void
-      projectWithTestTestFixtureAndMainClassAndMainClassFromDifferentModuleIsUsedResultsInSuccess() {
+  void projectWithTestTestFixtureAndMainClassAndMainClassFromDifferentModuleIsUsedResultsInSuccess()
+      throws IOException {
     // Setup
     rootProject()
         .withPlugin("java-test-fixtures")
@@ -103,7 +106,7 @@ class AnalyzeDependenciesPluginJavaTestFixturesTest extends AnalyzeDependenciesP
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // Then
     assertBuildSuccess(result);

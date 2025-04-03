@@ -1,23 +1,23 @@
 package ca.cutterslade.gradle.analyze;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import ca.cutterslade.gradle.analyze.helper.GradleProject;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.util.GradleVersion;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.io.TempDir;
 import org.opentest4j.AssertionFailedError;
 
@@ -28,7 +28,7 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
   protected static final String VIOLATIONS = "violations";
   protected static final String WARNING = "warning";
 
-  @TempDir public File projectDir;
+  @TempDir public Path projectDir;
 
   private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
 
@@ -39,34 +39,34 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
         .withGradleDependency("implementation");
   }
 
-  protected static GradleProject platformProject(String name) {
+  protected static GradleProject platformProject(final String name) {
     return new GradleProject(name).withPlugin("java-platform");
   }
 
-  protected static GradleProject subProject(String name) {
+  protected static GradleProject subProject(final String name) {
     return new GradleProject(name).withPlugin("groovy").withGradleDependency("implementation");
   }
 
-  private GradleRunner gradleProject(boolean withCodeCoverage) {
+  private GradleRunner gradleProject(final boolean withCodeCoverage) {
     if (withCodeCoverage) {
-      try (FileOutputStream outputStream =
-              new FileOutputStream(new File(projectDir, "gradle.properties"));
-          InputStream inputStream =
-              getClass().getClassLoader().getResourceAsStream("testkit-gradle.properties")) {
+      try (final InputStream inputStream =
+          getClass().getResourceAsStream("testkit-gradle.properties")) {
         if (inputStream != null) {
-          byte[] buffer = new byte[1024];
-          int bytesRead;
-          while ((bytesRead = inputStream.read(buffer)) != -1) {
-            outputStream.write(buffer, 0, bytesRead);
-          }
+          Files.copy(
+              inputStream,
+              projectDir.resolve("gradle.properties"),
+              StandardCopyOption.REPLACE_EXISTING);
         }
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException("Failed to set up gradle.properties", e);
       }
     }
 
-    GradleRunner runner =
-        GradleRunner.create().withProjectDir(projectDir).withPluginClasspath().forwardOutput();
+    final GradleRunner runner =
+        GradleRunner.create()
+            .withProjectDir(projectDir.toFile())
+            .withPluginClasspath()
+            .forwardOutput();
 
     if (runtimeMXBean.getInputArguments().stream()
         .anyMatch(arg -> arg.startsWith("-agentlib:jdwp="))) {
@@ -75,22 +75,24 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
     return runner;
   }
 
-  protected static void assertBuildSuccess(BuildResult result) {
-    BuildTask task = result.task(":build");
+  protected static void assertBuildSuccess(final BuildResult result) {
+    final BuildTask task = result.task(":build");
     if (task == null) {
       throw new AssertionFailedError(
           "Build task not run: " + System.lineSeparator() + result.getOutput());
     }
-    Assertions.assertEquals(TaskOutcome.SUCCESS, task.getOutcome());
+    assertThat(task.getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
   }
 
-  protected final BuildResult buildGradleProject(String expectedResult) {
+  protected final BuildResult buildGradleProject(final String expectedResult) {
     return buildGradleProject(expectedResult, null, true);
   }
 
   protected final BuildResult buildGradleProject(
-      String expectedResult, GradleVersion gradleVersion, boolean withCodeCoverage) {
-    GradleRunner project = gradleProject(withCodeCoverage);
+      final String expectedResult,
+      final GradleVersion gradleVersion,
+      final boolean withCodeCoverage) {
+    final GradleRunner project = gradleProject(withCodeCoverage);
     if (gradleVersion != null) {
       project.withGradleVersion(gradleVersion.getVersion());
     }
@@ -100,7 +102,7 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
     return project.buildAndFail();
   }
 
-  protected static void assertBuildResult(BuildResult result, String expectedResult) {
+  protected static void assertBuildResult(final BuildResult result, final String expectedResult) {
     assertBuildResult(
         result,
         expectedResult,
@@ -111,10 +113,10 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
   }
 
   protected static void assertBuildResult(
-      BuildResult result,
-      String expectedResult,
-      List<String> usedUndeclaredArtifacts,
-      List<String> unusedDeclaredArtifacts) {
+      final BuildResult result,
+      final String expectedResult,
+      final List<String> usedUndeclaredArtifacts,
+      final List<String> unusedDeclaredArtifacts) {
     assertBuildResult(
         result,
         expectedResult,
@@ -125,18 +127,18 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
   }
 
   protected static void assertBuildResult(
-      BuildResult result,
-      String expectedResult,
-      List<String> usedUndeclaredArtifacts,
-      List<String> unusedDeclaredArtifacts,
-      List<String> compileOnlyArtifacts,
-      List<String> superfluousDeclaredArtifacts) {
+      final BuildResult result,
+      final String expectedResult,
+      final List<String> usedUndeclaredArtifacts,
+      final List<String> unusedDeclaredArtifacts,
+      final List<String> compileOnlyArtifacts,
+      final List<String> superfluousDeclaredArtifacts) {
     switch (expectedResult) {
       case SUCCESS:
         {
-          StringBuilder violations = new StringBuilder();
+          final StringBuilder violations = new StringBuilder();
           if (!compileOnlyArtifacts.isEmpty()) {
-            String spacer = "";
+            final String spacer = "";
             violations
                 .append(spacer)
                 .append("compileOnlyDeclaredArtifacts")
@@ -148,28 +150,22 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
                         .append(" - ")
                         .append(artifact)
                         .append(System.lineSeparator()));
-            Assertions.assertTrue(
-                result.getOutput().contains(violations),
-                "Expected output to contain: " + violations);
+            assertThat(result.getOutput()).contains(violations);
           }
-          Assertions.assertTrue(
-              result.getTasks().stream().anyMatch(task -> task.getOutcome() != TaskOutcome.SUCCESS),
-              "Expected at least one task with outcome different than SUCCESS");
+          assertThat(result.getTasks()).anyMatch(task -> task.getOutcome() != TaskOutcome.SUCCESS);
           break;
         }
       case BUILD_FAILURE:
       case TEST_BUILD_FAILURE:
-        Assertions.assertTrue(
-            result.getTasks().stream().anyMatch(task -> task.getOutcome() == TaskOutcome.FAILED),
-            "Expected at least one failed task");
+        assertThat(result.getTasks()).anyMatch(task -> task.getOutcome() == TaskOutcome.FAILED);
         break;
       case VIOLATIONS:
       case WARNING:
         {
-          StringBuilder violations =
+          final StringBuilder violations =
               expectedResult.equals(WARNING) ? new StringBuilder() : new StringBuilder("> ");
           violations.append("Dependency analysis found issues.").append(System.lineSeparator());
-          String spacer = expectedResult.equals(WARNING) ? "" : "  ";
+          final String spacer = expectedResult.equals(WARNING) ? "" : "  ";
           if (!usedUndeclaredArtifacts.isEmpty()) {
             violations
                 .append(spacer)
@@ -223,38 +219,74 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
                         .append(System.lineSeparator()));
           }
           violations.append(System.lineSeparator());
-          Assertions.assertTrue(
-              result.getOutput().contains(violations), "Expected output to contain: " + violations);
+          assertThat(result.getOutput()).contains(violations);
           break;
         }
       default:
-        Assertions.assertTrue(
-            result.getOutput().contains(expectedResult),
-            "Expected output to contain: " + expectedResult);
+        assertThat(result.getOutput()).contains(expectedResult);
         break;
     }
   }
 
-  protected void copyProjectToTestFolder(String sourcePath, File destFolder)
+  protected void copyProjectToTestFolder(final String sourcePath, final Path destFolder)
       throws URISyntaxException, IOException {
-    URL resourceUrl = this.getClass().getResource("/" + sourcePath);
+    final URL resourceUrl = this.getClass().getResource("/" + sourcePath);
     if (resourceUrl == null) {
       throw new IllegalStateException(
           "Resource folder '" + sourcePath + "' not found in classpath");
     }
-    File sourceFolder = new File(resourceUrl.toURI());
 
-    if (!sourceFolder.exists()) {
+    final Path sourceFolder = new File(resourceUrl.toURI()).toPath();
+    if (!Files.exists(sourceFolder)) {
       throw new IllegalStateException("Source folder does not exist at " + sourceFolder);
     }
 
     // Make sure destination is a directory and not a file
-    if (!destFolder.exists()) {
-      destFolder.mkdirs();
-    } else if (!destFolder.isDirectory()) {
-      throw new IllegalArgumentException("Destination must be a directory");
+    if (Files.exists(destFolder) && !Files.isDirectory(destFolder)) {
+      throw new IllegalArgumentException("Destination must not exist");
     }
 
-    FileUtils.copyDirectory(sourceFolder, destFolder);
+    if (!isFolderEmpty(destFolder)) {
+      throw new IllegalStateException("Destination folder exists but is not empty");
+    }
+
+    copyDirectory(sourceFolder, destFolder);
+  }
+
+  private static boolean isFolderEmpty(final Path path) throws IOException {
+    if (Files.isDirectory(path)) {
+      try (final DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
+        return !directoryStream.iterator().hasNext();
+      }
+    }
+    return false; // Not a directory
+  }
+
+  private static void copyDirectory(final Path source, final Path target) throws IOException {
+    // Create target directory if it doesn't exist
+    Files.createDirectories(target);
+
+    // Walk through the source directory
+    Files.walkFileTree(
+        source,
+        EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+        Integer.MAX_VALUE,
+        new SimpleFileVisitor<Path>() {
+          @Override
+          public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
+              throws IOException {
+            final Path targetDir = target.resolve(source.relativize(dir));
+            Files.createDirectories(targetDir);
+            return FileVisitResult.CONTINUE;
+          }
+
+          @Override
+          public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
+              throws IOException {
+            Files.copy(
+                file, target.resolve(source.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+            return FileVisitResult.CONTINUE;
+          }
+        });
   }
 }

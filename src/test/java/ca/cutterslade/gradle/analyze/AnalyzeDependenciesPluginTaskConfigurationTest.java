@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.stream.Stream;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,11 +14,12 @@ class AnalyzeDependenciesPluginTaskConfigurationTest extends AnalyzeDependencies
   @ParameterizedTest
   @MethodSource("provideTestParameters")
   void testProjectDependencyConfiguration(
-      boolean warnUsedUndeclared,
-      boolean warnUnusedDeclared,
-      String expectedResult,
-      String[] usedUndeclaredArtifacts,
-      String[] unusedDeclaredArtifacts) {
+      final boolean warnUsedUndeclared,
+      final boolean warnUnusedDeclared,
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("Dependent2"))
@@ -34,7 +36,7 @@ class AnalyzeDependenciesPluginTaskConfigurationTest extends AnalyzeDependencies
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(

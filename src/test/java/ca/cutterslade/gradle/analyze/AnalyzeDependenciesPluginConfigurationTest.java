@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.gradle.testkit.runner.BuildResult;
@@ -14,7 +15,10 @@ class AnalyzeDependenciesPluginConfigurationTest extends AnalyzeDependenciesPlug
   @ParameterizedTest
   @MethodSource("provideTestParameters")
   void forceConfigurationResolutionTaskShouldNotCausePluginFailure(
-      String expectedResult, String[] usedUndeclaredArtifacts, String[] unusedDeclaredArtifacts) {
+      final String expectedResult,
+      final String[] usedUndeclaredArtifacts,
+      final String[] unusedDeclaredArtifacts)
+      throws IOException {
     // Setup
     rootProject()
         .withMavenRepositories()
@@ -54,7 +58,7 @@ class AnalyzeDependenciesPluginConfigurationTest extends AnalyzeDependenciesPlug
         .create(projectDir);
 
     // When
-    BuildResult result = buildGradleProject(expectedResult);
+    final BuildResult result = buildGradleProject(expectedResult);
 
     // Then
     assertBuildResult(

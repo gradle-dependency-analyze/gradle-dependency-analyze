@@ -14,7 +14,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.util.GradleVersion;
@@ -35,7 +34,7 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
         .withId(
             "java",
             plugin -> {
-              TaskProvider<Task> commonTask =
+              final TaskProvider<Task> commonTask =
                   project
                       .getTasks()
                       .register(
@@ -54,10 +53,10 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                       });
 
               // Create a map to store all analyze tasks by source set
-              Map<String, Object> analyzeTasksBySourceSet = new HashMap<>();
+              final Map<String, Object> analyzeTasksBySourceSet = new HashMap<>();
 
-              SourceSetContainer sourceSets =
-                  (SourceSetContainer) project.getExtensions().getByName("sourceSets");
+              final SourceSetContainer sourceSets =
+                  project.getExtensions().getByType(SourceSetContainer.class);
               sourceSets.all(
                   sourceSet -> {
                     // Create configurations
@@ -94,7 +93,7 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                             });
 
                     // Create helper configurations
-                    String apiHelperName = sourceSet.getTaskName("apiHelper", "");
+                    final String apiHelperName = sourceSet.getTaskName("apiHelper", "");
                     project
                         .getConfigurations()
                         .create(
@@ -104,7 +103,8 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                               config.setCanBeResolved(true);
                             });
 
-                    String compileOnlyHelperName = sourceSet.getTaskName("compileOnlyHelper", "");
+                    final String compileOnlyHelperName =
+                        sourceSet.getTaskName("compileOnlyHelper", "");
                     project
                         .getConfigurations()
                         .create(
@@ -129,7 +129,7 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                               sourceSet.getCompileOnlyConfigurationName());
                         });
 
-                    TaskProvider<AnalyzeDependenciesTask> analyzeTask =
+                    final TaskProvider<AnalyzeDependenciesTask> analyzeTask =
                         project
                             .getTasks()
                             .register(
@@ -145,7 +145,7 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                                   // Set up task dependencies for ALL compilation tasks to ensure we
                                   // have all classes
                                   // First, depend on the classes task for this source set
-                                  String classesTaskName = sourceSet.getClassesTaskName();
+                                  final String classesTaskName = sourceSet.getClassesTaskName();
                                   if (project.getTasks().getNames().contains(classesTaskName)) {
                                     task.dependsOn(classesTaskName);
                                   }
@@ -164,7 +164,7 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
 
                                     // Find all tasks that end with Java, Groovy, Kotlin, or Scala
                                     // and have a compile prefix
-                                    List<String> allCompileTasks =
+                                    final List<String> allCompileTasks =
                                         project.getTasks().getNames().stream()
                                             .filter(
                                                 name ->
@@ -177,19 +177,19 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                                             .collect(Collectors.toList());
 
                                     // Depend on all compile tasks
-                                    for (String compileTask : allCompileTasks) {
+                                    for (final String compileTask : allCompileTasks) {
                                       task.dependsOn(compileTask);
                                     }
 
                                     // Also depend on all tests and compile test tasks
-                                    List<String> allTestTasks =
+                                    final List<String> allTestTasks =
                                         project.getTasks().getNames().stream()
                                             .filter(
                                                 name ->
                                                     name.contains("Test") || name.contains("test"))
                                             .collect(Collectors.toList());
 
-                                    for (String testTask : allTestTasks) {
+                                    for (final String testTask : allTestTasks) {
                                       // Don't create circular dependencies with our own analyze
                                       // tasks
                                       if (!testTask.startsWith("analyze")) {
@@ -200,8 +200,8 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                                   // For test tasks, make sure to depend on the compile tasks for
                                   // that source set
                                   else {
-                                    String compilePrefix = sourceSet.getCompileTaskName("");
-                                    List<String> specificCompileTasks =
+                                    final String compilePrefix = sourceSet.getCompileTaskName("");
+                                    final List<String> specificCompileTasks =
                                         project.getTasks().getNames().stream()
                                             .filter(
                                                 name ->
@@ -212,7 +212,7 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                                                             || name.endsWith("Scala")))
                                             .collect(Collectors.toList());
 
-                                    for (String compileTask : specificCompileTasks) {
+                                    for (final String compileTask : specificCompileTasks) {
                                       task.dependsOn(compileTask);
                                     }
                                   }
@@ -224,12 +224,12 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                                   task.doFirst(
                                       new org.gradle.api.Action<Task>() {
                                         @Override
-                                        public void execute(Task t) {
+                                        public void execute(final Task t) {
                                           if (project
                                               .getConfigurations()
                                               .getNames()
                                               .contains("providedRuntime")) {
-                                            Provider<Configuration> providedRuntimeConfig =
+                                            final Provider<Configuration> providedRuntimeConfig =
                                                 project
                                                     .getConfigurations()
                                                     .named("providedRuntime");
@@ -262,7 +262,7 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                           analyzeTask.configure(
                               task -> {
                                 // Create a list with a single provider
-                                List<Provider<Configuration>> requireList = new ArrayList<>();
+                                final List<Provider<Configuration>> requireList = new ArrayList<>();
                                 requireList.add(
                                     project
                                         .getConfigurations()
@@ -292,14 +292,15 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                                                 sourceSet.getTaskName("permit", "aggregatorUse"))));
 
                                 // List of allowed to use
-                                List<Provider<Configuration>> allowedToUseList = new ArrayList<>();
+                                final List<Provider<Configuration>> allowedToUseList =
+                                    new ArrayList<>();
                                 allowedToUseList.add(
                                     project
                                         .getConfigurations()
                                         .named(sourceSet.getTaskName("permit", "usedUndeclared")));
 
                                 // List of allowed to declare
-                                List<Provider<Configuration>> allowedToDeclareList =
+                                final List<Provider<Configuration>> allowedToDeclareList =
                                     new ArrayList<>();
                                 allowedToDeclareList.add(
                                     project
@@ -340,63 +341,6 @@ public class AnalyzeDependenciesPlugin implements Plugin<Project> {
                                 task.setClassesDirs(sourceSet.getOutput().getClassesDirs());
                               });
                         });
-                  });
-            });
-    // Add support for application plugin
-    project
-        .getPlugins()
-        .withId(
-            "application",
-            plugin -> {
-              // Find the main source set's analyze task
-              SourceSetContainer sourceSets =
-                  project.getExtensions().getByType(SourceSetContainer.class);
-              SourceSet mainSourceSet = sourceSets.getByName("main");
-              TaskProvider<Task> mainAnalyzeTask =
-                  project
-                      .getTasks()
-                      .named(mainSourceSet.getTaskName("analyze", "classesDependencies"));
-
-              // Depend on additional application plugin tasks
-              mainAnalyzeTask.configure(
-                  task -> {
-                    if (project.getTasks().getNames().contains("distTar")) {
-                      task.dependsOn(project.getTasks().named("distTar"));
-                    }
-                    if (project.getTasks().getNames().contains("distZip")) {
-                      task.dependsOn(project.getTasks().named("distZip"));
-                    }
-                    if (project.getTasks().getNames().contains("startScripts")) {
-                      task.dependsOn(project.getTasks().named("startScripts"));
-                    }
-                  });
-            });
-    // Support for java-test-fixtures plugin
-    project
-        .getPlugins()
-        .withId(
-            "java-test-fixtures",
-            plugin -> {
-              // Find the test source set's analyze task
-              SourceSetContainer sourceSets =
-                  project.getExtensions().getByType(SourceSetContainer.class);
-              SourceSet testSourceSet = sourceSets.getByName("test");
-              SourceSet testFixturesSourceSet = sourceSets.getByName("testFixtures");
-
-              TaskProvider<Task> testAnalyzeTask =
-                  project
-                      .getTasks()
-                      .named(testSourceSet.getTaskName("analyze", "classesDependencies"));
-
-              TaskProvider<Task> testFixturesAnalyzeTask =
-                  project
-                      .getTasks()
-                      .named(testFixturesSourceSet.getTaskName("analyze", "classesDependencies"));
-
-              // Make test analyze task depend on test fixtures analyze task
-              testAnalyzeTask.configure(
-                  task -> {
-                    task.dependsOn(testFixturesAnalyzeTask);
                   });
             });
   }

@@ -2,6 +2,7 @@ package ca.cutterslade.gradle.analyze;
 
 import ca.cutterslade.gradle.analyze.helper.GradleDependency;
 import ca.cutterslade.gradle.analyze.helper.GroovyClass;
+import java.io.IOException;
 import java.util.Collections;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class AnalyzeDependenciesPluginClasspathOrderTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
-  void projectWithTwoDependenciesOrderedFirstSecond() {
+  void projectWithTwoDependenciesOrderedFirstSecond() throws IOException {
     // setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("One").usesClass("Two"))
@@ -25,14 +26,14 @@ class AnalyzeDependenciesPluginClasspathOrderTest extends AnalyzeDependenciesPlu
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(SUCCESS);
+    final BuildResult result = buildGradleProject(SUCCESS);
 
     // then
     assertBuildResult(result, SUCCESS);
   }
 
   @Test
-  void projectWithTwoDependenciesOrderedSecondFirst() {
+  void projectWithTwoDependenciesOrderedSecondFirst() throws IOException {
     // setup
     rootProject()
         .withMainClass(new GroovyClass("Main").usesClass("One").usesClass("Two"))
@@ -48,7 +49,7 @@ class AnalyzeDependenciesPluginClasspathOrderTest extends AnalyzeDependenciesPlu
         .create(projectDir);
 
     // when
-    BuildResult result = buildGradleProject(VIOLATIONS);
+    final BuildResult result = buildGradleProject(VIOLATIONS);
 
     // then
     assertBuildResult(
