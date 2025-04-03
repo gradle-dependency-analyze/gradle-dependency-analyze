@@ -50,7 +50,7 @@ public abstract class AnalyzeDependenciesPluginBaseTest {
   private GradleRunner gradleProject(final boolean withCodeCoverage) {
     if (withCodeCoverage) {
       try (final InputStream inputStream =
-          getClass().getResourceAsStream("testkit-gradle.properties")) {
+          getClass().getClassLoader().getResourceAsStream("testkit-gradle.properties")) {
         if (inputStream != null) {
           Files.copy(
               inputStream,
