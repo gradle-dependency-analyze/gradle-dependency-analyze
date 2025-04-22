@@ -22,7 +22,7 @@ dependencies {
     implementation("org.apache.maven.shared:maven-dependency-analyzer:1.16.0") {
         exclude(group = "org.apache.maven")
     }
-    implementation("org.apache.commons:commons-collections4:4.4")
+    implementation("org.apache.commons:commons-collections4:4.5.0")
 
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     testImplementation("org.assertj:assertj-core:3.27.3")
