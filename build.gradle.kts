@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "ca.cutterslade.gradle"
-version = "1.11.0-SNAPSHOT"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
