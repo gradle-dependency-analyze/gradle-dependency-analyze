@@ -4,7 +4,7 @@ plugins {
     id("java")
     id("java-gradle-plugin")
     id("maven-publish")
-    id("com.gradle.plugin-publish") version "1.3.1"
+    id("com.gradle.plugin-publish") version "2.0.0"
     id("jacoco")
     id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
     id("com.diffplug.spotless") version "7.2.1"
@@ -24,7 +24,7 @@ dependencies {
     }
     implementation("org.apache.commons:commons-collections4:4.5.0")
 
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.19.2")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
     testImplementation("org.assertj:assertj-core:3.27.4")
     testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
