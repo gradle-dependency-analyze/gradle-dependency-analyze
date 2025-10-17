@@ -38,12 +38,12 @@ jobs:
           cache: "gradle"
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@e296a935590eb16afc0c0108289f68c87e2a89a5 # v3.29.5
+        uses: github/codeql-action/init@16140ae1a102900babc80a33c44059580f687047 # v3.29.5
         with:
           languages: "java-kotlin"
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@e296a935590eb16afc0c0108289f68c87e2a89a5 # v3.29.5
+        uses: github/codeql-action/autobuild@16140ae1a102900babc80a33c44059580f687047 # v3.29.5
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@e296a935590eb16afc0c0108289f68c87e2a89a5 # v3.29.5
+        uses: github/codeql-action/analyze@16140ae1a102900babc80a33c44059580f687047 # v3.29.5
