@@ -7,7 +7,7 @@ plugins {
     id("com.gradle.plugin-publish") version "2.0.0"
     id("jacoco")
     id("pl.droidsonroids.jacoco.testkit") version "1.0.12"
-    id("com.diffplug.spotless") version "8.0.0"
+    id("com.diffplug.spotless") version "8.1.0"
     id("com.adarshr.test-logger") version "4.0.0"
 }
 
