@@ -6,8 +6,7 @@ import java.io.IOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
 
-class AnalyzeDependenciesPluginIgnoreUsedUndeclaredTest
-    extends AnalyzeDependenciesPluginBaseTest {
+class AnalyzeDependenciesPluginIgnoreUsedUndeclaredTest extends AnalyzeDependenciesPluginBaseTest {
 
   @Test
   void testIgnoreUsedUndeclaredDoesNotWarn() throws IOException {
@@ -23,6 +22,7 @@ class AnalyzeDependenciesPluginIgnoreUsedUndeclaredTest
         .withDependency(
             new GradleDependency().setConfiguration("implementation").setProject("dependent1"))
         .withIgnoreUsedUndeclared(true)
+        .withWarnUnusedDeclared(true)  // Also warn about unused declared to allow build to succeed
         .create(projectDir);
 
     // When: Build the project
