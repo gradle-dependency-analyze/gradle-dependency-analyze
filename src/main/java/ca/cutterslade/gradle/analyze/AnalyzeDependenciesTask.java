@@ -22,7 +22,7 @@ import org.gradle.api.tasks.*;
 @CacheableTask
 public class AnalyzeDependenciesTask extends DefaultTask {
   private Boolean warnUsedUndeclared = false;
-  private Boolean ignoreUsedUndeclared = false;
+  private Boolean ignoreUsedUndeclared = true;
   private Boolean warnUnusedDeclared = false;
   private Boolean warnSuperfluous = false;
   private Boolean warnCompileOnly = false;

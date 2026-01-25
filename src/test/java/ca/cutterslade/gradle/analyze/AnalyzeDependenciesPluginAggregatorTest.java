@@ -73,6 +73,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .withSubProject(subProject("dependent").withMainClass(new GroovyClass("Dependent")))
         .withDependency(
             new GradleDependency().setConfiguration(configuration).setProject("dependent"))
+        .withIgnoreUsedUndeclared(false)  // Explicitly check for used undeclared violations
         .create(projectDir);
 
     // When
@@ -126,6 +127,7 @@ class AnalyzeDependenciesPluginAggregatorTest extends AnalyzeDependenciesPluginB
         .withSubProject(subProject("dependent").withMainClass(new GroovyClass("Dependent")))
         .withDependency(
             new GradleDependency().setConfiguration(configuration).setProject("dependent"))
+        .withIgnoreUsedUndeclared(false)  // Explicitly check for used undeclared violations
         .create(projectDir);
 
     // When

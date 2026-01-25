@@ -23,7 +23,7 @@ public class GradleProject {
 
   private boolean warnCompileOnly = false;
   private boolean warnUsedUndeclared = false;
-  private boolean ignoreUsedUndeclared = false;
+  private boolean ignoreUsedUndeclared = true;
   private boolean warnUnusedDeclared = false;
   private boolean logDependencyInformationToFiles = false;
   private final Set<GradleProject> subProjects = new LinkedHashSet<>();
@@ -229,7 +229,7 @@ public class GradleProject {
     }
 
     if (warnUsedUndeclared
-        || ignoreUsedUndeclared
+        || !ignoreUsedUndeclared  // Only configure if different from default (true)
         || warnUnusedDeclared
         || logDependencyInformationToFiles
         || warnCompileOnly) {
@@ -240,8 +240,8 @@ public class GradleProject {
       if (warnUsedUndeclared) {
         buildGradle.append("  warnUsedUndeclared = ").append(true).append("\n");
       }
-      if (ignoreUsedUndeclared) {
-        buildGradle.append("  ignoreUsedUndeclared = ").append(true).append("\n");
+      if (!ignoreUsedUndeclared) {  // Only set if false (different from default)
+        buildGradle.append("  ignoreUsedUndeclared = ").append(false).append("\n");
       }
       if (warnUnusedDeclared) {
         buildGradle.append("  warnUnusedDeclared = ").append(true).append("\n");
