@@ -175,6 +175,7 @@ Informational messages are logged to `$builddir/reports/dependency-analyze/`.
 ```gradle
 tasks.named('analyzeClassesDependencies').configure {
   warnUsedUndeclared = true
+  ignoreUsedUndeclared = false
   warnUnusedDeclared = true
   warnSuperfluous = true
   logDependencyInformationToFiles = true
@@ -182,6 +183,7 @@ tasks.named('analyzeClassesDependencies').configure {
 
 tasks.named('analyzeTestClassesDependencies').configure {
   warnUsedUndeclared = true
+  ignoreUsedUndeclared = false
   warnUnusedDeclared = true
   warnSuperfluous = true
   logDependencyInformationToFiles = true
@@ -189,6 +191,7 @@ tasks.named('analyzeTestClassesDependencies').configure {
 ```
 
 - `warnUsedUndeclared` - only warn if used undeclared dependencies are found, default: `false`
+- `ignoreUsedUndeclared` - completely ignore used undeclared dependencies (no warnings or failures), default: `false`
 - `warnUnusedDeclared` - only warn if unused declared dependencies are found, default: `false`
 - `warnSuperfluous` - only warn if superfluous declared dependencies are found, default: `false`
 - `warnCompileOnly` - warn for compileOnly dependencies, default: `false`

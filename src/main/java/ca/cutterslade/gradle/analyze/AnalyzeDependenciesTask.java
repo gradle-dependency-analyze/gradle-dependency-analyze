@@ -22,6 +22,7 @@ import org.gradle.api.tasks.*;
 @CacheableTask
 public class AnalyzeDependenciesTask extends DefaultTask {
   private Boolean warnUsedUndeclared = false;
+  private Boolean ignoreUsedUndeclared = false;
   private Boolean warnUnusedDeclared = false;
   private Boolean warnSuperfluous = false;
   private Boolean warnCompileOnly = false;
@@ -108,6 +109,7 @@ public class AnalyzeDependenciesTask extends DefaultTask {
     warnAndLogOrFail(
         analysis,
         warnUsedUndeclared,
+        ignoreUsedUndeclared,
         warnUnusedDeclared,
         warnCompileOnly,
         warnSuperfluous,
@@ -123,6 +125,15 @@ public class AnalyzeDependenciesTask extends DefaultTask {
 
   public void setWarnUsedUndeclared(final boolean warnUsedUndeclared) {
     this.warnUsedUndeclared = warnUsedUndeclared;
+  }
+
+  @Input
+  public Boolean getIgnoreUsedUndeclared() {
+    return ignoreUsedUndeclared;
+  }
+
+  public void setIgnoreUsedUndeclared(final boolean ignoreUsedUndeclared) {
+    this.ignoreUsedUndeclared = ignoreUsedUndeclared;
   }
 
   @Input

@@ -19,6 +19,7 @@ public final class ProjectDependencyAnalysisResultHandler {
   public static void warnAndLogOrFail(
       final ProjectDependencyAnalysisResult result,
       final boolean warnUsedUndeclared,
+      final boolean ignoreUsedUndeclared,
       final boolean warnUnusedDeclared,
       final boolean warnCompileOnly,
       final boolean warnSuperfluous,
@@ -40,7 +41,9 @@ public final class ProjectDependencyAnalysisResultHandler {
     if (!warnCompileOnly) {
       usedUndeclared.removeAll(possiblyUnusedCompileOnly);
     }
-    final String usedUndeclaredViolations = getSummary("usedUndeclaredArtifacts", usedUndeclared);
+    // If ignoreUsedUndeclared is true, we completely skip usedUndeclared violations
+    final String usedUndeclaredViolations =
+        ignoreUsedUndeclared ? "" : getSummary("usedUndeclaredArtifacts", usedUndeclared);
     final String unusedDeclaredViolations = getSummary("unusedDeclaredArtifacts", unusedDeclared);
     final String superfluousDeclaredViolations =
         getSummary("superfluousDeclaredArtifacts", superfluousDeclaredArtifacts);
@@ -55,13 +58,15 @@ public final class ProjectDependencyAnalysisResultHandler {
         logToFile(logFilePath, combinedViolations, compileOnlyViolations);
       }
 
-      if (!warnUsedUndeclared && !warnUnusedDeclared) {
+      if (!warnUsedUndeclared && !warnUnusedDeclared && !ignoreUsedUndeclared) {
         throw new DependencyAnalysisException(
             foundIssues(join(combinedViolations, compileOnlyViolations)));
       }
 
       if (!usedUndeclaredViolations.isEmpty()) {
-        if (warnUsedUndeclared) {
+        if (ignoreUsedUndeclared) {
+          // Do nothing - completely ignore these violations
+        } else if (warnUsedUndeclared) {
           logger.warn(foundIssues(usedUndeclaredViolations));
         } else {
           throw new DependencyAnalysisException(foundIssues(usedUndeclaredViolations));
