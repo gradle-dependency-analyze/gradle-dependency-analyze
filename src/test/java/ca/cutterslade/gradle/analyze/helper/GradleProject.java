@@ -228,12 +228,32 @@ public class GradleProject {
       buildGradle.append("}\n");
     }
 
-    if (warnUsedUndeclared
-        || !ignoreUsedUndeclared  // Only configure if different from default (true)
-        || warnUnusedDeclared
-        || logDependencyInformationToFiles
-        || warnCompileOnly) {
+    if (plugins.contains("ca.cutterslade.analyze")
+        && (warnUsedUndeclared
+            || !ignoreUsedUndeclared  // Only configure if different from default (true)
+            || warnUnusedDeclared
+            || logDependencyInformationToFiles
+            || warnCompileOnly)) {
       buildGradle.append("tasks.named('analyzeClassesDependencies').configure {\n");
+      if (warnCompileOnly) {
+        buildGradle.append("  warnCompileOnly = ").append(true).append("\n");
+      }
+      if (warnUsedUndeclared) {
+        buildGradle.append("  warnUsedUndeclared = ").append(true).append("\n");
+      }
+      if (!ignoreUsedUndeclared) {  // Only set if false (different from default)
+        buildGradle.append("  ignoreUsedUndeclared = ").append(false).append("\n");
+      }
+      if (warnUnusedDeclared) {
+        buildGradle.append("  warnUnusedDeclared = ").append(true).append("\n");
+      }
+      if (logDependencyInformationToFiles) {
+        buildGradle.append("  logDependencyInformationToFiles = ").append(true).append("\n");
+      }
+      buildGradle.append("}\n");
+      
+      // Also configure test task with same settings
+      buildGradle.append("tasks.named('analyzeTestClassesDependencies').configure {\n");
       if (warnCompileOnly) {
         buildGradle.append("  warnCompileOnly = ").append(true).append("\n");
       }
