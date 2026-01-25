@@ -22,7 +22,7 @@ class AnalyzeDependenciesPluginIgnoreUsedUndeclaredTest extends AnalyzeDependenc
         .withDependency(
             new GradleDependency().setConfiguration("implementation").setProject("dependent1"))
         .withIgnoreUsedUndeclared(true)
-        .withWarnUnusedDeclared(true)  // Also warn about unused declared to allow build to succeed
+        .withWarnUnusedDeclared(true)  // Warn (not fail) on unused declared dependencies
         .create(projectDir);
 
     // When: Build the project
