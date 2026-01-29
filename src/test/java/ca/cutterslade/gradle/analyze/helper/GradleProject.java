@@ -23,6 +23,7 @@ public class GradleProject {
 
   private boolean warnCompileOnly = false;
   private boolean warnUsedUndeclared = false;
+  private boolean ignoreUsedUndeclared = true;
   private boolean warnUnusedDeclared = false;
   private boolean logDependencyInformationToFiles = false;
   private final Set<GradleProject> subProjects = new LinkedHashSet<>();
@@ -82,6 +83,11 @@ public class GradleProject {
 
   public GradleProject withWarnUsedUndeclared(final boolean value) {
     warnUsedUndeclared = value;
+    return this;
+  }
+
+  public GradleProject withIgnoreUsedUndeclared(final boolean value) {
+    ignoreUsedUndeclared = value;
     return this;
   }
 
@@ -222,29 +228,40 @@ public class GradleProject {
       buildGradle.append("}\n");
     }
 
-    if (warnUsedUndeclared
-        || warnUnusedDeclared
-        || logDependencyInformationToFiles
-        || warnCompileOnly) {
-      buildGradle.append("tasks.named('analyzeClassesDependencies').configure {\n");
-      if (warnCompileOnly) {
-        buildGradle.append("  warnCompileOnly = ").append(true).append("\n");
-      }
-      if (warnUsedUndeclared) {
-        buildGradle.append("  warnUsedUndeclared = ").append(true).append("\n");
-      }
-      if (warnUnusedDeclared) {
-        buildGradle.append("  warnUnusedDeclared = ").append(true).append("\n");
-      }
-      if (logDependencyInformationToFiles) {
-        buildGradle.append("  logDependencyInformationToFiles = ").append(true).append("\n");
-      }
-      buildGradle.append("}\n");
+    if (plugins.contains("ca.cutterslade.analyze")
+        && (warnUsedUndeclared
+            || !ignoreUsedUndeclared  // Only configure if different from default (true)
+            || warnUnusedDeclared
+            || logDependencyInformationToFiles
+            || warnCompileOnly)) {
+      appendTaskConfiguration(buildGradle, "analyzeClassesDependencies");
+      appendTaskConfiguration(buildGradle, "analyzeTestClassesDependencies");
     }
 
     additionalTasks.values().forEach(task -> buildGradle.append(task).append("\n"));
 
     Files.write(
         root.resolve("build.gradle"), buildGradle.toString().getBytes(StandardCharsets.UTF_8));
+  }
+
+  private void appendTaskConfiguration(
+      final StringBuilder buildGradle, final String taskName) {
+    buildGradle.append("tasks.named('").append(taskName).append("').configure {\n");
+    if (warnCompileOnly) {
+      buildGradle.append("  warnCompileOnly = ").append(true).append("\n");
+    }
+    if (warnUsedUndeclared) {
+      buildGradle.append("  warnUsedUndeclared = ").append(true).append("\n");
+    }
+    if (!ignoreUsedUndeclared) {  // Only set if false (different from default)
+      buildGradle.append("  ignoreUsedUndeclared = ").append(false).append("\n");
+    }
+    if (warnUnusedDeclared) {
+      buildGradle.append("  warnUnusedDeclared = ").append(true).append("\n");
+    }
+    if (logDependencyInformationToFiles) {
+      buildGradle.append("  logDependencyInformationToFiles = ").append(true).append("\n");
+    }
+    buildGradle.append("}\n");
   }
 }
