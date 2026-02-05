@@ -70,6 +70,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .withSubProject(subProject("transient").withMainClass(new GroovyClass("Transient")))
         .withDependency(
             new GradleDependency().setConfiguration(configuration).setProject("dependent"))
+        .withIgnoreUsedUndeclared(false)  // Explicitly check for used undeclared violations
         .create(projectDir);
 
     // When
@@ -209,6 +210,7 @@ class AnalyzeDependenciesPluginTest extends AnalyzeDependenciesPluginBaseTest {
         .withSubProject(subProject("transient").withMainClass(new GroovyClass("Transient")))
         .withDependency(
             new GradleDependency().setConfiguration(configuration).setProject("dependent"))
+        .withIgnoreUsedUndeclared(false)  // Explicitly check for used undeclared violations
         .create(projectDir);
 
     // When

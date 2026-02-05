@@ -189,6 +189,7 @@ tasks.named('analyzeTestClassesDependencies').configure {
 ```
 
 - `warnUsedUndeclared` - only warn if used undeclared dependencies are found, default: `false`
+- `ignoreUsedUndeclared` - completely ignore used undeclared dependencies (no warnings or failures), default: `true`
 - `warnUnusedDeclared` - only warn if unused declared dependencies are found, default: `false`
 - `warnSuperfluous` - only warn if superfluous declared dependencies are found, default: `false`
 - `warnCompileOnly` - warn for compileOnly dependencies, default: `false`
