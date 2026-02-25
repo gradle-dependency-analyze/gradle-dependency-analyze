@@ -31,6 +31,7 @@ class AnalyzeDependenciesPluginTaskConfigurationTest extends AnalyzeDependencies
         .withSubProject(subProject("dependent2").withMainClass(new GroovyClass("Dependent2")))
         .withDependency(
             new GradleDependency().setConfiguration("implementation").setProject("dependent1"))
+        .withIgnoreUsedUndeclared(false)  // Explicitly check for used undeclared violations
         .withWarnUsedUndeclared(warnUsedUndeclared)
         .withWarnUnusedDeclared(warnUnusedDeclared)
         .create(projectDir);
